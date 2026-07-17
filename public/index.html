@@ -100,11 +100,9 @@
   .fork .choices{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
   .fork .choice{background:var(--panel2);border:1px solid var(--line);border-radius:16px;padding:20px;cursor:pointer;transition:.15s}
   .fork .choice:hover{transform:translateY(-2px);border-color:var(--dim)}
-  .fork .choice.tempt{border-color:rgba(240,165,49,.5)} .fork .choice.tempt:hover{box-shadow:0 8px 26px rgba(240,165,49,.2)}
-  .fork .choice.solid{border-color:rgba(63,185,80,.5)} .fork .choice.solid:hover{box-shadow:0 8px 26px rgba(63,185,80,.2)}
+  .fork .choice.tempt{border-color:var(--line)} .fork .choice.tempt:hover{box-shadow:0 8px 26px rgba(0,0,0,.35)}
+  .fork .choice.solid{border-color:var(--line)} .fork .choice.solid:hover{box-shadow:0 8px 26px rgba(0,0,0,.35)}
   .fork .choice .ce{font-size:26px} .fork .choice h3{margin:8px 0 6px;font-size:18px} .fork .choice p{margin:0;font-size:14px;color:var(--muted)}
-  .fork .choice .feel{display:inline-block;margin-top:12px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
-  .fork .choice.tempt .feel{color:var(--amber)} .fork .choice.solid .feel{color:#8ce39a}
   @media(max-width:640px){.fork .choices{grid-template-columns:1fr}}
   .hero{text-align:center;padding:38px 0 6px}
   .hero .logo{font-size:13px;letter-spacing:.24em;text-transform:uppercase;color:var(--amber);font-weight:800}
@@ -179,8 +177,8 @@ var HOOK_PENALTIES=[
 ];
 var MAP_BUCKETS=[{id:"goal",label:"Goal",hint:"What we want to achieve"},{id:"rule",label:"Rule",hint:"Something that must hold"},{id:"ex",label:"Example",hint:"One concrete case"},{id:"q",label:"Open question",hint:"Not settled yet"}];
 var NG_BUCKETS=[{id:"done",label:"Answered",hint:"Clearly decided"},{id:"limit",label:"Deliberately limited",hint:"We set it / leave it out on purpose"},{id:"block",label:"Blocked",hint:"Settle it before going on"}];
-var FORK_NG={situation:"You’ve mapped it and spelled out the behaviour. It feels ready, and it’s tempting to hand it over now. But your map still has open questions on it. Your call:",tempt:{e:"🚀",h:"Hand it over now",p:"It feels ready enough. Ship it and sort the details out as they come up.",feel:"Feels fast"},solid:{e:"🧭",h:"Settle the questions first",p:"Give every open question a clear state before anyone starts. Free — it’s still analysis.",feel:"Stays free"},penalties:[{item:"A meeting to answer the question you left open",days:2},{item:"Redoing the part the agent guessed",days:1}],penaltyPunch:"You were always going to answer these questions. You just paid cycle time to answer them late. Back to it — for free this time."};
-var FORK_SLICE={situation:"It’s a big change. It’s tempting to hand the whole thing over in one go and be done with it. Your call:",tempt:{e:"🚀",h:"Hand over the whole thing at once",p:"One big handover, one and done. Why slow down to slice it?",feel:"Feels fast"},solid:{e:"🥔",h:"Cut it into smaller pieces first",p:"Slice it so each piece can be checked on its own. Free — it’s still analysis.",feel:"Stays free"},penalties:[{item:"The review drowns and a defect slips through, found late",days:3},{item:"Fixing it after it’s already live",days:2}],penaltyPunch:"A big handover hides defects until they’re expensive. Slice it first — for free this time."};
+var FORK_NG={situation:"You’ve mapped it and spelled out the behaviour. It feels ready, and it’s tempting to hand it over now. But your map still has open questions on it. Your call:",kind:"noguess",tempt:{e:"🚀",h:"Hand it over now",p:"It feels ready enough. Ship it and sort the details out as they come up."},solid:{e:"🧭",h:"Settle the questions first",p:"Give every open question a clear state before anyone starts. Free — it’s still analysis."},penalties:[{item:"A meeting to answer the question you left open",days:2},{item:"Redoing the part the agent guessed",days:1}]};
+var FORK_SLICE={situation:"It’s a big change. It’s tempting to hand the whole thing over in one go and be done with it. Your call:",kind:"slice",tempt:{e:"🚀",h:"Hand over the whole thing at once",p:"One big handover, one and done. Why slow down to slice it?"},solid:{e:"🥔",h:"Cut it into smaller pieces first",p:"Slice it so each piece can be checked on its own. Free — it’s still analysis."},penalties:[{item:"The review drowns and a defect slips through, found late",days:3},{item:"Fixing it after it’s already live",days:2}]};
 var BOSS_OPTIONS=[
   {t:"What we’re really trying to achieve — the goal, not one particular solution.",bad:false},
   {t:"How it should behave, in concrete examples — including when things go wrong.",bad:false},
@@ -338,15 +336,38 @@ function renderRewind(st){
   document.getElementById("rw").onclick=next;
 }
 /* ---------------- FORK ---------------- */
+function reflectionPrompt(fork,sc){
+  if(!sc)return 'Which of the open questions from earlier is still sitting there, unresolved?';
+  if(fork.kind==="noguess"){
+    var blocked=null;
+    if(sc.noguess){for(var i=0;i<sc.noguess.length;i++){if(sc.noguess[i].c==="block"){blocked=sc.noguess[i];break;}}}
+    if(blocked){
+      return 'That question was still open when you handed over: „'+blocked.t+'“ What has changed between now and a moment ago about that question?';
+    }
+    return 'Which of the open questions from earlier did you just run into again?';
+  }
+  if(fork.kind==="slice"){
+    var picked=null;
+    if(sc.slices){
+      for(var j=0;j<sc.slices.length;j++){var s=sc.slices[j];if(s.bad){var hay=((s.why||'')+' '+(s.t||'')).toLowerCase();if(hay.indexOf('later')!==-1){picked=s;break;}}}
+      if(!picked){for(var k=0;k<sc.slices.length;k++){if(sc.slices[k].bad){picked=sc.slices[k];break;}}}
+    }
+    if(picked){
+      return 'That’s exactly what you skipped: „'+picked.t+'“ — '+(picked.why||'')+' What became of that part, once you left it out?';
+    }
+    return 'Which of the cuts from earlier did you end up skipping?';
+  }
+  return 'Which of the open questions from earlier is still sitting there, unresolved?';
+}
 function renderFork(st){
-  host.innerHTML='<div class="stage">'+stageHead(st)+'<div class="fork"><div class="situation">'+st.fork.situation+'</div><div class="choices"><div class="choice tempt" id="cTempt"><div class="ce">'+st.fork.tempt.e+'</div><h3>'+st.fork.tempt.h+'</h3><p>'+st.fork.tempt.p+'</p><span class="feel">'+st.fork.tempt.feel+'</span></div><div class="choice solid" id="cSolid"><div class="ce">'+st.fork.solid.e+'</div><h3>'+st.fork.solid.h+'</h3><p>'+st.fork.solid.p+'</p><span class="feel">'+st.fork.solid.feel+'</span></div></div><div id="forkOut"></div></div></div>';
+  host.innerHTML='<div class="stage">'+stageHead(st)+'<div class="fork"><div class="situation">'+st.fork.situation+'</div><div class="choices"><div class="choice tempt" id="cTempt"><div class="ce">'+st.fork.tempt.e+'</div><h3>'+st.fork.tempt.h+'</h3><p>'+st.fork.tempt.p+'</p></div><div class="choice solid" id="cSolid"><div class="ce">'+st.fork.solid.e+'</div><h3>'+st.fork.solid.h+'</h3><p>'+st.fork.solid.p+'</p></div></div><div id="forkOut"></div></div></div>';
   document.getElementById("cSolid").onclick=function(){S.forks[S.i]="solid";render();};
   document.getElementById("cTempt").onclick=function(){
     document.getElementById("cTempt").style.pointerEvents="none";document.getElementById("cSolid").style.pointerEvents="none";
     var out=document.getElementById("forkOut");out.innerHTML='<div class="agent" style="margin-top:18px"><div class="working"><span class="spinner"></span> You start early. The agent runs into the gap…</div></div>';
     setTimeout(function(){out.innerHTML='<div class="rework"><div class="rh">⏱️ You started before you were ready — the meter runs</div></div>';var wrap=out.querySelector(".rework");var idx=0;
       (function addOne(){
-        if(idx>=st.fork.penalties.length){wrap.insertAdjacentHTML("beforeend",'<div class="sum">'+st.fork.penaltyPunch+'</div>');
+        if(idx>=st.fork.penalties.length){wrap.insertAdjacentHTML("beforeend",'<div class="sum">'+reflectionPrompt(st.fork,SC)+'</div>');
           setTimeout(function(){out.insertAdjacentHTML("beforeend",'<div class="row"><button class="btn go" id="back">Go back and do it properly →</button></div>');document.getElementById("back").onclick=function(){S.forks[S.i]="rushed";render();};document.getElementById("back").scrollIntoView({behavior:"smooth",block:"center"});},500);return;}
         var p=st.fork.penalties[idx++];S.rework.push(p);bumpCycle(p.days);document.getElementById("rwVal").textContent=S.rework.reduce(function(s,r){return s+r.days;},0)+"d";
         wrap.insertAdjacentHTML("beforeend",'<div class="rticket"><span>'+p.item+'</span><span class="d">+'+p.days+'d</span></div>');setTimeout(addOne,650);
