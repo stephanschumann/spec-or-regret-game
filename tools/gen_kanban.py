@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-gen_kanban.py — erzeugt das agent-contract-kanban Artifact-HTML deterministisch aus
+gen_kanban.py — erzeugt das spec-or-regret-kanban Artifact-HTML deterministisch aus
 Backlog.md (+ Backlog-Archive.md, falls vorhanden).
 
 Nach dem Vorbild von FotoAlert/tools/gen_kanban.py, aber angepasst an dieses Projekt:
@@ -15,8 +15,8 @@ Kanonische Lane-Quelle ist das `Status`-Feld des Tickets. Reihenfolge der Auflö
 
 Workflow (analog FotoAlert, Memory feedback_kanban_sync):
   1. In Backlog.md nur das Status-Feld des Tickets setzen
-  2. python3 agent-contract-game/tools/sync_kanban.py <out>  -> schreibt <out>/agent-contract-kanban.html
-  3. mcp__remote-devices__update_artifact (id: agent-contract-kanban, file_uuid = per SendUserFile hochgeladene Datei)
+  2. python3 spec-or-regret-game/tools/sync_kanban.py <out>  -> schreibt <out>/spec-or-regret-kanban.html
+  3. mcp__remote-devices__update_artifact (id: spec-or-regret-kanban, file_uuid = per SendUserFile hochgeladene Datei)
 """
 import sys, os, re, json, datetime
 
@@ -108,7 +108,7 @@ def main():
     # Ohne Escaping beendet der HTML-Parser das umschliessende <script>-Tag vorzeitig.
     tickets_json = tickets_json.replace("</", "<\\/")
     html = template.replace("__TICKETS_JSON__", tickets_json).replace("__STAMP__", stamp)
-    out_path = os.path.join(out_dir, "agent-contract-kanban.html")
+    out_path = os.path.join(out_dir, "spec-or-regret-kanban.html")
     open(out_path, "w", encoding="utf-8").write(html)
     from collections import Counter
     c = Counter(t["lane"] for t in tickets)

@@ -4,9 +4,9 @@ sync_kanban.py — atomarer Kanban-Sync: erst LINTEN, dann GENERIEREN. Bricht la
 wenn Backlog.md inkonsistent ist (statt still die veraltete Quelle zu bevorzugen).
 Nach dem Vorbild von FotoAlert/tools/sync_kanban.py.
 
-Aufruf:  python3 agent-contract-game/tools/sync_kanban.py <outputs-dir>
+Aufruf:  python3 spec-or-regret-game/tools/sync_kanban.py <outputs-dir>
 Danach:  Datei per SendUserFile hochladen, dann
-         mcp__remote-devices__update_artifact (id: agent-contract-kanban, file_uuid = ...)
+         mcp__remote-devices__update_artifact (id: spec-or-regret-kanban, file_uuid = ...)
 
 Der Push (update_artifact) bleibt der MCP-Call des Agenten — dieser Wrapper stellt nur
 sicher, dass NIE generiert/gepusht wird, solange der Lint rot ist.
@@ -33,6 +33,6 @@ print("✓ Lint sauber. → Generiere …")
 r = subprocess.run([sys.executable, os.path.join(HERE, "gen_kanban.py"), out_dir])
 if r.returncode != 0:
     sys.exit(r.returncode)
-html = os.path.join(out_dir, "agent-contract-kanban.html")
+html = os.path.join(out_dir, "spec-or-regret-kanban.html")
 print(f"\n✓ Fertig: {html}")
-print("→ Jetzt: SendUserFile + mcp__remote-devices__update_artifact (id: agent-contract-kanban).")
+print("→ Jetzt: SendUserFile + mcp__remote-devices__update_artifact (id: spec-or-regret-kanban).")
