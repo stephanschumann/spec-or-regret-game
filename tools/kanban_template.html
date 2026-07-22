@@ -1,11 +1,11 @@
 <!DOCTYPE html><script type="application/json" id="cowork-artifact-meta">
 {
-  "name": "Agent Contract Kanban",
+  "name": "Spec or Regret Kanban",
   "schemaVersion": 1,
-  "description": "Agent Contract – Kanban Board mit ToDo, In Progress und Done, generiert aus Backlog.md"
+  "description": "Spec or Regret – Kanban Board mit ToDo, In Progress und Done, generiert aus Backlog.md"
 }
 </script>
-<html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Agent Contract Kanban</title>
+<html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Spec or Regret Kanban</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:auto}
@@ -61,7 +61,7 @@ h1{font-size:1.2rem;font-weight:700;color:#f8fafc}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .hint{font-size:.68rem;color:#475569;margin-left:auto}
 </style></head><body>
-<h1>🎓 Agent Contract Kanban</h1>
+<h1>🎓 Spec or Regret Kanban</h1>
 <p class="sub">▶ schiebt eine Karte eine Spalte weiter · ◀ zurück · oder per Drag&amp;Drop · Klick auf den Titel öffnet Details · jede Änderung synct Backlog.md</p>
 <div class="bar">
 <button class="btn" id="toggleDone">Done ausblenden</button>
@@ -149,7 +149,7 @@ function move(id,to){
  state[id]=to;save();render();
  const col=document.querySelector(`.col[data-lane="${to}"]`);
  if(col)col.scrollIntoView({behavior:"smooth",inline:"center",block:"nearest"});
- const msg=`Verschiebe Ticket ${id} im Agent-Contract-Kanban von "${LK[from]}" nach "${LK[to]}" und aktualisiere das Status-Feld in Backlog.md entsprechend (Projektordner agent-contract-game).`;
+ const msg=`Verschiebe Ticket ${id} im Spec-or-Regret-Kanban von "${LK[from]}" nach "${LK[to]}" und aktualisiere das Status-Feld in Backlog.md entsprechend (Projektordner spec-or-regret-game).`;
  toast(`${id} → ${LK[to]} · synchronisiere Backlog.md …`);
  if(window.sendPrompt)window.sendPrompt(msg);
 }

@@ -1,7 +1,9 @@
 # Product.md – Agentic Engineering Gamification
 
-Stand: 20.07.2026. Lebendiges Dokument: wird bei jeder neuen Anforderung, die in Gesprächen zu diesem Projekt auftaucht, fortlaufend ergänzt. Ziel: jederzeit ein vollständiger Überblick über alle funktionalen und nicht-funktionalen Anforderungen an das Produkt „Agent Contract" (Lernspiel) und die begleitende Unterlage.
+Stand: 22.07.2026. Lebendiges Dokument: wird bei jeder neuen Anforderung, die in Gesprächen zu diesem Projekt auftaucht, fortlaufend ergänzt. Ziel: jederzeit ein vollständiger Überblick über alle funktionalen und nicht-funktionalen Anforderungen an das Produkt „Spec or Regret" (Lernspiel, bis v1.7.0 „Agent Contract") und die begleitende Unterlage.
 
+> Hinweis (22.07.2026): Das Spiel wurde von „Agent Contract" in „Spec or Regret" umbenannt (FEATURE-007, ab v1.8.0). Frühere Erwähnungen von „Agent Contract" in diesem Dokument und in bereits abgeschlossenen Tickets sind historisch korrekt und wurden nicht rückwirkend geändert.
+>
 > Hinweis (20.07.2026): Diese lokale Datei war seit dem 17.07.2026 nicht mehr aktualisiert worden, obwohl in der Zwischenzeit (in anderen Gesprächsfäden) bereits die Versionen v1.3.0 bis v1.4.2 entstanden und released wurden — nachvollzogen über die Ticket-Historie in der Claude-Projekt-Wissensablage und per `git log` im lokalen Repo bestätigt. Die folgenden Punkte wurden entsprechend nachgezogen.
 >
 > Verschoben am 20.07.2026 aus dem übergeordneten Ordner `Agentic Engineering Gamification/` in dieses Projektverzeichnis (`agent-contract-game/`), damit Backlog.md und Product.md direkt im selben Projektordner wie der Code liegen.
