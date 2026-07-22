@@ -6,15 +6,133 @@
 
 ## 🔄 In Progress
 
+### FEATURE-006 Einladungs-Overlay vor dem Startbildschirm
+
+| Feld | Wert |
+|------|------|
+| **Typ** | Feature |
+| **Priorität** | Mittel |
+| **Status** | In Progress |
+| **Erstellt** | 2026-07-22 |
+| **In Progress seit** | 2026-07-22 |
+
+**Beschreibung:** Vor dem bisherigen Startbildschirm soll ein kurzes, einladendes Overlay erscheinen (Headline, kurze Erklärung, Spielstart-Button), das man wegklicken kann. Solange das Overlay sichtbar ist, soll der dahinterliegende Startbildschirm-Text nicht sichtbar sein, um nicht abzulenken. Die Anzahl unnötiger Klicks bis zum Spielstart soll dabei möglichst gering bleiben – das Overlay soll den Weg zum Spielstart nicht um einen zusätzlichen Klick-Umweg verlängern.
+
+**User Story:** Als Spielerin/Spieler möchte ich beim ersten Öffnen des Spiels eine kurze Einladung sehen, bevor der eigentliche Startbildschirm erscheint, sodass ich weiß, worum es geht, ohne dass sich der Weg zum eigentlichen Spielstart verlängert.
+
+**Scope:**
+Eingeschlossen: Ein neues, wegklickbares Einladungs-Overlay erscheint unmittelbar beim ersten Öffnen des Spiels, bevor der bisherige Startbildschirm (Szenario-Auswahl) zu sehen ist. Solange es sichtbar ist, ist der Startbildschirm dahinter nicht vorhanden – nicht nur optisch verdeckt, sondern schlicht noch nicht aufgebaut. Drei gleichwertige Wege zum Schließen: der Haupt-Button, das im Spiel bereits bekannte ×, und ein Klick auf den abgedunkelten Hintergrund – alle drei führen unmittelbar, ohne weiteren Zwischenschritt, zum bisherigen Startbildschirm. Inhalt: kurze Einladung mit Überschrift, ein bis zwei erklärende Sätze und dem Schließen-Button, im selben visuellen Muster wie die bereits vorhandenen Overlays (Badges, Rework-Log, Rückblick).
+Ausgeschlossen: Der Rückweg zur Szenario-Auswahl über „Pick another scenario“ nach einer fertig gespielten Runde bleibt unverändert – dort erscheint die Einladung nicht erneut (sonst würde sie bei jedem neuen Durchlauf in derselben Sitzung stören). Keine Änderung an Spielmechanik, den 21 Szenarien, der Wertung oder den übrigen Bildschirmen. Kein dauerhaftes „schon gesehen“-Merken für Wiederbesuche (passend zur bestehenden Vorgabe, dass nichts dauerhaft im Browser gespeichert wird) – die Einladung erscheint bei jedem neuen Laden der Seite.
+
+**Akzeptanzkriterien:**
+- [x] Beim ersten Öffnen des Spiels erscheint zuerst die Einladung; die Szenario-Auswahl (bisheriger Startbildschirm) ist zu diesem Zeitpunkt nicht zu sehen.
+- [x] Die Einladung lässt sich auf drei Arten wegklicken: über den Haupt-Button, über das gewohnte × oben rechts, und über einen Klick auf den abgedunkelten Bereich außerhalb der Box – alle drei führen direkt zur Szenario-Auswahl, ohne weitere Zwischenschritte.
+- [x] Nach dem Wegklicken sieht die Szenario-Auswahl genauso aus wie bisher vor dieser Änderung (die anzeigende Funktion selbst wurde nicht verändert).
+- [x] Nach einer fertig gespielten Runde führt „Pick another scenario“ weiterhin direkt zur Szenario-Auswahl, ohne die Einladung erneut zu zeigen (automatisiert über denselben Code-Pfad geprüft; siehe Testplan-Einschränkung).
+- [ ] Auf einem schmalen Bildschirm (Handy-Breite) bleibt die Einladung vollständig lesbar und der Haupt-Button erreichbar, auch wenn der Text dafür gescrollt werden muss. **– noch offen, siehe Testplan.**
+- [x] Keine Konsolenfehler beim Öffnen, beim Wegklicken auf jede der drei Arten, und beim anschließenden normalen Spielstart (bis auf die bekannte, unabhängige jsdom-Canvas-Einschränkung, siehe Testplan).
+
+**Fundstellen-Sweep:** Gesucht nach allen Aufrufen der Funktion, die den Startbildschirm aufbaut (`renderPicker(`): 3 Treffer – die Definition selbst, der ursprüngliche Aufruf beim ersten Laden der Seite (ganz am Ende des Skripts), und der Aufruf hinter dem Button „Pick another scenario“ auf der Abschlussseite. Nur der erste (initiale Seitenaufbau) soll die neue Einladung zeigen; der zweite (Rückweg nach einer fertig gespielten Runde) bleibt bewusst unverändert – sonst würde die Einladung bei jedem neuen Durchlauf in derselben Sitzung erneut erscheinen, was der Anforderung „möglichst wenige unnötige Klicks“ widerspricht. Keine weiteren Fundstellen.
+
+**Zustands-Check:** Kein Wartezustand nötig – das Schließen der Einladung und der Aufbau der Szenario-Auswahl passieren ohne Ladezeit oder Netzwerkzugriff. Kein Leerzustand relevant – der Inhalt der Einladung ist immer derselbe feste Text, unabhängig von Spielstand oder Szenario. Fehlerfall: kein neues Fehlerverhalten vorgesehen; sollte einer der drei Schließen-Wege aus einem Programmierfehler nicht reagieren, bliebe das Spiel blockiert – deshalb werden im Testplan alle drei Wege einzeln geprüft, nicht nur einer stellvertretend für alle.
+
+**Pre-Mortem:**
+- 💀 Einer der drei Schließen-Wege (Haupt-Button, ×, Hintergrund-Klick) funktioniert wegen eines Tippfehlers nicht und blockiert den Zugang zum Spiel → Gegenmaßnahme: alle drei Wege einzeln im Testplan geprüft, nicht nur einer angenommen.
+- 💀 „Pick another scenario“ zeigt die Einladung versehentlich erneut und nervt beim wiederholten Spielen in einer Workshop-Sitzung → Gegenmaßnahme: bewusst nur der initiale Aufruf zeigt die Einladung (siehe Fundstellen-Sweep), eigenes Akzeptanzkriterium dafür.
+- 💀 Der abgedunkelte, leicht durchscheinende Hintergrund lässt die Szenario-Auswahl doch noch schemenhaft erkennbar wirken, obwohl „nicht sichtbar“ gefordert ist → Gegenmaßnahme: die Szenario-Auswahl wird technisch gar nicht erst aufgebaut, solange die Einladung offen ist – dahinter ist buchstäblich nichts vorhanden, nicht nur optisch verdeckt.
+- 💀 Die Versionsanzeige wird nicht erhöht, obwohl sich sichtbares Verhalten ändert → Gegenmaßnahme: eigenes Akzeptanzkriterium in den Implementierungsnotizen, Versionssprung analog zu früheren sichtbaren Funktionen.
+- 💀 Auf dem Handy sprengt der Einladungstext die Box, oder der Haupt-Button ist nicht erreichbar → Gegenmaßnahme: eigenes Akzeptanzkriterium für Handy-Breite, bestehendes Scroll-Verhalten der Overlays wird wiederverwendet.
+
+**Optionenvergleich:**
+
+*Option A – Startbildschirm wird erst nach dem Schließen aufgebaut (empfohlen):* Die Einladung erscheint sofort; die Szenario-Auswahl wird technisch erst erzeugt, sobald die Einladung geschlossen wird. Vorteil: „nicht sichtbar“ ist damit wörtlich erfüllt, nicht nur optisch abgedunkelt. Nutzt das bereits vorhandene, bewährte Overlay-Muster praktisch unverändert – sehr kleiner, gut abgegrenzter Eingriff nur an der Stelle, an der das Spiel startet. Kein erkennbarer Nachteil.
+
+*Option B – Startbildschirm wird wie gewohnt sofort aufgebaut, Einladung nur optisch darübergelegt:* Technisch am einfachsten, aber die Szenario-Auswahl liegt dann nur abgedunkelt/verschwommen dahinter statt tatsächlich zu fehlen – erfüllt die Anforderung „nicht sichtbar“ nicht zuverlässig.
+
+✅ **Empfehlung:** Option A – einzige Option, die „nicht sichtbar“ wörtlich erfüllt, und dabei trotzdem minimal-invasiv, weil sie das bestehende Overlay-Muster eins zu eins wiederverwendet.
+
+**Analyse & Planung:**
+- [x] Repo-Stand vor Beginn geprüft: HEAD `900dc1f` (v1.6.1), `git status` zeigt nur die erwarteten, unabhängig von diesem Ticket entstandenen Änderungen (Backlog.md/Backlog-Archive.md/tools/ aus TASK-002) – kein zwischenzeitlicher Fremdstand am Spielcode.
+- [x] Bestehendes Overlay-Muster am echten Code verifiziert: drei existierende Overlays (Badges, Rework-Log, Rückblick) sind statische `<div class="overlay">…<div class="modal">…</div></div>`-Elemente, standardmäßig unsichtbar (`display:none`), werden per `.show`-Klasse eingeblendet. Ein bereits vorhandener, generischer Mechanismus schließt jedes Overlay sowohl über ein `×` mit `data-close` als auch über einen Klick auf den Hintergrund außerhalb der Box.
+- [x] Startbildschirm-Aufbau verifiziert: eine eigene Funktion füllt den Inhaltsbereich der Seite; sie wird aktuell genau einmal beim ersten Laden der Seite aufgerufen (ganz am Ende des Skripts) und ein zweites Mal über „Pick another scenario“ auf der Abschlussseite (siehe Fundstellen-Sweep).
+- [x] Implementierungsansatz: neues Overlay nach demselben Muster wie die drei bestehenden anlegen; der ursprüngliche Aufruf beim ersten Laden der Seite wird durch „Einladung anzeigen“ ersetzt; der Startbildschirm wird erst gebaut, wenn die Einladung auf einem der drei Wege geschlossen wird. Der zweite bestehende Aufruf (Rückweg nach einer Runde) bleibt unverändert.
+- [x] Aufwand: klein – reine Ergänzung im Boot-Ablauf, keine Berührung der szenario-spezifischen Logik oder der 21 Szenario-Inhalte.
+
+**Testplan:**
+- [x] Automatisiert (jsdom, echtes Ausführen der Seite im echten DOM wie bei früheren Tickets): 14 Einzelprüfungen – beim ersten Laden zeigt die Einladung die „show“-Klasse und die Szenario-Auswahl ist noch nicht im Inhaltsbereich vorhanden; danach jeweils einzeln über Haupt-Button, × und Hintergrund-Klick geschlossen und geprüft, dass die Szenario-Auswahl danach korrekt erscheint und die Einladung die „show“-Klasse verloren hat; zusätzlich geprüft, dass ein Klick INNERHALB der Box sie nicht schließt (bestehender genereller Mechanismus). Alle 14 Prüfungen grün.
+- [x] Regressionstest: statt eines vollständigen 21-Schritte-Durchlaufs wurde die anzeigende Funktion nach dem ersten Wegklicken ein zweites Mal direkt aufgerufen – genau der Code-Pfad, den „Pick another scenario“ auch nutzt. Die Einladung bekam dabei NICHT die „show“-Klasse zurück, die Szenario-Auswahl erschien direkt. **Einschränkung:** kein vollständiger End-to-End-Durchlauf über die echte Abschlussseite bis zum Klick auf den echten Button – das deckt denselben Code-Pfad ab, aber nicht den kompletten Klickweg dorthin.
+- [x] Syntax-Check (`node --check`) fehlerfrei.
+- **Begründung Testabdeckung:** Diese Änderung berührt keine der 21 szenario-spezifischen Datenstrukturen und keine geteilte Kategorie-Konstante, sondern ausschließlich den einen, szenario-unabhängigen Einstiegspunkt der Seite. Ein Testdurchlauf deckt daher strukturell alle 21 Szenarien ab, weil die Änderung vor jeder Szenario-Auswahl greift, nicht danach.
+- Keine gespeicherte Testsuite aus früheren Tickets im Projekt vorhanden (wie bereits bei BUG-001 vermerkt) – der jsdom-Test für dieses Ticket ist neu.
+- **Bekannte, vom Fix unabhängige Testumgebungs-Einschränkung:** jsdom unterstützt `<canvas>` nicht (Konfetti-Effekt) – ohne einen Stub dafür bricht das gesamte Skript beim ersten Laden ab, bevor überhaupt etwas geprüft werden kann. Für den Test wurde `getContext` daher testseitig auf No-op-Methoden gestubbt (reine Testumgebungs-Anpassung, keine Änderung am echten Spielcode) – dieselbe Einschränkung wurde bereits bei BUG-001 dokumentiert.
+- [ ] Echter Blick im Browser (Desktop und Handy-Breite) bleibt offener Punkt – wird im Rahmen der Live-Verifikation beim Release geprüft bzw. von Stephan selbst bestätigt.
+
+**Scope-Änderungen** *(chronologisches Log):*
+*(keine – der zusätzliche Absatz zu Analysis/Cycle/Lead Time im Einladungstext wurde noch vor Implementierungsbeginn während der Textabstimmung ergänzt, nicht nachträglich als Scope-Änderung.)*
+
+**Implementierungsnotizen:**
+Umgesetzt in `public/index.html` (Basis: v1.6.1 / Commit `900dc1f`, vor dem Schreiben per `git status`/Datei-Zeitstempel geprüft – kein zwischenzeitlicher Fremdstand). Neues, statisches Overlay `#ovIntro` nach dem bestehenden Muster der drei vorhandenen Overlays (`ovBadges`/`ovRework`/`ovReview`) direkt im HTML ergänzt, mit `class="overlay show"` von Anfang an sichtbar. Der ursprüngliche, einzelne Aufruf der startbildschirm-aufbauenden Funktion beim ersten Laden der Seite wurde entfernt; `#stageHost` bleibt dadurch leer, bis die Einladung geschlossen wird. Eine neue Funktion `startGame()` entfernt die „show“-Klasse und baut danach den Startbildschirm auf; sie ist an drei Stellen verdrahtet: den Haupt-Button, das ×-Element (bewusst ohne das generische `data-close`-Attribut, damit es eigenständig sowohl schließt als auch den Startbildschirm aufbaut) und – nach den bereits bestehenden generischen Overlay-Handlern platziert, damit die eigene Zuweisung die generische überschreibt – einen Klick auf den Hintergrund des neuen Overlays selbst. Der zweite, bestehende Aufruf derselben Aufbau-Funktion (hinter „Pick another scenario“ auf der Abschlussseite) wurde nicht angefasst. `GAME_VERSION` von „1.6.1“ auf „1.7.0“ angehoben (Minor, da eine echte neue sichtbare Funktion, analog FEATURE-004/005). Einladungstext exakt wie mit Stephan abgestimmt (inkl. des ergänzten Absatzes zu Analysis/Cycle/Lead Time).
+
+## 📋 ToDo
+
+## ✅ Done
+
+### TASK-002 Kanban-Board und Sync-Verfahren einrichten (nach FotoAlert-Vorbild)
+
+| Feld | Wert |
+|------|------|
+| **Typ** | Task |
+| **Priorität** | Mittel |
+| **Status** | Done |
+| **Erstellt** | 2026-07-21 |
+| **In Progress seit** | 2026-07-21 13:58 |
+| **Fertiggestellt** | 2026-07-21 |
+
+**Beschreibung:** Stephan möchte für dieses Projekt dasselbe Kanban-Board-und-Sync-Verfahren wie bei FotoAlert etablieren: ein visuelles Board, das automatisch aus Backlog.md generiert wird, statt von Hand gepflegt zu werden.
+
+**User Story:** Als Stephan möchte ich den Ticket-Stand dieses Projekts als Kanban-Board sehen, das sich bei jeder Statusänderung automatisch und ohne manuelles Zutun aktualisiert, sodass ich hier denselben verlässlichen Überblick habe wie bei FotoAlert.
+
+**Scope:**
+Eingeschlossen: neues `Backlog-Archive.md` (Kopie der historischen, bereits abgeschlossenen Tickets aus der Claude-Projekt-Wissensablage) im Projektordner anlegen; Generator-Skripte (`tools/gen_kanban.py`, `tools/lint_backlog.py`, `tools/sync_kanban.py`) und eine Kanban-HTML-Vorlage (`tools/kanban_template.html`) nach FotoAlert-Vorbild anlegen, angepasst an die drei Lanes (ToDo/In Progress/Done) dieses Projekts und an das hier tatsächlich verwendete Ticket-Überschriften-Format (kein Trennzeichen zwischen ID und Titel); erstes Kanban-Board generieren und als persistiertes Cowork-Artifact veröffentlichen; `agent-contract-analyze`-Skill (Schritt 5) so aktualisieren, dass er auf den jetzt vorhandenen Generator verweist statt „kein Generator vorhanden" zu behaupten.
+Ausgeschlossen: keine Änderung an Spiel-Code (`public/index.html`); keine Änderung an der FotoAlert-Pipeline selbst (nur als Vorlage gelesen); kein mehrstufiges Pipeline-Board (Inbox/Ready for Analysis/…) — bewusst beim einfachen 3-Lane-Modell dieses Projekts geblieben.
+
+**Akzeptanzkriterien:**
+- [x] Ein Kanban-Board mit den drei Spalten ToDo/In Progress/Done ist als eigenständiges, wiederkehrend nutzbares Artifact sichtbar und zeigt den tatsächlichen Stand aus Backlog.md + Backlog-Archive.md.
+- [x] Jede Ticket-Karte zeigt ID, Titel, Typ- und Prioritäts-Kennzeichnung (Feature/BugFix/Task-Farbe, Hoch/Mittel/Niedrig-Farbe).
+- [x] Eine Karte lässt sich per Klick öffnen und zeigt den vollständigen Ticket-Inhalt.
+- [x] Ein Generator-Lauf erzeugt das Board direkt und automatisch aus dem aktuellen Dateiinhalt, ohne dass irgendwo Ticket-Daten von Hand ins Board übertragen werden.
+- [x] Der Ablauf ist im `agent-contract-analyze`-Skill so dokumentiert, dass er beim nächsten Ticket-Statuswechsel ohne Rückfrage angewendet werden kann.
+
+**Analyse & Planung:**
+- [x] FotoAlert-Vorlage am echten Code gelesen (nicht geraten): `gen_kanban.py`, `sync_kanban.py`, `kanban_template.html`, `lint_backlog.py` im Ordner `Foto Location Guide/FotoAlert/tools/` sowie die Skills `book-of-work` und `fotoalert-orchestrator`.
+- [x] Abweichung zum hiesigen Projekt festgestellt: FotoAlert nutzt 9 Lanes (Inbox…Excluded) und ID-Überschriften mit Trennzeichen (`### ID · Titel`); dieses Projekt nutzt laut `book-of-work`-Skill und den beiden echten Backlog-Dateien nur 3 Lanes (ToDo/In Progress/Done) und Überschriften ohne Trennzeichen (`### ID Titel`) — Generator entsprechend angepasst statt die FotoAlert-Regex unverändert zu übernehmen.
+- [x] Zwei-Quellen-Situation verstanden: aktuelle/laufende Tickets stehen lokal in `Backlog.md`, die Tickets bis v1.4.2 stehen in der Claude-Projekt-Wissensablage (`claude/Backlog.md`) — analog zu FotoAlerts `BACKLOG.md` + `BACKLOG-ARCHIVE.md`-Trennung wird Letztere als lokale `Backlog-Archive.md`-Kopie angelegt, damit der Generator wie bei FotoAlert rein lokal und deterministisch arbeitet.
+
+**Testplan:**
+- [x] Generator lokal mit dem echten aktuellen `Backlog.md` + `Backlog-Archive.md` ausgeführt, Output-HTML per Read-Tool gegengelesen (Ticket-Anzahl und Lane-Verteilung stimmen mit den Quelldateien überein: 8 Tickets, korrekt nach Lane sortiert).
+- [x] `lint_backlog.py` lief sauber durch (0 Fehler, 0 Warnungen).
+- [x] Artifact im Cowork-Bereich von Stephan selbst geöffnet und bestätigt.
+
+**Scope-Änderungen** *(chronologisches Log):*
+*(leer bei Erstellung)*
+
+**Implementierungsnotizen:**
+Umgesetzt im Ordner `agent-contract-game/` auf Stephans Mac (per Geräte-Zugriff, `expectedMtimeMs`-Guard beim Zurückschreiben, kein Konflikt). Neue Dateien: `Backlog-Archive.md` (lokale Kopie der Tickets bis v1.4.2 aus der Claude-Projekt-Wissensablage) sowie `tools/gen_kanban.py`, `tools/lint_backlog.py`, `tools/sync_kanban.py`, `tools/kanban_template.html` — 1:1 nach dem Vorbild von `Foto Location Guide/FotoAlert/tools/` gebaut, aber angepasst: 3 Lanes statt 9, Ticket-Typen Feature/BugFix/Task statt Bug/User Story/Task, und ID-Regex ohne Pflicht-Trennzeichen (`### ID Titel` statt `### ID · Titel`), weil dieses Projekt dieses Format tatsächlich verwendet. Sortierung im Board wie im `book-of-work`-Skill vorgegeben: ToDo nach Priorität dann Erstelldatum, In Progress nach Startdatum (neueste zuerst), Done nach Abschlussdatum (neueste zuerst). Artifact `agent-contract-kanban` initial erzeugt und per `mcp__remote-devices__update_artifact` veröffentlicht. `agent-contract-analyze`-Skill (Schritt 5 + neuer Abschnitt „Kanban-Sync") aktualisiert und als `.skill`-Datei an Stephan übergeben.
+
+**Bestätigt:** Stephan hat das Board in seiner Cowork-Ansicht geprüft und bestätigt („Done").
+
+---
+
 ### BUG-001 Fehlermeldung bei der zweiten Zuordnungsaufgabe passt nicht zu deren Kategorien
 
 | Feld | Wert |
 |------|------|
 | **Typ** | BugFix |
 | **Priorität** | Mittel |
-| **Status** | In Progress |
+| **Status** | Done |
 | **Erstellt** | 2026-07-21 |
 | **In Progress seit** | 2026-07-21 |
+| **Fertiggestellt** | 2026-07-21 |
 
 **Beschreibung:** Ein Nutzer meldete per Screenshot, dass Meldungen des Agenten manchmal nicht zum gerade gespielten Schritt zu passen scheinen, sondern zu einem früheren. Prüfung ergab: Im Spiel gibt es zwei Zuordnungsaufgaben mit unterschiedlichen Kategorien (erste: Goal/Rule/Example/Open question; zweite, „Settle it before going on": Answered/bewusst offen gelassen/Blockiert). Beide teilen sich denselben Fehlertext, wenn eine Karte falsch einsortiert wurde — dieser Text ist aber fest auf die Kategorien der ERSTEN Aufgabe formuliert („what's a rule, what's just an example, what's still an open question"). Landet ein Spieler in der zweiten Aufgabe und sortiert falsch, bekommt er trotzdem diesen Text mit Kategorien, die dort gar nicht vorkommen — das wirkt wie eine Meldung aus einem früheren Schritt.
 
@@ -50,7 +168,7 @@ Ausgeschlossen: die Erfolgsmeldung (bereits korrekt szenario-/schrittspezifisch 
 **Implementierungsnotizen:**
 Umgesetzt in `public/index.html` (lokaler Git-Klon, Basis v1.6.0 / Commit `08da401`, vor dem Schreiben per `git log`/`git status` verifiziert — sauberer Stand, kein zwischenzeitlicher Fremdstand). In `renderCategorize(st)`, im `else`-Zweig des `check`-Button-Handlers, wurde der fest verdrahtete Text „what's a rule, what's just an example, what's still an open question" ersetzt durch einen dynamisch aus `st.buckets.map(b=>b.label)` gebauten Aufzählungstext (Komma-getrennt, letztes Element mit „or"): „Look again — is it really ‹Kategorie1, Kategorie2 or Kategorie3/4›? — and re-sort." Dieselbe Datenquelle (`st.buckets`), die schon für die sichtbaren Kategorie-Kästen verwendet wird, liefert damit auch den Fehlertext — für beide Zuordnungsaufgaben automatisch korrekt, keine Sonderfall-Unterscheidung nötig. Die Erfolgsmeldung (`st.successReaction`) war bereits vorher korrekt und wurde nicht angefasst.
 
-## ✅ Done
+**Release:** Als v1.6.1 released (Commit `900dc1f`), GitHub Action grün (42s, `firebase-hosting-merge.yml`, `build_and_deploy` erfolgreich). Stephan hat die Live-Seite selbst geprüft und die Fehlermeldung bei der zweiten Zuordnungsaufgabe als korrekt bestätigt („test positiv"). Bestätigt und auf Done gesetzt.
 
 ### FEATURE-005 Rückblick auch während des laufenden Spiels
 
@@ -99,8 +217,6 @@ Umgesetzt in `public/index.html`, direkt auf v1.5.0 aufsetzend (`git log`/`git s
 **Technische Randnotiz (kein Nutzer-Effekt, aber für später dokumentiert):** Der zuletzt angesehene Rückblick-Schnappschuss bleibt bis zum nächsten Öffnen unsichtbar im DOM von `#reviewBody` liegen (Overlay ist nur per CSS `display:none` versteckt, nicht entfernt). Da gespeicherte Schnappschüsse dieselben Element-IDs/-Klassen wie der echte, aktuelle Bildschirm verwenden können (z. B. `id="check"`, `.bucket`), wurde geprüft, dass dadurch kein echtes Fehlverhalten entsteht: `#stageHost` steht im HTML vor den Overlays, wodurch ungezielte `document.getElementById(...)`-Zugriffe im echten Spielcode immer zuerst das echte, aktuelle Element treffen; zusätzlich ist der Schnappschuss durch `pointer-events:none` und das unsichtbare, geschlossene Overlay für echte Klicks ohnehin nicht erreichbar. Im automatisierten Test musste deshalb bewusst auf `#stageHost` eingegrenzt werden, um nicht versehentlich Elemente aus dem liegen gebliebenen alten Schnappschuss mitzuzählen.
 
 **Release:** Als v1.6.0 released (Commit `08da401`), GitHub Action grün (37s). Stephan hat live geprüft — Badge-Zähler mitten im Spiel öffnen und einen früheren Schritt anklicken funktioniert wie vorgesehen. Bestätigt und auf Done gesetzt.
-
----
 
 ### FEATURE-004 Rückblick auf frühere Spielschritte über die Abschlussseite
 
