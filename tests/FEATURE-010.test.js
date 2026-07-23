@@ -109,6 +109,8 @@ async function playDevMissingRun(clean) {
   window.pickMissingRoleId = function () { return "dev"; };
   click(doc, "introCta");
   click(doc, "pickTeamMode");
+  click(doc, "teamRndBtn");
+  click(doc, "teamStartBtn");
 
   if (clean) {
     click(doc, "teamNext"); // -> map
@@ -173,6 +175,8 @@ async function main() {
     const doc = window.document;
     click(doc, "introCta");
     click(doc, "pickTeamMode");
+    click(doc, "teamRndBtn");
+    click(doc, "teamStartBtn");
     const html = doc.getElementById("stageHost").innerHTML;
     assert(html.indexOf("Before anyone looks at the ticket") !== -1, "Der Schätz-Kicker sollte auf dem Roster-Screen erscheinen");
     assert(html.indexOf("starting guess, not a plan") !== -1, "Der deutlich abgesetzte Hinweis sollte auf dem Roster-Screen erscheinen");
@@ -189,6 +193,8 @@ async function main() {
     window.pickMissingRoleId = function () { return "po"; };
     click(doc, "introCta");
     click(doc, "pickTeamMode");
+    click(doc, "teamRndBtn");
+    click(doc, "teamStartBtn");
     assert.strictEqual(window.TeamState.fastStart, 20, "PO fehlt -> 20 Tage (2 Basis + 18 Aufschlag)");
     assert.strictEqual(window.S.benchmark, 20, "S.benchmark sollte direkt beim Start gesetzt sein, nicht erst im Finale");
     dom.window.close();
@@ -203,6 +209,8 @@ async function main() {
     window.pickMissingRoleId = function () { return "qa"; };
     click(doc, "introCta");
     click(doc, "pickTeamMode");
+    click(doc, "teamRndBtn");
+    click(doc, "teamStartBtn");
     assert.strictEqual(window.TeamState.fastStart, 16, "QA fehlt -> 16 Tage (2 Basis + 14 Aufschlag)");
     assert.strictEqual(window.S.benchmark, 16);
     dom.window.close();

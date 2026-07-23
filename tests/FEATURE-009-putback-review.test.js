@@ -69,6 +69,8 @@ function testPutBackIcon() {
     window.pickMissingRoleId = function () { return "dev"; };
     click(doc, "introCta");
     click(doc, "pickTeamMode");
+    click(doc, "teamRndBtn");
+    click(doc, "teamStartBtn");
     click(doc, "teamNext"); // -> map
 
     const st = window.STAGES[window.S.i];
@@ -112,6 +114,8 @@ function testReviewNextReturnsHome() {
     window.pickMissingRoleId = function () { return "dev"; };
     click(doc, "introCta");
     click(doc, "pickTeamMode");
+    click(doc, "teamRndBtn");
+    click(doc, "teamStartBtn");
     click(doc, "teamNext"); // roster -> map, S.i = 1, roster (index 0) now in history
 
     // Open the review at the ONLY reviewable step (index 0, roster) — this is

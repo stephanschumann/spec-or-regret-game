@@ -84,6 +84,8 @@ async function testForkCredit(missingRoleId, kind, honest) {
     window.pickMissingRoleId = function () { return missingRoleId; };
     click(doc, "introCta");
     click(doc, "pickTeamMode");
+    click(doc, "teamRndBtn");
+    click(doc, "teamStartBtn");
     click(doc, "teamNext"); // roster -> map
     sortMapHonestly(window, doc); // finishes in time -> next stage auto-reached
 

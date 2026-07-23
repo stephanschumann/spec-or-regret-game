@@ -67,6 +67,8 @@ async function main() {
     window.pickMissingRoleId = function () { return "dev"; };
     click(doc, "introCta");
     click(doc, "pickTeamMode");
+    click(doc, "teamRndBtn");
+    click(doc, "teamStartBtn");
     click(doc, "teamNext"); // -> map
 
     const st = window.STAGES[window.S.i];
