@@ -76,15 +76,118 @@ Umgesetzt in `public/index.html` (Basis: v1.6.1 / Commit `900dc1f`, vor dem Schr
 
 **Release:** Als v1.7.0 released (Commit `385029b`). Erster `git push`-Versuch von Stephan scheiterte zweimal an einem lokalen DNS-Problem auf seinem Mac („Could not resolve host: github.com“), unabhängig von diesem Projekt – nach einem DNS-Cache-Reset (`dscacheutil -flushcache`/`killall -HUP mDNSResponder`) erfolgreich gepusht. Vor dem `git add -A` lag eine verwaiste `.git/index.lock` von mehreren `git status`-Aufrufen während der Analyse im Weg (kein laufender Git-Prozess mehr, gefahrlos entfernt). GitHub Action `firebase-hosting-merge.yml` lief grün durch (36s). Live-Verifikation per eigenständigem Chrome-Browser-Subagenten gegen `agent-contract-game.web.app` (Desktop) erfolgreich – siehe Akzeptanzkriterien/Testplan oben. Handy-Breite konnte der Chrome-Subagent in dieser Sitzung nicht zuverlässig erzwingen (Fenster blieb trotz gemeldetem Erfolg in Desktop-Breite) – Stephans eigener Blick auf dem Handy steht noch aus, bevor das Ticket auf Done gesetzt wird.
 
+## 📋 ToDo
+
+### FEATURE-009 Die 21 Szenarien themenbezogen gruppieren
+
+*(Hinweis 2026-07-23: ursprünglich unter der Nummer FEATURE-008 angelegt. Diese Nummer gehörte eigentlich schon dem Team-Modus-Vertical-Slice — der aber nie als Ticket in diese Datei geschrieben wurde und deshalb bei der Anlage dieses Tickets frei aussah. Beim nachträglichen sauberen Dokumentieren des Team-Modus als FEATURE-008 wurde dieses Ticket auf FEATURE-009 hochgezählt, damit beide Nummern eindeutig bleiben.)*
+
+| Feld | Wert |
+|------|------|
+| **Typ** | Feature |
+| **Priorität** | Mittel |
+| **Status** | ToDo |
+| **Erstellt** | 2026-07-22 |
+
+**Beschreibung:** Stephan möchte, dass Spielende auf dem Startbildschirm schneller ein für sie passendes Szenario finden, statt sich durch 21 gleichrangige Karten zu klicken oder auf „Surprise us" auszuweichen. Vorschlag, abgeleitet aus den tatsächlichen Titeln/Kurztexten aller 21 Szenarien (`public/index.html`, `SCENARIOS`-Liste), sechs Themengruppen:
+
+1. **Geld rausschicken** (6): Bulk supplier payments, Run payroll, Pay a supplier abroad, Schedule a future tax payment, Send a one-off payment, Move spare cash automatically
+2. **Geld reinholen** (3): Collect from many customers, Request money from a customer, Decline a payment request
+3. **Firmenkarten** (3): Company cards with limits, Single-use virtual card, Freeze a lost company card
+4. **Freigaben & Limits** (4): Second approver for large payments, Daily payment cap for the company, Add and approve a new payee, Check the payee's details
+5. **Zugriff & Sicherheit** (3): Give the right access, Log in to the company portal, Report a transaction we don't recognise
+6. **Überblick behalten** (2): One live view of all balances, Alerts on account movement
+
+Summe 6+3+3+4+3+2 = 21, jedes Szenario genau einer Gruppe zugeordnet, keins doppelt oder vergessen.
+
+**Offene Punkte für die Analysephase (bewusst noch nicht entschieden):** Wie die Gruppen auf dem Startbildschirm erscheinen (z. B. Themen-Reiter/Filter-Chips oberhalb der Karten vs. sechs beschriftete Abschnitte untereinander); ob „Surprise us" weiterhin über alle 21 zieht oder optional auf eine gewählte Gruppe eingeschränkt werden kann; endgültige deutsche oder englische Beschriftung der sechs Gruppennamen (Spiel ist aktuell komplett englischsprachig, Vorschlag oben zur besseren Lesbarkeit für Stephan auf Deutsch benannt).
+
+**Bezug:** Chat-Idee 2026-07-22.
+
+## ✅ Done
+
+### FEATURE-011 Lead-Time-Retrospektive: Analyse-/Cycle-Time-Aufschlüsselung im Finale
+
+| Feld | Wert |
+|------|------|
+| **Typ** | Feature |
+| **Priorität** | Mittel |
+| **Status** | Done |
+| **Erstellt** | 2026-07-23 |
+| **Done seit** | 2026-07-23 |
+
+**Beschreibung:** Der Abschluss-Screen (Agent- und Team-Modus) zeigt heute drei Vergleichsbalken — „The fast start", „Your run" und „What it could have been" — jeweils mit einer Analyse- und einer Cycle-Time-Zahl. Stephan möchte, dass Teams diesen Screen für eine echte Retrospektive nutzen können: nicht nur die Endzahlen sehen, sondern nachvollziehen, welche konkreten Entscheidungen im Durchlauf dazu geführt haben, dass die Zahlen genau so und nicht anders herauskamen. Ausgangspunkt war die Bitte: „Mach mir einen Vorschlag, wie wir den Teams auf der letzten Seite die aktuelle und theoretische Lead Time (mit Details zur Cycle Time und Analysis Time) erklären können — es wäre gut zu wissen, welche Entscheidungen dazu geführt haben, dass sich die jeweiligen Werte so berechnet haben. Das wäre für eine Retrospektive der Spielenden sehr, sehr gut."
+
+**User Story:** Als Team, das gerade einen Durchlauf abgeschlossen hat, möchte ich auf dem Abschluss-Screen direkt unter den Vergleichsbalken nachlesen können, welche einzelnen Entscheidungen zur tatsächlichen Analyse- und Cycle-Time geführt haben — und welche zusätzlichen Entscheidungen im bestmöglichen Fall dazugekommen wären —, damit wir das in unserer eigenen Retrospektive konkret besprechen können, statt nur die Endsumme zu sehen.
+
+**Offene Punkte aus der Ticket-Anlage — von Stephan entschieden (23.07.2026):**
+- „Theoretisch" bedeutet der bestmögliche Lauf überhaupt: jede Entscheidung richtig, keine Abkürzung, kein Rework — nicht (wie die Berechnung bisher tatsächlich arbeitete) der eigene tatsächliche Lauf abzüglich des selbst verursachten Reworks.
+- Umzusetzen ist **Variante B**: die drei bestehenden Vergleichsbalken bleiben unverändert stehen; Cycle-Time- und Analyse-Time-Aufschlüsselung klappen direkt unter den jeweiligen Balken auf (statt wie bisher nur über die kleinen Badge-/Rework-Chip-Overlays weiter oben auf der Seite erreichbar zu sein).
+- Freigabe erteilt, die betroffenen Assertions in `tests/FEATURE-009-consequences.test.js` (Zeilen 243–244, sowie 162–163 zur Konsistenz) auf die neue Definition umzuschreiben — siehe „Zielkonflikt mit bestehendem Test" unten.
+
+**Zielkonflikt mit bestehendem Test (geklärt, 23.07.2026):** Der bestehende Test `tests/FEATURE-009-consequences.test.js` prüfte für den „What it could have been"-Balken bisher exakt die alte Definition: im Szenario „everythingBad" (vier Abkürzungen genommen, dadurch nur 3 von 7 möglichen Analyse-Tagen verdient) erwartete die Assertion in Zeile 243–244, dass der Ideal-Balken `analysisAtHandoff` (die tatsächlich verdiente, reduzierte Zahl — 3d) statt der maximal möglichen Zahl (7d) zeigt. Das widerspricht der jetzt von Stephan festgelegten Definition von „theoretisch". Da bestehende Tests laut Projektregel nicht ohne Stephans Freigabe geändert werden dürfen, wurde dieser Konflikt offen angesprochen; Stephan hat die Freigabe erteilt, die betroffenen Zeilen (162–163 und 243–244) auf die neue Definition umzuschreiben (siehe Implementierungsnotizen für die konkrete neue Erwartung).
+
+**Fundstellen-Sweep:** `completeStep(st,container,extra,noCredit)` (Zeile ~376) vergibt Analyse-Tage/Badge nur, wenn `noCredit` nicht gesetzt ist — bei einer Abkürzung (Team-Modus: Map-Timeout, vage Verhaltensbeschreibung, geratener Business-Value, vertagte Frage) wird die Gutschrift komplett übersprungen, taucht aber später als eigener, benannter Rework-Eintrag in `S.rework` wieder auf (`renderTeamImpl`). `S.badges` (Array `{e,name,i}`) verzeichnet nur tatsächlich vergebene Gutschriften, keine verpassten. `STAGES` (von `buildStages`/`buildTeamStages` erzeugt) trägt an jeder Analyse-Stufe ein festes `analysisDays`-Feld (im aktuellen Datenstand durchgehend 1) — das ist unabhängig davon, ob die Stufe später tatsächlich Gutschrift bekommt, und eignet sich deshalb als robuste Quelle für „maximal mögliche Analyse-Tage in diesem Lauf" (Summe über `STAGES`, nicht über `S.badges`). `renderFinale()` (Agent-Modus, Zeile ~550) und `renderTeamFinale()` (Team-Modus, Zeile ~1157) berechnen beide `idealCycle=Math.max(0,actualCycle-reworkTotal)` — das ergibt bereits rechnerisch exakt den festen Bau-Grundpreis (`buildDays`, isBoss-Stufe) ohne jedes Rework, also bereits „kein Rework" im Sinne von Stephans Definition; **nur die Analyse-Seite des Ideal-Balkens war falsch** (bisher `analysis` = tatsächlich verdiente Zahl statt der maximal möglichen). Im Agent-Modus ist das faktisch nie sichtbar, weil dort jede Analyse-Stufe (Kategorisieren/Bauen/Auswählen) so lange wiederholt werden muss, bis sie korrekt gelöst ist — es gibt keinen Pfad, auf dem Analyse-Gutschrift verlorengeht; `analysis` und die maximal mögliche Zahl sind dort immer identisch. Im Team-Modus dagegen kann durch die vier möglichen Abkürzungen tatsächlich eine Lücke entstehen (siehe Zielkonflikt oben) — dort war der Fehler real sichtbar.
+
+**Zustands-Check:** Kein neuer Wartezustand (rein clientseitige Berechnung aus bereits vorhandenem `S`/`STAGES`-Zustand). Kein neuer Leerzustand nötig — auch ein Lauf ganz ohne jede Abkürzung liefert eine sinnvolle (dann leere „nichts verpasst")-Aufschlüsselung. Kein neues Fehlerverhalten.
+
+**Scope:**
+Eingeschlossen: (1) Korrektur der „Ideal"/„theoretisch"-Berechnung in `renderFinale()` und `renderTeamFinale()`, sodass die Analyse-Seite des „What it could have been"-Balkens immer die maximal mögliche Analyse-Zeit dieses Laufs zeigt (Summe der `analysisDays` über alle `STAGES`), nicht die tatsächlich verdiente. (2) Neue, direkt unter dem „Your run"- und dem „What it could have been"-Balken aufklappbare Aufschlüsselung (Variante B): pro Balken eine Liste der einzelnen Analyse-Schritte (verdient/nicht verdient bzw. im Idealfall immer verdient, mit Hinweis „hier verpasst" bei tatsächlich nicht verdienten Schritten) sowie der einzelnen Cycle-Time-Bestandteile (Bau-Grundpreis + jeder einzelne Rework-Eintrag mit Beschreibung, bzw. im Idealfall derselbe Grundpreis mit dem Hinweis, dass jeder Rework-Eintrag vermeidbar gewesen wäre). (3) Anpassung der beiden betroffenen Testzeilen in `tests/FEATURE-009-consequences.test.js` (mit Stephans Freigabe).
+Ausgeschlossen: Ein eigener neuer Screen für die Retrospektive (Option C aus der ursprünglichen Diskussion — abgelehnt zugunsten von Variante B); jede Änderung an der Cycle-Time-/Rework-Berechnung selbst (die war laut obigem Fundstellen-Sweep bereits korrekt); die „Fast start"-Zeile bekommt keine Aufschlüsselung (im Team-Modus ist sie eine reine Kennzahl ohne Einzelposten, im Agent-Modus deckt der bereits bestehende `penaltySum`/Rework-Verlauf direkt am „Fast start"-Schritt selbst dieselbe Funktion schon ab).
+
+**Akzeptanzkriterien:**
+- [x] Auf dem Abschluss-Screen (Agent- UND Team-Modus) zeigt der „What it could have been"-Balken bei der Analyse-Zeit immer die maximal mögliche Zahl für diesen Lauf — auch wenn im tatsächlichen Lauf Abkürzungen genommen wurden, die weniger Analyse-Zeit gutgeschrieben haben.
+- [x] Unter dem „Your run"-Balken lässt sich eine Aufschlüsselung aufklappen, die zeigt: jeden Analyse-Schritt einzeln (mit Häkchen, wenn Gutschrift erfolgte, deutlich abgesetzt/durchgestrichen mit Hinweis, wenn nicht) sowie jeden Cycle-Time-Bestandteil einzeln (Bau-Grundpreis + jeder tatsächlich entstandene Rework-Eintrag mit seiner eigenen Beschreibung und Tageszahl).
+- [x] Unter dem „What it could have been"-Balken lässt sich ebenfalls eine Aufschlüsselung aufklappen: alle Analyse-Schritte als verdient dargestellt (mit Hinweis bei den Schritten, die im tatsächlichen Lauf verpasst wurden, damit die Retrospektive genau benennen kann, welche Entscheidung das war), sowie der Cycle-Time-Bestandteil nur als Bau-Grundpreis, mit jedem tatsächlich entstandenen Rework-Eintrag als „hier vermieden" gekennzeichnet.
+- [x] Die Summen in der Aufschlüsselung stimmen exakt mit den Zahlen im jeweiligen Balken überein (keine Doppelzählung, keine Lücke). **Umsetzungshinweis:** dafür war eine kleine Erweiterung von `completeStep()` nötig, siehe Implementierungsnotizen (Analyse-Gutschrift wurde bisher nur über `S.badges` sichtbar, das aber nicht jeder gutgeschriebene Schritt befüllt).
+- [x] Ein Lauf ganz ohne jede Abkürzung zeigt in beiden Aufschlüsselungen sinnvoll identische Werte (kein „leerer"/kaputter Zustand).
+- [x] Keine Konsolenfehler; `GAME_VERSION` wird erhöht (jetzt 1.18.0).
+- [x] `tests/FEATURE-009-consequences.test.js` (Zeilen 162–163, 243–244) ist auf die neue Definition angepasst und läuft grün.
+
+**Pre-Mortem:**
+- 💀 Die Summe der Aufschlüsselung weicht von der Balken-Zahl ab (z. B. weil `STAGES` zum Render-Zeitpunkt bereits zurückgesetzt ist) → Gegenmaßnahme: eigener Testfall, der Summe der Aufschlüsselungs-Einzelposten gegen die im Balken angezeigte Gesamtzahl prüft.
+- 💀 Die Korrektur der Ideal-Analyse-Berechnung wird versehentlich auch auf die Cycle-Zeit-Seite angewendet und verändert dadurch ungewollt auch die bereits korrekte `idealCycle`-Berechnung → Gegenmaßnahme: nur die eine Codestelle (der `a`-Parameter des Ideal-`lbar()`-Aufrufs plus die zugehörigen Text-Bausteine) gezielt ändern, `idealCycle` unangetastet lassen, per Test auf Agent-Modus-Regression absichern (dort muss sich rechnerisch nichts ändern, siehe Fundstellen-Sweep).
+- 💀 Die Aufklapp-Funktion kollidiert mit den bestehenden Badge-/Rework-Chip-Overlays (z. B. doppelte IDs) → Gegenmaßnahme: eigene, klar unterscheidbare CSS-Klassen/IDs (`bktoggle`/`bkpanel`) statt der bestehenden Overlay-Mechanik.
+- 💀 `GAME_VERSION` wird bei dieser sichtbaren Änderung vergessen zu erhöhen → Gegenmaßnahme: fester Bestandteil des Testplans.
+- 💀 Der Freigabe-Umschreibung von `FEATURE-009-consequences.test.js` schwächt den Test versehentlich ab (z. B. lockere Zahl statt weiterhin exakter Erwartung) → Gegenmaßnahme: neue Erwartung bleibt exakt (Aufschlüsselung auf `7d analysis` bzw. die jeweils maximal mögliche Zahl je Szenario-Zweig), nicht einfach der Assertion-String entfernt.
+
+**Optionenvergleich:** (bereits in der vorausgegangenen Analyse konversationell durchgesprochen, hier nur zur Nachvollziehbarkeit festgehalten)
+
+*Option A – Ein vereinheitlichtes, chronologisches Entscheidungs-Logbuch:* alle Entscheidungen des Laufs in einer einzigen Zeitleiste, unabhängig von den bestehenden drei Balken. Vorteil: sehr klare Erzählung. Nachteil: großer struktureller Eingriff, eigener neuer Anzeige-Block, höheres Regressionsrisiko für die bestehenden Badge-/Review-Mechaniken.
+
+*Option B – Aufklappbare Aufschlüsselung direkt unter den bestehenden drei Balken (Stephans Entscheidung):* geringster Eingriff, nutzt die bereits vorhandenen Datenstrukturen (`S.badges`, `S.rework`, `STAGES`) direkt weiter, bestehende Balken/Bedeutung bleiben unverändert.
+
+*Option C – Eigener neuer Retrospektive-Screen nach dem Finale:* separate Ansicht, mehr Raum, aber neuer Stage-Typ nötig (Regressionsrisiko wie bei FEATURE-010 gegen Stage-Index-Abhängigkeiten bereits bekannt) und ein zusätzlicher Klick, bevor das Team die Zahlen überhaupt sieht.
+
+✅ **Umgesetzt wird:** Option B, wie von Stephan entschieden.
+
+**Analyse & Planung:**
+- [x] Verifiziert: `idealCycle=Math.max(0,actualCycle-reworkTotal)` ergibt in beiden Modi bereits exakt den festen Bau-Grundpreis der `isBoss`-Stufe (`buildDays`) ohne jedes Rework — diese Seite der Ideal-Berechnung bleibt unverändert, nur die Analyse-Seite (`a`-Parameter) wird von `analysis` (tatsächlich verdient) auf eine neue Hilfsfunktion `maxAnalysisDays()` (Summe der `analysisDays` über alle `STAGES` dieses Laufs) umgestellt.
+- [x] Neue, von beiden Finale-Funktionen gemeinsam genutzte Hilfsfunktionen geplant: `analysisRows()` (iteriert `STAGES`, liefert pro Analyse-Stufe `{label, emoji, days, earned}`), `maxAnalysisDays()` (Summe `analysisDays` über `STAGES`), `analysisBreakdownHTML(kind)` und `cycleBreakdownHTML(kind)` (kind = „actual" oder „ideal"), sowie ein kleiner Baustein, der pro Balken einen Aufklapp-Button plus verstecktes Panel erzeugt und nach dem Rendern verdrahtet (`.bktoggle`/`.bkpanel`, `classList.toggle("show")`). **Während der Implementierung korrigiert:** `earned` kann NICHT zuverlässig über `S.badges` bestimmt werden — einzelne Analyse-Stufen (z. B. `teamdor`, die beiden `teamfork`-Typen) vergeben zwar Analyse-Gutschrift, aber nie ein Badge (`st.badge` ist dort gar nicht gesetzt), wären also fälschlich immer als „nicht verdient" erschienen. Stattdessen führt `completeStep()` jetzt ein eigenes, von Badges unabhängiges `S.credited`-Array (Stufen-Indizes mit tatsächlicher Analyse-Gutschrift), das `analysisRows()` abfragt.
+- [x] Team-Modus-Spezialfall geprüft: die feste, immer vorhandene „fehlende Rolle"-Konsequenz (`ROLE_GAP_THREAD`, +2 Tage) ist strukturell vom Szenario vorgegeben (die Rolle fehlt tatsächlich, das ist keine Spieler-Entscheidung) und wird von der bereits bestehenden `idealCycle`-Formel ebenfalls herausgerechnet (wie schon vor diesem Ticket) — das wird bewusst NICHT geändert, da Stephans Freigabe sich nur auf die Analyse-Seite bezog und die bestehende Cycle-Rechnung laut Fundstellen-Sweep bereits korrekt „kein Rework" abbildet.
+- [x] Neue erwartete Testzahlen für `tests/FEATURE-009-consequences.test.js` (mit Stephans Freigabe anzupassen): Zeile 162–163 („sauberer PO-Lauf") bleibt inhaltlich `7d analysis + 4d cycle` (unverändert, da dort ohnehin schon alle 7 Schritte verdient wurden — reiner Bestandsschutz, keine Änderung nötig, nur zur Konsistenz noch einmal geprüft). Zeile 243–244 („everythingBad", PO-Zweig) ändert sich von `analysisAtHandoff + "d analysis + 4d cycle"` (bisher 3d) auf fest `"7d analysis + 4d cycle"` — die maximal möglichen 7 Analyse-Tage dieses Szenario-Zweigs, unabhängig davon, wie viele davon im tatsächlichen (schlechten) Lauf verdient wurden.
+
+**Testplan:**
+- [x] Automatisiert (jsdom, neue Datei `tests/FEATURE-011.test.js`, 5 Prüfpunkte): GAME_VERSION erhöht (1.18.0); Ideal-Balken zeigt bei einem Lauf mit allen vier möglichen Abkürzungen (Team-Modus, PO-Zweig, tatsächlich verdiente Analysezeit 3d) trotzdem `7d analysis + 4d cycle` statt der tatsächlich verdienten, niedrigeren Zahl; Aufschlüsselungs-Panels sind im gerenderten Finale-HTML vorhanden (genau zwei je Modus), standardmäßig eingeklappt (keine `show`-Klasse beim ersten Render), und die Summe jedes Aufschlüsselungs-Abschnitts (Analyse und Cycle, je einmal „Your run" und einmal „Ideal") stimmt exakt mit `S.analysis`/`S.cycle`/der maximalen bzw. Grundpreis-Zahl überein; ein sauberer Dev-fehlt-Lauf (kein Bizvalue-Zweig, 6 statt 7 mögliche Analyseschritte) zeigt in „Your run" und „Ideal" dieselbe Zahl (6d) und keinen einzigen „nicht gutgeschrieben"/„verpasst"-Hinweis; Agent-Modus-Regression bestätigt, dass die Ideal-Analyse-Zahl weiterhin exakt der tatsächlichen entspricht (`maxAnalysisDays()` gegen echte, per Klick aufgebaute `STAGES` eines realen Szenarios geprüft). Alle 5 Prüfpunkte grün, tatsächlich ausgeführt und Output gesehen.
+- [x] Pflicht-Regressionslauf gegen alle bestehenden `tests/*.test.js`-Dateien (elf Bestandsdateien plus `FEATURE-010.test.js`): 11 von 13 Dateien grün, tatsächlich ausgeführt. Zwei Dateien schlagen fehl — beide ausschließlich an ihrer eigenen fest einprogrammierten `GAME_VERSION`-Zeile (`tests/FEATURE-009.test.js` erwartet „1.16.0", `tests/FEATURE-010.test.js` erwartet „1.17.0"), nicht an funktionalem Verhalten: bei `FEATURE-010.test.js` sind die verbleibenden 4 von 5 Prüfpunkten (Schätz-Text sichtbar, Fast-Start-Werte 20/16, Wert unabhängig vom Spielverhalten) weiterhin grün — nur der Versions-Check selbst schlägt fehl. Dasselbe bekannte Muster wie schon bei FEATURE-010 gegen `FEATURE-009.test.js`: jeder künftige Versionssprung bricht die vorherige, fest einprogrammierte Versionszeile des jeweils vorigen Tickets. Keine dieser beiden Dateien wurde angepasst (nur Stephan darf bestehende Tests ändern) — Stephan müsste beide Zeilen selbst auf „1.18.0" aktualisieren, sonst bleiben sie bei jedem künftigen Regressionslauf rot.
+- [x] Mit Stephans Freigabe angepasste Zeilen in `tests/FEATURE-009-consequences.test.js` (jetzt Zeilen 162–169 und 248–260 durch die ergänzten Kommentare leicht verschoben) laufen grün — datei-weit 3/3 Szenarien bestätigt.
+- **Begründung Testabdeckung:** Die Änderung betrifft eine gemeinsam genutzte Berechnung und Darstellung in beiden Finale-Funktionen — ein Testdurchlauf pro Modus (je ein sauberer, je ein durchgängig schlechter Team-Lauf, sowie ein Agent-Modus-Regressionscheck) deckt die vollständige neue Logik ab.
+- [ ] Echter Blick im Browser (Desktop, ggf. Handy-Breite) auf die neue Aufklapp-Funktion bleibt offener Punkt, bis Stephan ihn selbst bestätigt.
+
+**Implementierungsnotizen:**
+Umgesetzt in `public/index.html` (Basis: v1.17.0, direkt im Anschluss an FEATURE-010 in derselben Sitzung). Neue Hilfsfunktionen `analysisRows()`, `maxAnalysisDays()`, `analysisBreakdownHTML(kind)`, `cycleBaseDays()`, `cycleBreakdownHTML(kind)`, `bkBlock(kind)`, `wireBkToggles()` — alle von `renderFinale()` (Agent) und `renderTeamFinale()` (Team) gemeinsam genutzt. `completeStep()` erhielt ein neues `S.credited`-Array (Stufen-Indizes mit tatsächlicher Analyse-Gutschrift, unabhängig von `S.badges` — Grund siehe Analyse & Planung oben). In beiden Finale-Funktionen wurde ausschließlich der `a`-Parameter des Ideal-`lbar()`-Aufrufs (und die zugehörigen Text-Bausteine `idealNote`) von `analysis` auf `idealAnalysis=maxAnalysisDays()` umgestellt; `idealCycle` blieb unangetastet. Neue CSS-Klassen `.bktoggle`/`.bkpanel`/`.bklab`/`.bkrow` (inkl. `.miss`-Modifikator). `GAME_VERSION` von „1.17.0" auf „1.18.0" angehoben. Neue dauerhafte Testdatei: `tests/FEATURE-011.test.js`. Mit Stephans expliziter Freigabe angepasst: `tests/FEATURE-009-consequences.test.js` (zwei Assertions, siehe Testplan).
+
+**Bezug:** Chat-Anfrage 23.07.2026, im direkten Anschluss an FEATURE-010 („Mach mir einen Vorschlag, wie wir den Teams auf der letzten Seite die aktuelle und theoretische Lead Time erklären können...").
+
 ### FEATURE-010 Realistische Schätz-Basis für „The fast start" im Team-Modus
 
 | Feld | Wert |
 |------|------|
 | **Typ** | Feature |
 | **Priorität** | Mittel |
-| **Status** | In Progress |
+| **Status** | Done |
 | **Erstellt** | 2026-07-23 |
-| **In Progress seit** | 2026-07-23 |
+| **Done seit** | 2026-07-23 |
 
 **Beschreibung:** Im Team-Modus (FEATURE-008 „Work as a Team") zeigt der Abschluss-Screen drei Zeitleisten zum Vergleich: „The fast start", „Euer Lauf" und „Was es hätte sein können". Anders als im Agent-Modus, wo „The fast start" ein tatsächlich gespielter, roher erster Durchlauf ist, ist dieser Wert im Team-Modus aktuell eine feste, immer gleiche Zahl im Code – unabhängig davon, wie gespielt wird oder welches Szenario gewählt ist. Stephan möchte stattdessen eine Methodik, die sich an echter Scrum-Praxis orientiert: Story-Point-Schätzungen (z. B. Planning Poker) sagen für sich genommen nichts über die tatsächliche Bauzeit aus – das funktioniert in echten Teams nur über die tatsächlich gemessene Geschwindigkeit (Velocity) aus vergangener, vergleichbarer Arbeit, die ein frisch zusammengestelltes Team wie in diesem Spiel nicht hat. Passend dazu der „Trichter der Unsicherheit" (Cone of Uncertainty) aus der Schätztheorie: ganz am Anfang, bevor irgendetwas geklärt ist, kann die reale Dauer stark von der ersten Schätzung abweichen; der Trichter schließt sich erst, je mehr während der Analyse tatsächlich geklärt wird.
 
@@ -158,109 +261,6 @@ Ausgeschlossen: der Agent-Modus (dort bleibt „Fast Start" der bereits echte ge
 Umgesetzt in `public/index.html` (Basis: v1.16.0 / HEAD `09033e4`, vor dem Schreiben per `git log`/`git status` geprüft — bekannter, noch nicht gepushter Arbeitsstand aus FEATURE-008, kein zwischenzeitlicher Fremdstand). Neue Konstante `TEAM_ESTIMATE_BASE_DAYS = 2`. In `startTeamMode()` wird `TeamState.fastStart` direkt nach dem Auswürfeln der fehlenden Rolle berechnet (2 + 18 bei „po", sonst 2 + 14) und in derselben `S`-Zurücksetzung als `S.benchmark` übernommen — dadurch wird die bereits bestehende Zeile im Team-Finale (`rushed = S.benchmark || ...`) automatisch mitgenutzt, ohne die Finale-Funktion selbst inhaltlich anzufassen (die feste 12 im Fallback wurde nur auf 16 als rein defensiven Absicherungswert geändert, der im Normalbetrieb nie greift). Der neue Schätz-Text (Kicker, Haupttext, abgesetzter Hinweis — Wortlaut wie von Stephan freigegeben) wurde in `renderTeamRoster()` vor die bestehenden Besetzungs-Kacheln gesetzt, mit neuer CSS-Klasse `.estimatebox`. `GAME_VERSION` von „1.16.0" auf „1.17.0" angehoben (Minor, da sichtbare neue Funktion, analog FEATURE-004/005/006). Neue dauerhafte Testdatei: `tests/FEATURE-010.test.js`.
 
 **Bezug:** Chat-Feedback 23.07.2026 (Runde 7/8 der Testrunden zu FEATURE-008).
-
-### FEATURE-011 Lead-Time-Retrospektive: Analyse-/Cycle-Time-Aufschlüsselung im Finale
-
-| Feld | Wert |
-|------|------|
-| **Typ** | Feature |
-| **Priorität** | Mittel |
-| **Status** | In Progress |
-| **Erstellt** | 2026-07-23 |
-| **In Progress seit** | 2026-07-23 |
-
-**Beschreibung:** Der Abschluss-Screen (Agent- und Team-Modus) zeigt heute drei Vergleichsbalken — „The fast start", „Your run" und „What it could have been" — jeweils mit einer Analyse- und einer Cycle-Time-Zahl. Stephan möchte, dass Teams diesen Screen für eine echte Retrospektive nutzen können: nicht nur die Endzahlen sehen, sondern nachvollziehen, welche konkreten Entscheidungen im Durchlauf dazu geführt haben, dass die Zahlen genau so und nicht anders herauskamen. Ausgangspunkt war die Bitte: „Mach mir einen Vorschlag, wie wir den Teams auf der letzten Seite die aktuelle und theoretische Lead Time (mit Details zur Cycle Time und Analysis Time) erklären können — es wäre gut zu wissen, welche Entscheidungen dazu geführt haben, dass sich die jeweiligen Werte so berechnet haben. Das wäre für eine Retrospektive der Spielenden sehr, sehr gut."
-
-**User Story:** Als Team, das gerade einen Durchlauf abgeschlossen hat, möchte ich auf dem Abschluss-Screen direkt unter den Vergleichsbalken nachlesen können, welche einzelnen Entscheidungen zur tatsächlichen Analyse- und Cycle-Time geführt haben — und welche zusätzlichen Entscheidungen im bestmöglichen Fall dazugekommen wären —, damit wir das in unserer eigenen Retrospektive konkret besprechen können, statt nur die Endsumme zu sehen.
-
-**Offene Punkte aus der Ticket-Anlage — von Stephan entschieden (23.07.2026):**
-- „Theoretisch" bedeutet der bestmögliche Lauf überhaupt: jede Entscheidung richtig, keine Abkürzung, kein Rework — nicht (wie die Berechnung bisher tatsächlich arbeitete) der eigene tatsächliche Lauf abzüglich des selbst verursachten Reworks.
-- Umzusetzen ist **Variante B**: die drei bestehenden Vergleichsbalken bleiben unverändert stehen; Cycle-Time- und Analyse-Time-Aufschlüsselung klappen direkt unter den jeweiligen Balken auf (statt wie bisher nur über die kleinen Badge-/Rework-Chip-Overlays weiter oben auf der Seite erreichbar zu sein).
-- Freigabe erteilt, die betroffenen Assertions in `tests/FEATURE-009-consequences.test.js` (Zeilen 243–244, sowie 162–163 zur Konsistenz) auf die neue Definition umzuschreiben — siehe „Zielkonflikt mit bestehendem Test" unten.
-
-**Zielkonflikt mit bestehendem Test (geklärt, 23.07.2026):** Der bestehende Test `tests/FEATURE-009-consequences.test.js` prüfte für den „What it could have been"-Balken bisher exakt die alte Definition: im Szenario „everythingBad" (vier Abkürzungen genommen, dadurch nur 3 von 7 möglichen Analyse-Tagen verdient) erwartete die Assertion in Zeile 243–244, dass der Ideal-Balken `analysisAtHandoff` (die tatsächlich verdiente, reduzierte Zahl — 3d) statt der maximal möglichen Zahl (7d) zeigt. Das widerspricht der jetzt von Stephan festgelegten Definition von „theoretisch". Da bestehende Tests laut Projektregel nicht ohne Stephans Freigabe geändert werden dürfen, wurde dieser Konflikt offen angesprochen; Stephan hat die Freigabe erteilt, die betroffenen Zeilen (162–163 und 243–244) auf die neue Definition umzuschreiben (siehe Implementierungsnotizen für die konkrete neue Erwartung).
-
-**Fundstellen-Sweep:** `completeStep(st,container,extra,noCredit)` (Zeile ~376) vergibt Analyse-Tage/Badge nur, wenn `noCredit` nicht gesetzt ist — bei einer Abkürzung (Team-Modus: Map-Timeout, vage Verhaltensbeschreibung, geratener Business-Value, vertagte Frage) wird die Gutschrift komplett übersprungen, taucht aber später als eigener, benannter Rework-Eintrag in `S.rework` wieder auf (`renderTeamImpl`). `S.badges` (Array `{e,name,i}`) verzeichnet nur tatsächlich vergebene Gutschriften, keine verpassten. `STAGES` (von `buildStages`/`buildTeamStages` erzeugt) trägt an jeder Analyse-Stufe ein festes `analysisDays`-Feld (im aktuellen Datenstand durchgehend 1) — das ist unabhängig davon, ob die Stufe später tatsächlich Gutschrift bekommt, und eignet sich deshalb als robuste Quelle für „maximal mögliche Analyse-Tage in diesem Lauf" (Summe über `STAGES`, nicht über `S.badges`). `renderFinale()` (Agent-Modus, Zeile ~550) und `renderTeamFinale()` (Team-Modus, Zeile ~1157) berechnen beide `idealCycle=Math.max(0,actualCycle-reworkTotal)` — das ergibt bereits rechnerisch exakt den festen Bau-Grundpreis (`buildDays`, isBoss-Stufe) ohne jedes Rework, also bereits „kein Rework" im Sinne von Stephans Definition; **nur die Analyse-Seite des Ideal-Balkens war falsch** (bisher `analysis` = tatsächlich verdiente Zahl statt der maximal möglichen). Im Agent-Modus ist das faktisch nie sichtbar, weil dort jede Analyse-Stufe (Kategorisieren/Bauen/Auswählen) so lange wiederholt werden muss, bis sie korrekt gelöst ist — es gibt keinen Pfad, auf dem Analyse-Gutschrift verlorengeht; `analysis` und die maximal mögliche Zahl sind dort immer identisch. Im Team-Modus dagegen kann durch die vier möglichen Abkürzungen tatsächlich eine Lücke entstehen (siehe Zielkonflikt oben) — dort war der Fehler real sichtbar.
-
-**Zustands-Check:** Kein neuer Wartezustand (rein clientseitige Berechnung aus bereits vorhandenem `S`/`STAGES`-Zustand). Kein neuer Leerzustand nötig — auch ein Lauf ganz ohne jede Abkürzung liefert eine sinnvolle (dann leere „nichts verpasst")-Aufschlüsselung. Kein neues Fehlerverhalten.
-
-**Scope:**
-Eingeschlossen: (1) Korrektur der „Ideal"/„theoretisch"-Berechnung in `renderFinale()` und `renderTeamFinale()`, sodass die Analyse-Seite des „What it could have been"-Balkens immer die maximal mögliche Analyse-Zeit dieses Laufs zeigt (Summe der `analysisDays` über alle `STAGES`), nicht die tatsächlich verdiente. (2) Neue, direkt unter dem „Your run"- und dem „What it could have been"-Balken aufklappbare Aufschlüsselung (Variante B): pro Balken eine Liste der einzelnen Analyse-Schritte (verdient/nicht verdient bzw. im Idealfall immer verdient, mit Hinweis „hier verpasst" bei tatsächlich nicht verdienten Schritten) sowie der einzelnen Cycle-Time-Bestandteile (Bau-Grundpreis + jeder einzelne Rework-Eintrag mit Beschreibung, bzw. im Idealfall derselbe Grundpreis mit dem Hinweis, dass jeder Rework-Eintrag vermeidbar gewesen wäre). (3) Anpassung der beiden betroffenen Testzeilen in `tests/FEATURE-009-consequences.test.js` (mit Stephans Freigabe).
-Ausgeschlossen: Ein eigener neuer Screen für die Retrospektive (Option C aus der ursprünglichen Diskussion — abgelehnt zugunsten von Variante B); jede Änderung an der Cycle-Time-/Rework-Berechnung selbst (die war laut obigem Fundstellen-Sweep bereits korrekt); die „Fast start"-Zeile bekommt keine Aufschlüsselung (im Team-Modus ist sie eine reine Kennzahl ohne Einzelposten, im Agent-Modus deckt der bereits bestehende `penaltySum`/Rework-Verlauf direkt am „Fast start"-Schritt selbst dieselbe Funktion schon ab).
-
-**Akzeptanzkriterien:**
-- [x] Auf dem Abschluss-Screen (Agent- UND Team-Modus) zeigt der „What it could have been"-Balken bei der Analyse-Zeit immer die maximal mögliche Zahl für diesen Lauf — auch wenn im tatsächlichen Lauf Abkürzungen genommen wurden, die weniger Analyse-Zeit gutgeschrieben haben.
-- [x] Unter dem „Your run"-Balken lässt sich eine Aufschlüsselung aufklappen, die zeigt: jeden Analyse-Schritt einzeln (mit Häkchen, wenn Gutschrift erfolgte, deutlich abgesetzt/durchgestrichen mit Hinweis, wenn nicht) sowie jeden Cycle-Time-Bestandteil einzeln (Bau-Grundpreis + jeder tatsächlich entstandene Rework-Eintrag mit seiner eigenen Beschreibung und Tageszahl).
-- [x] Unter dem „What it could have been"-Balken lässt sich ebenfalls eine Aufschlüsselung aufklappen: alle Analyse-Schritte als verdient dargestellt (mit Hinweis bei den Schritten, die im tatsächlichen Lauf verpasst wurden, damit die Retrospektive genau benennen kann, welche Entscheidung das war), sowie der Cycle-Time-Bestandteil nur als Bau-Grundpreis, mit jedem tatsächlich entstandenen Rework-Eintrag als „hier vermieden" gekennzeichnet.
-- [x] Die Summen in der Aufschlüsselung stimmen exakt mit den Zahlen im jeweiligen Balken überein (keine Doppelzählung, keine Lücke). **Umsetzungshinweis:** dafür war eine kleine Erweiterung von `completeStep()` nötig, siehe Implementierungsnotizen (Analyse-Gutschrift wurde bisher nur über `S.badges` sichtbar, das aber nicht jeder gutgeschriebene Schritt befüllt).
-- [x] Ein Lauf ganz ohne jede Abkürzung zeigt in beiden Aufschlüsselungen sinnvoll identische Werte (kein „leerer"/kaputter Zustand).
-- [x] Keine Konsolenfehler; `GAME_VERSION` wird erhöht (jetzt 1.18.0).
-- [x] `tests/FEATURE-009-consequences.test.js` (Zeilen 162–163, 243–244) ist auf die neue Definition angepasst und läuft grün.
-
-**Pre-Mortem:**
-- 💀 Die Summe der Aufschlüsselung weicht von der Balken-Zahl ab (z. B. weil `STAGES` zum Render-Zeitpunkt bereits zurückgesetzt ist) → Gegenmaßnahme: eigener Testfall, der Summe der Aufschlüsselungs-Einzelposten gegen die im Balken angezeigte Gesamtzahl prüft.
-- 💀 Die Korrektur der Ideal-Analyse-Berechnung wird versehentlich auch auf die Cycle-Zeit-Seite angewendet und verändert dadurch ungewollt auch die bereits korrekte `idealCycle`-Berechnung → Gegenmaßnahme: nur die eine Codestelle (der `a`-Parameter des Ideal-`lbar()`-Aufrufs plus die zugehörigen Text-Bausteine) gezielt ändern, `idealCycle` unangetastet lassen, per Test auf Agent-Modus-Regression absichern (dort muss sich rechnerisch nichts ändern, siehe Fundstellen-Sweep).
-- 💀 Die Aufklapp-Funktion kollidiert mit den bestehenden Badge-/Rework-Chip-Overlays (z. B. doppelte IDs) → Gegenmaßnahme: eigene, klar unterscheidbare CSS-Klassen/IDs (`bktoggle`/`bkpanel`) statt der bestehenden Overlay-Mechanik.
-- 💀 `GAME_VERSION` wird bei dieser sichtbaren Änderung vergessen zu erhöhen → Gegenmaßnahme: fester Bestandteil des Testplans.
-- 💀 Der Freigabe-Umschreibung von `FEATURE-009-consequences.test.js` schwächt den Test versehentlich ab (z. B. lockere Zahl statt weiterhin exakter Erwartung) → Gegenmaßnahme: neue Erwartung bleibt exakt (Aufschlüsselung auf `7d analysis` bzw. die jeweils maximal mögliche Zahl je Szenario-Zweig), nicht einfach der Assertion-String entfernt.
-
-**Optionenvergleich:** (bereits in der vorausgegangenen Analyse konversationell durchgesprochen, hier nur zur Nachvollziehbarkeit festgehalten)
-
-*Option A – Ein vereinheitlichtes, chronologisches Entscheidungs-Logbuch:* alle Entscheidungen des Laufs in einer einzigen Zeitleiste, unabhängig von den bestehenden drei Balken. Vorteil: sehr klare Erzählung. Nachteil: großer struktureller Eingriff, eigener neuer Anzeige-Block, höheres Regressionsrisiko für die bestehenden Badge-/Review-Mechaniken.
-
-*Option B – Aufklappbare Aufschlüsselung direkt unter den bestehenden drei Balken (Stephans Entscheidung):* geringster Eingriff, nutzt die bereits vorhandenen Datenstrukturen (`S.badges`, `S.rework`, `STAGES`) direkt weiter, bestehende Balken/Bedeutung bleiben unverändert.
-
-*Option C – Eigener neuer Retrospektive-Screen nach dem Finale:* separate Ansicht, mehr Raum, aber neuer Stage-Typ nötig (Regressionsrisiko wie bei FEATURE-010 gegen Stage-Index-Abhängigkeiten bereits bekannt) und ein zusätzlicher Klick, bevor das Team die Zahlen überhaupt sieht.
-
-✅ **Umgesetzt wird:** Option B, wie von Stephan entschieden.
-
-**Analyse & Planung:**
-- [x] Verifiziert: `idealCycle=Math.max(0,actualCycle-reworkTotal)` ergibt in beiden Modi bereits exakt den festen Bau-Grundpreis der `isBoss`-Stufe (`buildDays`) ohne jedes Rework — diese Seite der Ideal-Berechnung bleibt unverändert, nur die Analyse-Seite (`a`-Parameter) wird von `analysis` (tatsächlich verdient) auf eine neue Hilfsfunktion `maxAnalysisDays()` (Summe der `analysisDays` über alle `STAGES` dieses Laufs) umgestellt.
-- [x] Neue, von beiden Finale-Funktionen gemeinsam genutzte Hilfsfunktionen geplant: `analysisRows()` (iteriert `STAGES`, liefert pro Analyse-Stufe `{label, emoji, days, earned}`), `maxAnalysisDays()` (Summe `analysisDays` über `STAGES`), `analysisBreakdownHTML(kind)` und `cycleBreakdownHTML(kind)` (kind = „actual" oder „ideal"), sowie ein kleiner Baustein, der pro Balken einen Aufklapp-Button plus verstecktes Panel erzeugt und nach dem Rendern verdrahtet (`.bktoggle`/`.bkpanel`, `classList.toggle("show")`). **Während der Implementierung korrigiert:** `earned` kann NICHT zuverlässig über `S.badges` bestimmt werden — einzelne Analyse-Stufen (z. B. `teamdor`, die beiden `teamfork`-Typen) vergeben zwar Analyse-Gutschrift, aber nie ein Badge (`st.badge` ist dort gar nicht gesetzt), wären also fälschlich immer als „nicht verdient" erschienen. Stattdessen führt `completeStep()` jetzt ein eigenes, von Badges unabhängiges `S.credited`-Array (Stufen-Indizes mit tatsächlicher Analyse-Gutschrift), das `analysisRows()` abfragt.
-- [x] Team-Modus-Spezialfall geprüft: die feste, immer vorhandene „fehlende Rolle"-Konsequenz (`ROLE_GAP_THREAD`, +2 Tage) ist strukturell vom Szenario vorgegeben (die Rolle fehlt tatsächlich, das ist keine Spieler-Entscheidung) und wird von der bereits bestehenden `idealCycle`-Formel ebenfalls herausgerechnet (wie schon vor diesem Ticket) — das wird bewusst NICHT geändert, da Stephans Freigabe sich nur auf die Analyse-Seite bezog und die bestehende Cycle-Rechnung laut Fundstellen-Sweep bereits korrekt „kein Rework" abbildet.
-- [x] Neue erwartete Testzahlen für `tests/FEATURE-009-consequences.test.js` (mit Stephans Freigabe anzupassen): Zeile 162–163 („sauberer PO-Lauf") bleibt inhaltlich `7d analysis + 4d cycle` (unverändert, da dort ohnehin schon alle 7 Schritte verdient wurden — reiner Bestandsschutz, keine Änderung nötig, nur zur Konsistenz noch einmal geprüft). Zeile 243–244 („everythingBad", PO-Zweig) ändert sich von `analysisAtHandoff + "d analysis + 4d cycle"` (bisher 3d) auf fest `"7d analysis + 4d cycle"` — die maximal möglichen 7 Analyse-Tage dieses Szenario-Zweigs, unabhängig davon, wie viele davon im tatsächlichen (schlechten) Lauf verdient wurden.
-
-**Testplan:**
-- [x] Automatisiert (jsdom, neue Datei `tests/FEATURE-011.test.js`, 5 Prüfpunkte): GAME_VERSION erhöht (1.18.0); Ideal-Balken zeigt bei einem Lauf mit allen vier möglichen Abkürzungen (Team-Modus, PO-Zweig, tatsächlich verdiente Analysezeit 3d) trotzdem `7d analysis + 4d cycle` statt der tatsächlich verdienten, niedrigeren Zahl; Aufschlüsselungs-Panels sind im gerenderten Finale-HTML vorhanden (genau zwei je Modus), standardmäßig eingeklappt (keine `show`-Klasse beim ersten Render), und die Summe jedes Aufschlüsselungs-Abschnitts (Analyse und Cycle, je einmal „Your run" und einmal „Ideal") stimmt exakt mit `S.analysis`/`S.cycle`/der maximalen bzw. Grundpreis-Zahl überein; ein sauberer Dev-fehlt-Lauf (kein Bizvalue-Zweig, 6 statt 7 mögliche Analyseschritte) zeigt in „Your run" und „Ideal" dieselbe Zahl (6d) und keinen einzigen „nicht gutgeschrieben"/„verpasst"-Hinweis; Agent-Modus-Regression bestätigt, dass die Ideal-Analyse-Zahl weiterhin exakt der tatsächlichen entspricht (`maxAnalysisDays()` gegen echte, per Klick aufgebaute `STAGES` eines realen Szenarios geprüft). Alle 5 Prüfpunkte grün, tatsächlich ausgeführt und Output gesehen.
-- [x] Pflicht-Regressionslauf gegen alle bestehenden `tests/*.test.js`-Dateien (elf Bestandsdateien plus `FEATURE-010.test.js`): 11 von 13 Dateien grün, tatsächlich ausgeführt. Zwei Dateien schlagen fehl — beide ausschließlich an ihrer eigenen fest einprogrammierten `GAME_VERSION`-Zeile (`tests/FEATURE-009.test.js` erwartet „1.16.0", `tests/FEATURE-010.test.js` erwartet „1.17.0"), nicht an funktionalem Verhalten: bei `FEATURE-010.test.js` sind die verbleibenden 4 von 5 Prüfpunkten (Schätz-Text sichtbar, Fast-Start-Werte 20/16, Wert unabhängig vom Spielverhalten) weiterhin grün — nur der Versions-Check selbst schlägt fehl. Dasselbe bekannte Muster wie schon bei FEATURE-010 gegen `FEATURE-009.test.js`: jeder künftige Versionssprung bricht die vorherige, fest einprogrammierte Versionszeile des jeweils vorigen Tickets. Keine dieser beiden Dateien wurde angepasst (nur Stephan darf bestehende Tests ändern) — Stephan müsste beide Zeilen selbst auf „1.18.0" aktualisieren, sonst bleiben sie bei jedem künftigen Regressionslauf rot.
-- [x] Mit Stephans Freigabe angepasste Zeilen in `tests/FEATURE-009-consequences.test.js` (jetzt Zeilen 162–169 und 248–260 durch die ergänzten Kommentare leicht verschoben) laufen grün — datei-weit 3/3 Szenarien bestätigt.
-- **Begründung Testabdeckung:** Die Änderung betrifft eine gemeinsam genutzte Berechnung und Darstellung in beiden Finale-Funktionen — ein Testdurchlauf pro Modus (je ein sauberer, je ein durchgängig schlechter Team-Lauf, sowie ein Agent-Modus-Regressionscheck) deckt die vollständige neue Logik ab.
-- [ ] Echter Blick im Browser (Desktop, ggf. Handy-Breite) auf die neue Aufklapp-Funktion bleibt offener Punkt, bis Stephan ihn selbst bestätigt.
-
-**Implementierungsnotizen:**
-Umgesetzt in `public/index.html` (Basis: v1.17.0, direkt im Anschluss an FEATURE-010 in derselben Sitzung). Neue Hilfsfunktionen `analysisRows()`, `maxAnalysisDays()`, `analysisBreakdownHTML(kind)`, `cycleBaseDays()`, `cycleBreakdownHTML(kind)`, `bkBlock(kind)`, `wireBkToggles()` — alle von `renderFinale()` (Agent) und `renderTeamFinale()` (Team) gemeinsam genutzt. `completeStep()` erhielt ein neues `S.credited`-Array (Stufen-Indizes mit tatsächlicher Analyse-Gutschrift, unabhängig von `S.badges` — Grund siehe Analyse & Planung oben). In beiden Finale-Funktionen wurde ausschließlich der `a`-Parameter des Ideal-`lbar()`-Aufrufs (und die zugehörigen Text-Bausteine `idealNote`) von `analysis` auf `idealAnalysis=maxAnalysisDays()` umgestellt; `idealCycle` blieb unangetastet. Neue CSS-Klassen `.bktoggle`/`.bkpanel`/`.bklab`/`.bkrow` (inkl. `.miss`-Modifikator). `GAME_VERSION` von „1.17.0" auf „1.18.0" angehoben. Neue dauerhafte Testdatei: `tests/FEATURE-011.test.js`. Mit Stephans expliziter Freigabe angepasst: `tests/FEATURE-009-consequences.test.js` (zwei Assertions, siehe Testplan).
-
-**Bezug:** Chat-Anfrage 23.07.2026, im direkten Anschluss an FEATURE-010 („Mach mir einen Vorschlag, wie wir den Teams auf der letzten Seite die aktuelle und theoretische Lead Time erklären können...").
-
-## 📋 ToDo
-
-### FEATURE-009 Die 21 Szenarien themenbezogen gruppieren
-
-*(Hinweis 2026-07-23: ursprünglich unter der Nummer FEATURE-008 angelegt. Diese Nummer gehörte eigentlich schon dem Team-Modus-Vertical-Slice — der aber nie als Ticket in diese Datei geschrieben wurde und deshalb bei der Anlage dieses Tickets frei aussah. Beim nachträglichen sauberen Dokumentieren des Team-Modus als FEATURE-008 wurde dieses Ticket auf FEATURE-009 hochgezählt, damit beide Nummern eindeutig bleiben.)*
-
-| Feld | Wert |
-|------|------|
-| **Typ** | Feature |
-| **Priorität** | Mittel |
-| **Status** | ToDo |
-| **Erstellt** | 2026-07-22 |
-
-**Beschreibung:** Stephan möchte, dass Spielende auf dem Startbildschirm schneller ein für sie passendes Szenario finden, statt sich durch 21 gleichrangige Karten zu klicken oder auf „Surprise us" auszuweichen. Vorschlag, abgeleitet aus den tatsächlichen Titeln/Kurztexten aller 21 Szenarien (`public/index.html`, `SCENARIOS`-Liste), sechs Themengruppen:
-
-1. **Geld rausschicken** (6): Bulk supplier payments, Run payroll, Pay a supplier abroad, Schedule a future tax payment, Send a one-off payment, Move spare cash automatically
-2. **Geld reinholen** (3): Collect from many customers, Request money from a customer, Decline a payment request
-3. **Firmenkarten** (3): Company cards with limits, Single-use virtual card, Freeze a lost company card
-4. **Freigaben & Limits** (4): Second approver for large payments, Daily payment cap for the company, Add and approve a new payee, Check the payee's details
-5. **Zugriff & Sicherheit** (3): Give the right access, Log in to the company portal, Report a transaction we don't recognise
-6. **Überblick behalten** (2): One live view of all balances, Alerts on account movement
-
-Summe 6+3+3+4+3+2 = 21, jedes Szenario genau einer Gruppe zugeordnet, keins doppelt oder vergessen.
-
-**Offene Punkte für die Analysephase (bewusst noch nicht entschieden):** Wie die Gruppen auf dem Startbildschirm erscheinen (z. B. Themen-Reiter/Filter-Chips oberhalb der Karten vs. sechs beschriftete Abschnitte untereinander); ob „Surprise us" weiterhin über alle 21 zieht oder optional auf eine gewählte Gruppe eingeschränkt werden kann; endgültige deutsche oder englische Beschriftung der sechs Gruppennamen (Spiel ist aktuell komplett englischsprachig, Vorschlag oben zur besseren Lesbarkeit für Stephan auf Deutsch benannt).
-
-**Bezug:** Chat-Idee 2026-07-22.
-
-## ✅ Done
 
 ### FEATURE-008 Zweiter Spielmodus „Work as a Team" (ohne Agent)
 
