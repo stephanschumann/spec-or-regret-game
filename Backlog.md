@@ -6,34 +6,125 @@
 
 ## 🔄 In Progress
 
-
-## 📋 ToDo
-
-### FEATURE-009 Die 21 Szenarien themenbezogen gruppieren
-
-*(Hinweis 2026-07-23: ursprünglich unter der Nummer FEATURE-008 angelegt. Diese Nummer gehörte eigentlich schon dem Team-Modus-Vertical-Slice — der aber nie als Ticket in diese Datei geschrieben wurde und deshalb bei der Anlage dieses Tickets frei aussah. Beim nachträglichen sauberen Dokumentieren des Team-Modus als FEATURE-008 wurde dieses Ticket auf FEATURE-009 hochgezählt, damit beide Nummern eindeutig bleiben.)*
+### FEATURE-013 Kurze Erklärungen für Fachbegriffe ergänzen (Given/When/Then, Definition of Ready, Pre-mortem)
 
 | Feld | Wert |
 |------|------|
 | **Typ** | Feature |
+| **Priorität** | Niedrig |
+| **Status** | In Progress |
+| **Erstellt** | 2026-07-23 |
+
+**Beschreibung:** Laut Ersteindruck-Testlauf werden Fachbegriffe wie "Given/When/Then", "Definition of Ready" und "pre-mortem" im Spiel verwendet und im Kontext angedeutet, aber nirgends in einem kurzen Satz ausdrücklich definiert — für komplette Neulinge ohne Vorwissen eine Hürde. Am echten Code verifiziert: "Given/When/Then" taucht 3×, "Definition of Ready" 14× und nutzerseitig sichtbares "pre-mortem" 6× auf, jeweils ohne eigene Ein-Satz-Erklärung beim ersten Auftreten.
+
+**User Story:** Als Spielerin/Spieler ohne Vorwissen möchte ich beim ersten Auftreten eines Fachbegriffs eine kurze Erklärung in Klammern sehen, sodass ich der Spielhandlung folgen kann, ohne den Begriff selbst nachschlagen zu müssen.
+
+**Scope:**
+Eingeschlossen: In den Bildschirmtexten, die während eines tatsächlichen Spieldurchlaufs erscheinen — sowohl im Agenten-Modus als auch unabhängig davon im Team-Modus, weil beide einen eigenen, in sich abgeschlossenen Ablauf haben —, bekommt jeder der drei Begriffe („Given/When/Then", „Definition of Ready", „Pre-mortem") bei seinem jeweils ersten Auftreten eine kurze, in Klammern angehängte Erklärung in Alltagssprache, direkt im bestehenden Satz ergänzt. Reine Textänderung, kein neues UI-Element.
+Ausgeschlossen: die beiden aufklappbaren „What's different here?"-Infoboxen auf dem Startbildschirm (dort tauchen alle drei Begriffe ebenfalls auf, aber die Boxen sind standardmäßig eingeklappt und laut BUG-004 bereits mit einem eigenen Layout-Problem behaftet — eine Änderung dort gehört in ein eigenes Ticket, nicht in dieses kleine Textfeature); jede weitere Wiederholung eines Begriffs nach seinem jeweils ersten Auftreten im selben Modus (z. B. der spätere Team-Chat-Hinweis oder die Abschluss-Aufschlüsselung) — dort bleibt der Text unverändert; jede inhaltliche Änderung an Spiellogik, Szenarien oder Bewertung.
+
+**Akzeptanzkriterien:**
+- [x] Im Agenten-Modus steht beim ersten Mal, wenn im Spielverlauf von „Pre-mortem" die Rede ist, direkt daneben in Klammern eine kurze Erklärung, was damit gemeint ist — der Rest des Bildschirms bleibt unverändert. Automatisiert bestätigt (`tests/FEATURE-013.test.js`, über die echte Render-Funktion `debriefHTML()`).
+- [x] Im Agenten-Modus steht beim ersten Mal, wenn von „Given/When/Then" die Rede ist, direkt daneben in Klammern eine kurze Erklärung. Automatisiert bestätigt.
+- [x] Im Agenten-Modus steht beim ersten Mal, wenn von der „Definition of Ready" die Rede ist, direkt daneben in Klammern eine kurze Erklärung. Automatisiert bestätigt (über `stageHead()`).
+- [x] Im Team-Modus steht dasselbe für alle drei Begriffe an ihrer jeweils eigenen ersten Stelle — unabhängig vom Agenten-Modus, weil jemand auch ausschließlich den Team-Modus spielen kann, ohne je den Agenten-Modus gesehen zu haben. Automatisiert bestätigt (`buildTeamStages()` + `debriefHTML()`/`stageHead()`).
+- [x] Bei jeder späteren Wiederholung desselben Begriffs (in beiden Modi) bleibt der Text wie bisher, ohne die Erklärung erneut zu zeigen. Automatisiert bestätigt: jede der drei Erklärungsphrasen kommt im Quelltext exakt zweimal vor (einmal Agent-, einmal Team-Modus), und keine taucht in `renderModePicker()` (die beiden ausgeschlossenen Infoboxen) auf.
+- [ ] Die Erklärungen sind kurz genug, dass sie sich in den bestehenden Satzfluss einfügen, ohne dass der Textblock abgeschnitten wirkt oder auf Handy-Breite unleserlich eng umbricht. **Offen** — das ist eine visuelle/Layout-Frage, die jsdom nicht prüfen kann; steht im Testplan als offener Punkt für Stephans eigenen Blick.
+- [x] Der übrige Spielablauf (Fortschritt, Bewertung, Punktestand) verhält sich exakt wie vorher — es handelt sich ausschließlich um zusätzlichen erklärenden Text. Durch den vollständigen Regressionslauf gegen alle 14 bestehenden Testdateien bestätigt (siehe Testplan).
+
+**Fundstellen-Sweep:** Gesucht nach den drei Begriffen im gesamten `public/index.html` (nicht aus der Ticket-Beschreibung übernommen, sondern selbst nachgezählt):
+- „Given/When/Then" bzw. „Given / When / Then" (Regex `given[ /]*when[ /]*then`, case-insensitive): 4 Fundstellen. Davon 1 in der eingeklappten Startbildschirm-Infobox (ausgeschlossen, s. Scope), 1 in der Agenten-„build"-Stage (Debrief-Text, erste sichtbare Stelle im Agenten-Modus), 1 in der Team-„teamgherkin"-Stage (Debrief-Text, erste sichtbare Stelle im Team-Modus), 1 in einem späteren Team-Chat-Hinweis mitten im Build (Wiederholung, nach der Team-„teamgherkin"-Stage, daher out of scope).
+- „Definition of Ready" (exakte Phrase): 12 Fundstellen. Davon 2 in den eingeklappten Startbildschirm-Infoboxen (ausgeschlossen), 3 in der Agenten-„Definition of Ready"-Boss-Stage (Kicker/Setup/Debrief — Kicker ist die erste sichtbare Stelle im Agenten-Modus), 3 in der Team-„teamdor"-Stage (Kicker/Title/Debrief — Kicker/Title ist die erste sichtbare Stelle im Team-Modus), 3 in späteren Team-Bildschirmen (Chat-Hinweis, Rework-Eintrag, Abschluss-Zusammenfassung — alle Wiederholungen nach der teamdor-Stage, daher out of scope), 1 in einem Code-Kommentar (nicht am Bildschirm sichtbar, keine Fundstelle im eigentlichen Sinn).
+- „pre-mortem"/„Pre-mortem" nutzerseitig sichtbar (ausgenommen interne Bezeichner wie `sc.premortem`, `premortemSuccess`, `kind:"premortem"`, die nie am Bildschirm erscheinen): 5 Fundstellen. Davon 1 in der eingeklappten Startbildschirm-Infobox (ausgeschlossen), 1 im Agenten-Modus (Badge-Name „Pre-mortem" + Debrief-Text derselben Stage, zusammen die erste sichtbare Stelle im Agenten-Modus), 1 im Team-Modus (Badge-Name + Debrief-Text derselben Stage, erste sichtbare Stelle im Team-Modus). Der Begriff taucht zusätzlich als Badge-Name in der Abschluss-Aufschlüsselung (`analysisRows()`, beide Modi) erneut auf — das ist eine Wiederholung nach der jeweils ersten Stelle, daher unverändert (siehe Scope).
+- Ergebnis: 6 tatsächliche Bearbeitungsstellen (je 3 Begriffe × 2 Modi), alle übrigen Fundstellen sind entweder ausgeschlossene Infoboxen oder Wiederholungen nach der jeweils ersten Stelle.
+
+**Zustands-Check:** Wartezustand: entfällt — reiner statischer Text, kein Laden, kein Netzwerkzugriff. Leerzustand: entfällt — die Textstellen sind in jedem der 21 Szenarien und in jedem Spieldurchlauf gleichermaßen vorhanden, es gibt keinen Fall „kein Text vorhanden". Fehlerfall: entfällt — rein clientseitige, statische Textänderung, kein neues Fehlerverhalten nötig oder vorgesehen.
+
+**Pre-Mortem:**
+- 💀 Eine Erklärung wird an einer Stelle ergänzt, die im jeweiligen Modus gar nicht wirklich die erste ist, weil eine Verzweigung im Spielablauf übersehen wurde → Gegenmaßnahme: Fundstellen-Sweep hat die Reihenfolge anhand der tatsächlichen Schrittfolge (`buildStages`/`buildTeamStages`) nachvollzogen, nicht geraten; der Testplan prüft die Reihenfolge zusätzlich per echtem Klickdurchlauf.
+- 💀 Die Klammer-Erklärung verändert versehentlich den bestehenden Wortlaut mit (z. B. verrutschtes Satzzeichen mitten in einem bestehenden String) statt ihn nur zu ergänzen → Gegenmaßnahme: jede Änderung ist eine reine Ergänzung, der bestehende Text bleibt zeichengleich erhalten; Syntax-Check plus visueller Blick auf den gerenderten Text im Testplan.
+- 💀 Eine Erklärung wird versehentlich doch in einer der beiden „What's different here?"-Infoboxen ergänzt und vermischt sich mit dem noch offenen Layout-Problem aus BUG-004 → Gegenmaßnahme: im Scope ausdrücklich ausgeschlossen; Fundstellen-Sweep dokumentiert genau, welche der Fundstellen bearbeitet werden.
+- 💀 Die neu geschriebenen Erklärungstexte übernehmen versehentlich deutsche Anführungszeichen statt englischer (BUG-003 ist ein eigenes, noch offenes Ticket zum selben Zeitpunkt) → Gegenmaßnahme: neue Texte durchgängig mit englischen Anführungszeichen/Apostrophen schreiben, wie der Rest des Spiels; im Testplan mitgeprüft.
+- 💀 `GAME_VERSION` wird bei dieser sichtbaren Textänderung vergessen zu erhöhen → Gegenmaßnahme: fester Bestandteil der Implementierungsnotizen, wie bei jedem bisherigen Ticket.
+
+**Optionenvergleich:**
+
+*Option A – Klammer-Erklärung direkt an der ersten Fundstelle je Modus (empfohlen):* An genau den 6 identifizierten Stellen (3 Begriffe × 2 Modi) wird die bestehende Textstelle um eine kurze Klammer-Erklärung ergänzt, sonst bleibt alles unverändert. Vorteil: entspricht exakt der User Story („beim ersten Auftreten"), minimaler Eingriff (reine Textergänzung an bestehenden Stellen, keine neue Funktion, kein neues UI-Element), sehr geringes Regressionsrisiko. Nachteil: die Erklärung ist an genau die eine Formulierung gebunden, in der der Begriff zuerst auftaucht — ändert sich diese Formulierung später (z. B. neuer Debrief-Text), muss die Erklärung mit umgezogen werden.
+
+*Option B – Zentraler Mini-Glossar-Mechanismus (z. B. Tooltip/Klick-Info):* Eine neue, wiederverwendbare UI-Komponente zeigt die Erklärung bei Hover/Tap, unabhängig davon, an welcher Textstelle der Begriff steht. Vorteil: konsistent, skaliert auf künftige weitere Fachbegriffe, keine Bindung an eine bestimmte Formulierung. Nachteil: deutlich größerer Eingriff (neues Markup, CSS, Klick-/Tap-Handling auch auf Handy-Breite), höheres Regressionsrisiko, für „Niedrig"-Priorität und drei einmalige Begriffe unverhältnismäßig aufwendig.
+
+*Option C – Nur die beiden Startbildschirm-Infoboxen ergänzen:* Erklärungen ausschließlich in den beiden „What's different here?"-Boxen, der Spieltext selbst bleibt unangetastet. Vorteil: nur 2 Stellen statt 6. Nachteil: löst das eigentliche Problem nicht zuverlässig — die Boxen sind eingeklappt, ein Klick darauf ist optional, und laut Ersteindruck-Test ist genau das die beobachtete Hürde (Begriffe tauchen im Spielverlauf auf, ohne dass man je die Box geöffnet hat). Nicht empfohlen.
+
+✅ **Empfehlung:** Option A — einzige Option, die zuverlässig genau das löst, was der Ersteindruck-Test gezeigt hat (Begriffe tauchen im tatsächlichen Spielverlauf ohne Erklärung auf), bei minimalem Eingriff und minimalem Risiko, passend zur „Niedrig"-Priorität dieses Tickets.
+
+**Analyse & Planung:**
+- [x] Agenten-Modus, „build"-Stage (Debrief-Text): Klammer-Erklärung bei „Given / When / Then" ergänzt.
+- [x] Agenten-Modus, „select premortem"-Stage (Debrief-Text): Klammer-Erklärung bei „Pre-mortem" ergänzt (Badge-Name selbst unverändert gelassen — ein Badge-Label ist kein Fließtext, die Erklärung sitzt im direkt daneben angezeigten Debrief-Satz derselben Stage).
+- [x] Agenten-Modus, „Definition of Ready"-Boss-Stage (Setup-Text): Klammer-Erklärung bei „Definition of Ready" ergänzt (nicht im Kicker — der ist ein kurzes Label/Tag, ungeeignet für einen Klammerzusatz; die Erklärung sitzt stattdessen im Fließtext direkt darunter, auf demselben Bildschirm).
+- [x] Team-Modus, „teamgherkin"-Stage (Debrief-Text): Klammer-Erklärung bei „Given/When/Then" ergänzt.
+- [x] Team-Modus, „teamselect premortem"-Stage (Debrief-Text): Klammer-Erklärung bei „Pre-mortem" ergänzt.
+- [x] Team-Modus, „teamdor"-Stage (Title): Klammer-Erklärung bei „Definition of Ready" ergänzt (hier stand der Begriff — anders als im Agenten-Modus — nur im Title, nicht im Setup-Text; deshalb dort ergänzt).
+- [x] Alle übrigen Fundstellen (Infoboxen, Team-Chat-Hinweis, Rework-Eintrag, Abschluss-Aufschlüsselung) unverändert gelassen, wie im Scope festgelegt — automatisiert gegengeprüft (siehe Testplan).
+- [x] `GAME_VERSION` von „1.19.0" auf „1.20.0" erhöht (Minor, sichtbare neue Funktion, analog FEATURE-004/005/006/007/010/011/012).
+
+**Testplan:**
+- [x] Neue dauerhafte Testdatei `tests/FEATURE-013.test.js` (tatsächlich ausgeführt, grün, 4/4 Checks): prüft für Agenten- und Team-Modus je einzeln, dass der erwartete Erklärungstext an der jeweils richtigen Stage vorhanden ist — **nicht** per Klickdurchlauf durch die vorherigen Stufen (bei einer reinen Textänderung ohne Ablaufabhängigkeit unverhältnismäßig), sondern direkt über die echten Render-Funktionen (`buildStages()`/`buildTeamStages()` liefern die reale Stage-Konfiguration, `stageHead()`/`debriefHTML()` erzeugen daraus das tatsächliche HTML) — das deckt denselben Rendering-Code ab wie ein Klickdurchlauf, ohne unnötig Spiellogik mitzusimulieren, die dieses Ticket gar nicht berührt. Zusätzlich geprüft: bestehender Wortlaut zeichengleich erhalten (reine Ergänzung, kein Reword), jede Erklärungsphrase kommt im Quelltext exakt zweimal vor, keine der drei Phrasen taucht in `renderModePicker()` auf.
+- [x] `node --check` auf das extrahierte `<script>`-Innere: fehlerfrei.
+- [x] Pflicht-Regressionslauf gegen alle 14 bestehenden Testdateien, von mir selbst ausgeführt: 10 grün, 4 (`FEATURE-009.test.js`, `FEATURE-010.test.js`, `FEATURE-011.test.js`, `FEATURE-012.test.js`) schlagen ausschließlich an ihrer eigenen, fest einprogrammierten alten `GAME_VERSION`-Zeile fehl (erwarten „1.16.0"/„1.17.0"/„1.18.0"/„1.19.0") — dasselbe bekannte, bereits mehrfach akzeptierte Muster wie bei jedem früheren Versionssprung; keine dieser vier Dateien wurde angefasst. Kein inhaltlicher Funktionsverlust in irgendeiner der 14 Dateien.
+- [x] **Begründung Testabdeckung:** reine Textänderung ohne Berührung gemeinsamer Berechnungs- oder Ablauflogik; die sechs betroffenen Stellen sind unabhängig vom gewählten Szenario identisch (Prüfung erfolgte gegen `SCENARIOS[0]`, stellvertretend für alle 21), ein Durchspielen aller 21 Szenarien ist dafür nicht nötig.
+- [ ] Echter Blick im Browser (Desktop und Handy-Breite) bleibt offener Punkt, bis Stephan ihn selbst bestätigt — insbesondere ob die Klammer-Erklärungen auf Handy-Breite zu störenden Zeilenumbrüchen führen (siehe offenes AK oben).
+
+**Implementierungsnotizen:**
+Umgesetzt in `public/index.html` (Basis: HEAD `8513672`, `GAME_VERSION` „1.19.0", vor Beginn per `git log`/`git status` geprüft — sauberer Stand). An den 6 in der Analyse identifizierten Stellen wurde der jeweils bestehende String um eine Klammer-Erklärung ergänzt, ohne ein Zeichen des Originaltexts zu verändern: Agenten-„build"-Stage (`debrief.take`), Agenten-„select premortem"-Stage (`debrief.take`), Agenten-Boss-Stage (`setup`), Team-„teamgherkin"-Stage (`debrief.take`), Team-„teamselect premortem"-Stage (`debrief.take`), Team-„teamdor"-Stage (`title`). Alle drei Erklärungstexte durchgängig mit dem im restlichen Spiel vorherrschenden typografischen Apostroph (’) geschrieben, keine deutschen Anführungszeichen verwendet (Abgrenzung zu BUG-003). `GAME_VERSION` „1.19.0" → „1.20.0". Neue dauerhafte Testdatei `tests/FEATURE-013.test.js`. Diese Sitzung lief als Cloud-Sandbox ohne Zugriff auf Stephans echtes Repo/Mac (nur ein anonymer, push-rechtloser Lese-Klon von GitHub) — `public/index.html`, `tests/FEATURE-013.test.js` und die aktualisierte `Backlog.md` werden Stephan direkt als Dateien zugestellt, damit er sie selbst in sein Repo übernehmen kann.
+
+**Bezug:** Ersteindruck-Testlauf 23.07.2026 (Finding 3).
+
+## 📋 ToDo
+
+### BUG-002 „Team debrief"/„facilitator" widerspricht der Einzelspieler-Rahmung im Agent-Modus
+
+| Feld | Wert |
+|------|------|
+| **Typ** | BugFix |
 | **Priorität** | Mittel |
 | **Status** | ToDo |
-| **Erstellt** | 2026-07-22 |
+| **Erstellt** | 2026-07-23 |
 
-**Beschreibung:** Stephan möchte, dass Spielende auf dem Startbildschirm schneller ein für sie passendes Szenario finden, statt sich durch 21 gleichrangige Karten zu klicken oder auf „Surprise us" auszuweichen. Vorschlag, abgeleitet aus den tatsächlichen Titeln/Kurztexten aller 21 Szenarien (`public/index.html`, `SCENARIOS`-Liste), sechs Themengruppen:
+**Beschreibung:** Laut Ersteindruck-Testlauf (23.07.2026) sprechen die wiederkehrenden Debrief-Kästen nach fast jedem Schritt ("Team debrief — pause and talk" / "💬 Talk as a team: …") und der Satz "The facilitator picks one …" auf dem Szenario-Auswahlbildschirm durchgehend eine Gruppe an, obwohl der Agent-Modus als Einzelspiel gedacht ist. Am echten Code verifiziert: Die gemeinsam von Agent- und Team-Modus genutzte Funktion `debriefHTML()` (public/index.html) hat den Team-Wortlaut fest einprogrammiert, unabhängig vom Modus; ebenso ist der Satz mit "facilitator" fest im Szenario-Auswahltext verankert.
 
-1. **Geld rausschicken** (6): Bulk supplier payments, Run payroll, Pay a supplier abroad, Schedule a future tax payment, Send a one-off payment, Move spare cash automatically
-2. **Geld reinholen** (3): Collect from many customers, Request money from a customer, Decline a payment request
-3. **Firmenkarten** (3): Company cards with limits, Single-use virtual card, Freeze a lost company card
-4. **Freigaben & Limits** (4): Second approver for large payments, Daily payment cap for the company, Add and approve a new payee, Check the payee's details
-5. **Zugriff & Sicherheit** (3): Give the right access, Log in to the company portal, Report a transaction we don't recognise
-6. **Überblick behalten** (2): One live view of all balances, Alerts on account movement
+**User Story:** Als Spielerin/Spieler im Einzelspiel-Modus ("Collaborate with Agents") möchte ich durchgehend als Einzelperson angesprochen werden, sodass ich nicht denke, etwas verpasst zu haben oder eigentlich in einer Gruppensitzung sein zu müssen.
 
-Summe 6+3+3+4+3+2 = 21, jedes Szenario genau einer Gruppe zugeordnet, keins doppelt oder vergessen.
+**Bezug:** Ersteindruck-Testlauf 23.07.2026 (Finding 1 + 5).
 
-**Offene Punkte für die Analysephase (bewusst noch nicht entschieden):** Wie die Gruppen auf dem Startbildschirm erscheinen (z. B. Themen-Reiter/Filter-Chips oberhalb der Karten vs. sechs beschriftete Abschnitte untereinander); ob „Surprise us" weiterhin über alle 21 zieht oder optional auf eine gewählte Gruppe eingeschränkt werden kann; endgültige deutsche oder englische Beschriftung der sechs Gruppennamen (Spiel ist aktuell komplett englischsprachig, Vorschlag oben zur besseren Lesbarkeit für Stephan auf Deutsch benannt).
+### BUG-003 Deutsche Anführungszeichen statt englische in Spieltexten
 
-**Bezug:** Chat-Idee 2026-07-22.
+| Feld | Wert |
+|------|------|
+| **Typ** | BugFix |
+| **Priorität** | Niedrig |
+| **Status** | ToDo |
+| **Erstellt** | 2026-07-23 |
+
+**Beschreibung:** Laut Ersteindruck-Testlauf tauchen im durchgehend englischsprachigen Spiel wiederholt deutsche Anführungszeichen ("…") statt englischer ("…"/'…') auf. Am echten Code verifiziert: 183 Fundstellen von „ bzw. “ in `public/index.html`.
+
+**User Story:** Als Spielerin/Spieler möchte ich durchgängig korrekte englische Anführungszeichen sehen, sodass der sonst sehr polierte Eindruck der App nicht getrübt wird.
+
+**Bezug:** Ersteindruck-Testlauf 23.07.2026 (Finding 2).
+
+### BUG-004 Layout-Sprung beim Aufklappen der zweiten „What's different here?"-Infobox auf der Startseite
+
+| Feld | Wert |
+|------|------|
+| **Typ** | BugFix |
+| **Priorität** | Niedrig |
+| **Status** | ToDo |
+| **Erstellt** | 2026-07-23 |
+
+**Beschreibung:** Laut Ersteindruck-Testlauf lief ein erster Klick auf "What's different here?" bei der zweiten Modus-Karte (Team-Modus) ins Leere, weil sich durch das Aufklappen der ersten Karte das Layout kurz vorher verschoben hatte. Am echten Code verifiziert: Beide Infoboxen sind native `<details><summary>What's different here?</summary>…</details>`-Elemente; das native Aufklappverhalten verschiebt den nachfolgenden Inhalt sofort ohne Übergang — ein Klick, der auf die alte Position der zweiten Box zielt, trifft daher ins Leere.
+
+**User Story:** Als Spielerin/Spieler möchte ich beide Modus-Infoboxen zuverlässig mit einem einzigen Klick aufklappen können, auch direkt nacheinander, sodass ich nicht zweimal klicken muss.
+
+**Bezug:** Ersteindruck-Testlauf 23.07.2026 (Finding 4).
 
 ## ✅ Done
 ### FEATURE-012 Die übrigen 20 Bank-Themen auch im Team-Modus spielbar machen
