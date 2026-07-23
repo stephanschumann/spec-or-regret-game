@@ -8,7 +8,7 @@
   :root{
     --bg:#0e1116;--panel:#161b22;--panel2:#1c232d;--line:#2a323d;
     --text:#e6edf3;--muted:#9aa7b4;--dim:#6b7683;
-    --blue:#4c8dff;--green:#3fb950;--amber:#f0a531;--red:#f85149;--purple:#b98bff;
+    --blue:#4c8dff;--green:#3fb950;--amber:#f0a531;--red:#f85149;--purple:#b98bff;--teal:#2dd4bf;
     --shadow:0 10px 40px rgba(0,0,0,.45);--r:16px;
   }
   *{box-sizing:border-box}
@@ -19,6 +19,11 @@
   .wrap{max-width:1080px;margin:0 auto;padding:0 24px 90px}
   .hud{position:sticky;top:0;z-index:60;background:rgba(14,17,22,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
   .hud-in{max-width:1080px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  /* FEATURE-009 Runde 5 (23.07.2026, Stephan-Feedback): a "look back" control
+     visible only as a small top-bar chip was too easy to miss — this puts the
+     same action at the bottom of every screen too, not just the finale. */
+  .navfoot{position:fixed;left:0;right:0;bottom:0;z-index:60;display:flex;justify-content:center;padding:16px 20px 20px;background:linear-gradient(180deg,transparent,var(--bg) 55%);pointer-events:none}
+  .navfoot .btn{pointer-events:auto}
   .brand{font-weight:800;letter-spacing:.14em;font-size:13px;text-transform:uppercase}
   .brand b{color:var(--amber)}
   .progress{display:flex;gap:6px;align-items:center}
@@ -48,10 +53,16 @@
   .btn.big{background:linear-gradient(180deg,#f0a531,#e08a1e);color:#241a06;font-size:19px;padding:18px 30px;box-shadow:0 8px 28px rgba(240,165,49,.4)} .btn.big:hover{transform:translateY(-2px)}
   .btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important}
   .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:22px}
-  .hintline{font-size:13px;color:var(--dim);margin:2px 0 16px}
+  .hintline{font-size:13px;color:var(--text);font-weight:600;margin:2px 0 16px}
   .bank{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px}
   .item{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:11px 14px;font-size:15px;cursor:pointer;user-select:none;max-width:100%;transition:.15s}
   .item:hover{border-color:var(--dim)} .item.assigned{opacity:.35;pointer-events:none} .item.picked{border-color:var(--amber);box-shadow:0 0 0 2px rgba(240,165,49,.25)}
+  /* FEATURE-009 Runde 4 (23.07.2026, Stephan-Feedback): team-map cards stay
+     clickable after sorting, so a card can be moved to a different category —
+     scoped to .titem only, so the agent-mode categorize step is unaffected. */
+  .item.titem.assigned{opacity:.6;pointer-events:auto;cursor:pointer}
+  .bucket .slot{cursor:pointer}
+  .bucket .slot.picked{border-color:var(--amber);box-shadow:0 0 0 2px rgba(240,165,49,.25)}
   .item.touch{cursor:default}
   .itembtns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
   .chip{appearance:none;border:1.5px solid var(--line);background:var(--panel);color:var(--muted);border-radius:999px;padding:9px 13px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:.12s;min-height:40px}
@@ -154,11 +165,47 @@
   .badgegrid{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:22px 0} .fbadge{background:var(--panel);border:1px solid rgba(240,165,49,.35);border-radius:12px;padding:12px 14px;min-width:130px;cursor:pointer;transition:.15s;} .fbadge:hover{border-color:var(--amber);transform:translateY(-2px)} .fbadge .e{font-size:24px} .fbadge .nm{font-weight:700;font-size:13px;margin-top:5px}
   .modal.reviewModal{max-width:920px}
   .reviewMode{pointer-events:none;user-select:none}
+  .reviewNav{position:sticky;bottom:-26px;margin:14px -26px -26px;padding:14px 26px;background:var(--panel);border-top:1px solid var(--line)}
   .specClick{cursor:pointer;transition:.15s} .specClick:hover{border-color:var(--amber)}
   .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(30px);background:var(--panel);border:1px solid var(--amber);border-radius:999px;padding:11px 22px;font-weight:700;z-index:95;opacity:0;transition:.4s;box-shadow:var(--shadow)} .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   #versionTag{position:fixed;bottom:8px;right:14px;font-size:11px;color:var(--dim);z-index:50;pointer-events:none;user-select:none;opacity:.75;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
   .footnote{color:var(--dim);font-size:12.5px;margin-top:22px}
   @media(max-width:640px){.hero h1{font-size:40px}h1.title{font-size:25px}.slot-key{width:100%}#versionTag{bottom:4px;right:8px;font-size:10px}}
+  .modecards{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:6px}
+  @media(max-width:640px){.modecards{grid-template-columns:1fr}}
+  .modecard{background:var(--panel2);border:1px solid var(--line);border-radius:16px;padding:22px;display:flex;flex-direction:column}
+  /* .modeagent (NOT .agent): the pre-existing .agent{...} rule above (build-result/
+     reaction panels) would otherwise collide with this card via shared class name,
+     silently overriding padding/background/margin/animation — this class is
+     deliberately distinct (Stephan-Feedback 22.07.2026: mode-picker cards misaligned). */
+  .modecard.modeagent{border-top:3px solid var(--amber)} .modecard.team{border-top:3px solid var(--teal)}
+  .modecard .e{font-size:30px;margin-bottom:4px} .modecard h2{margin:0 0 8px;font-size:19px}
+  .modecard .story{font-size:14.5px;color:var(--muted);font-style:italic;flex:1;margin:0 0 16px;line-height:1.5}
+  .btn.team{background:linear-gradient(180deg,#3fe0cf,#1fae9d);color:#04211d;box-shadow:0 6px 20px rgba(45,212,191,.35)} .btn.team:hover{transform:translateY(-1px)}
+  .moredet{margin-top:14px;font-size:13px} .moredet summary{cursor:pointer;color:var(--dim);font-weight:700;list-style:none} .moredet summary::-webkit-details-marker{display:none}
+  .moredet[open] summary{color:var(--text)} .moredet .difflist{margin-top:10px;display:flex;flex-direction:column;gap:8px}
+  .moredet .diffitem{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--muted)} .moredet .diffitem b{color:var(--text)}
+  .roster{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0 4px}
+  .rolechip{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:9px 15px;font-size:13.5px;font-weight:700}
+  .rolechip.missing{opacity:.45;text-decoration:line-through;border-style:dashed}
+  .estimatebox{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:16px}
+  .estimatebox .lab{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);font-weight:800;margin-bottom:6px}
+  .estimatebox p{font-size:14px;color:var(--muted);line-height:1.5;margin:0 0 10px}
+  .estimatebox .hint{font-size:13px;color:var(--text);font-weight:700;border-left:3px solid var(--teal);padding-left:10px}
+  .bktoggle{background:none;border:none;color:var(--teal);font-size:12px;font-weight:700;cursor:pointer;padding:6px 0 2px;text-decoration:underline;text-underline-offset:2px}
+  .bkpanel{display:none;margin:6px 0 4px;padding:10px 12px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;text-align:left}
+  .bkpanel.show{display:block}
+  .bklab{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);font-weight:800;margin-bottom:4px}
+  .bkrow{display:flex;justify-content:space-between;gap:12px;font-size:13px;padding:4px 0;border-bottom:1px dashed var(--line)}
+  .bkrow:last-child{border-bottom:none}
+  .bkrow.miss{opacity:.55}
+  .bkrow.miss span:first-child{text-decoration:line-through}
+  .bkrow .d{font-weight:700;white-space:nowrap}
+  .timerwrap{margin:0 0 18px} .timerbar{height:10px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .timerfill{height:100%;background:linear-gradient(90deg,var(--teal),#1fae9d);transition:width 1s linear}
+  .timerlabel{font-size:12px;color:var(--dim);margin-top:6px;display:flex;justify-content:space-between}
+  .chatwrap{margin-top:16px} .bubble{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:12px 16px;max-width:min(520px,100%)}
+  .bubble .who{font-size:11px;color:var(--dim);margin-bottom:4px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
 </style>
 </head>
 <body>
@@ -173,16 +220,17 @@
   <div class="chip" id="badgeChip">🏅 <span class="n" id="badgeVal">0</span></div>
 </div></div>
 <div class="wrap"><div id="stageHost"></div></div>
+<div class="navfoot" id="navFoot" style="display:none"><button class="btn ghost" id="navFootPrev">← Look back at the previous step</button></div>
 <div class="overlay" id="ovBadges"><div class="modal"><span class="close" data-close>×</span><h2>Your badges</h2><div class="sub">One badge for each readiness step you master.</div><div class="collect" id="badgeList"></div></div></div>
 <div class="overlay" id="ovRework"><div class="modal"><span class="close" data-close>×</span><h2>Rework log</h2><div class="sub">Every avoidable loop you triggered by starting before you were ready — and the cycle-time days it cost.</div><div class="collect" id="rwList"></div></div></div>
-<div class="overlay" id="ovReview"><div class="modal reviewModal"><span class="close" data-close>×</span><h2 id="reviewTitle">Looking back</h2><div class="sub">View only — nothing here can be changed.</div><div class="reviewMode" id="reviewBody"></div></div></div>
-<div class="overlay show" id="ovIntro"><div class="modal"><span class="close" id="introClose">×</span><div class="hero" style="padding:0 0 10px"><h1>Spec or <span style="color:var(--amber)">Regret</span></h1><div class="tag">Get one change into users’ hands — with the least avoidable rework.</div></div><p style="font-size:15px;margin:10px 0">Let's take a real world example: Your team just got a two-line ticket. The agent is already coding.</p><p style="font-size:15px;margin:10px 0">A short interactive training, built around real corporate banking scenarios. Pick one, hand it to an AI agent, and see what a vague requirement actually costs.</p><p style="font-size:15px;margin:10px 0">Every step here is timed on two clocks — Analysis Time (getting ready) and Cycle Time (actually building) — and both add up to Lead Time: the one clock users actually feel, from ask to delivery. Starting fast feels like progress, but skipped prep has a way of coming back as rework — making that wait longer, not shorter.</p><div class="row" style="justify-content:center;margin-top:16px"><button class="btn big" id="introCta">▶ Let's begin</button></div></div></div>
+<div class="overlay" id="ovReview"><div class="modal reviewModal"><span class="close" data-close>×</span><h2 id="reviewTitle">Looking back</h2><div class="sub">View only — nothing here can be changed. Use the buttons below to move between steps you already finished.</div><div class="reviewMode" id="reviewBody"></div><div class="row reviewNav" style="justify-content:space-between"><button class="btn ghost" id="reviewPrev">← Previous step</button><button class="btn ghost" id="reviewNext">Next step →</button></div></div></div>
+<div class="overlay show" id="ovIntro"><div class="modal"><span class="close" id="introClose">×</span><div class="hero" style="padding:0 0 10px"><h1>Spec or <span style="color:var(--amber)">Regret</span></h1><div class="tag">Get one change into users’ hands — with the least avoidable rework.</div></div><p style="font-size:15px;margin:10px 0">Let's take a real world example: your team just got a two-line ticket, and everyone's itching to start.</p><p style="font-size:15px;margin:10px 0">A short interactive training, built around real corporate banking scenarios. Pick a scenario, choose how your team works today, and see what a vague requirement actually costs.</p><p style="font-size:15px;margin:10px 0">Every step here is timed on two clocks — Analysis Time (getting ready) and Cycle Time (actually building) — and both add up to Lead Time: the one clock users actually feel, from ask to delivery. Starting fast feels like progress, but skipped prep has a way of coming back as rework — making that wait longer, not shorter.</p><div class="row" style="justify-content:center;margin-top:16px"><button class="btn big" id="introCta">▶ Let's begin</button></div></div></div>
 <div class="toast" id="toast"></div>
 <div id="versionTag" aria-hidden="true"></div>
 
 <script>
 "use strict";
-var GAME_VERSION = "1.9.0";
+var GAME_VERSION = "1.18.0";
 var SCENARIOS = [
 {"id":"bulk-suppliers","title":"Bulk supplier payments","short":"paying all your suppliers at once from one uploaded file","ticket":"„Let companies pay all their suppliers at once by uploading a file.“","hookBuild":["An „upload a file“ box that pays every line the moment the file lands.","If one line is broken, I skip the check and just pay the lines I can read — some suppliers get paid, some don’t, and nobody is told which.","I left out the „approve before sending“ step — you said upload, not approve.","The same file can be uploaded again and again; each time it pays everyone all over. You didn’t say to stop that.","I ignored any per-line and total limit and switched it on for every company. Bonus: I auto-added any new names in the file as brand-new suppliers. You’re welcome."],"mapSuccess":"The map holds. The goal, the rules that stop double-pays and blind sends, the everyday case and the broken-line case — and the open questions about limits and partial batches.","map":[{"t":"As a finance team I want to pay all our suppliers from one uploaded file so I don’t enter each payment by hand.","c":"goal"},{"t":"Nothing is sent until a person reviews the whole file and approves the batch.","c":"rule"},{"t":"The same file uploaded twice is spotted, so no one is paid a second time.","c":"rule"},{"t":"The whole file is checked first; a broken line is flagged before any payment goes out.","c":"rule"},{"t":"A file of 200 clean supplier lines, approved by the finance lead → all 200 paid, and a receipt lists every one.","c":"ex"},{"t":"One line has no account number → that line is held and shown as an error, and the batch waits for a decision.","c":"ex"},{"t":"Does the limit apply to each single line, to the file’s total, or to both?","c":"q"},{"t":"If some lines are fine and one is broken, do we pay the good ones now or hold the whole file until it’s fixed?","c":"q"}],"behaviour":{"happy":{"label":"When it works","lines":[{"kw":"Given","segs":["a file of 200 supplier lines that all read correctly","a file with some suppliers in it"]},{"kw":"And","segs":["the finance lead has reviewed the whole batch and approved it","someone has had a look at it"]},{"kw":"When","segs":["the approved batch is sent","the file gets processed"]},{"kw":"Then","segs":["all 200 are paid exactly once and a receipt lists every payment","the suppliers get their money"]}]},"negative":{"label":"When it’s refused / fails","lines":[{"kw":"Given","segs":["a file where one line has no account number","a file that isn’t quite right"]},{"kw":"When","segs":["the team uploads it and asks to send","the file gets processed"]},{"kw":"Then","segs":["the broken line is held and flagged, and nothing is sent until the team decides","it sorts itself out"]}]},"edge":{"label":"An edge case — the same account twice in one file","lines":[{"kw":"Given","segs":["an approved file where two separate lines pay the very same account number","a file with a couple of similar lines"]},{"kw":"When","segs":["the batch is sent","the file goes through"]},{"kw":"Then","segs":["both lines are paid as two separate payments, neither merged into one nor silently dropped","the duplicate is handled"]},{"kw":"And","segs":["the receipt shows both payments to that account clearly","the receipt looks fine"]}]},"fail":"The clean batch is clear. But the moment one line is broken, or the same account turns up twice in one file, you’ve left it vague. The agent will guess — dropping a supplier or quietly merging two payments into one. Spell the „goes wrong“ case and the awkward case out as clearly as the normal one.","success":"All three are spelled out — a clean batch paid once with a receipt, a broken line held and flagged, and two lines to the same account each paid in full instead of merged or dropped. The agent has no room to improvise."},"noguess":[{"t":"Does the same file uploaded twice pay everyone again? — Payments team answered: we detect the repeat and block it.","c":"done"},{"t":"Can the total sent ever be more than the file adds up to? — Finance confirmed: never.","c":"done"},{"t":"Which file formats do we accept at launch? — We deliberately start with one standard format; more later.","c":"limit"},{"t":"Do we support scheduling a batch for a future date? — Out of scope for now; send-on-approval only, revisit later.","c":"limit"},{"t":"If some lines are good and one is broken, do we pay the good ones or hold the whole file? — Not decided yet; blocked until finance sets the rule.","c":"block"}],"overreach":[{"t":"An upload box that shows the whole batch for review before anything is sent.","bad":false},{"t":"Pays every line the instant the file is uploaded, before anyone approves it.","bad":true,"why":"You agreed nothing is sent until a person approves — this pays out with no review at all."},{"t":"Spots the same file uploaded twice and refuses to pay everyone again.","bad":false},{"t":"Silently skips any broken line and pays the rest, without telling the team.","bad":true,"why":"A dropped supplier no one is told about — the exact silent failure the rules were meant to prevent."},{"t":"Ignores the per-line and total limits and sends whatever the file says.","bad":true,"why":"Removing the limits means one bad file can drain the account — a control nobody approved dropping."},{"t":"Holds a broken line, flags it, and waits for the team to decide.","bad":false},{"t":"Auto-creates a brand-new supplier for any name in the file it doesn’t recognise.","bad":true,"why":"Invented behaviour — a typo becomes a payment to an account nobody checked."}],"overreachSuccess":"Four traps caught: paying before approval, the silently dropped line, the ignored limits, and the auto-created suppliers. The draft is safe now.","slices":[{"t":"Get one clean file uploaded, reviewed, approved and paid, end to end.","bad":false},{"t":"Handle the broken-line and file-error cases so nothing is silently dropped.","bad":false},{"t":"Add the duplicate-file check so no one is paid twice.","bad":false},{"t":"Build the file-reader first, the review screen next week, the paying part the week after.","bad":true,"why":"Cut by technical layer — no piece pays a real supplier on its own."},{"t":"Ship the paying now; add the approval step and the limits later if there’s time.","bad":true,"why":"Leaving out the approval and limits — the parts that stop a bad file draining the account."},{"t":"Split it into one tiny piece per column in the file.","bad":true,"why":"So small that stitching the columns back together costs more than it delivers."}],"slicesSuccess":"Three pieces, each one a finance team could actually use, each small enough to check on its own.","premortem":[{"t":"The same file is uploaded twice and every supplier is paid a second time.","bad":false},{"t":"One broken line is silently dropped and a supplier goes unpaid for weeks.","bad":false},{"t":"A file’s total quietly exceeds the account balance and half the batch bounces.","bad":false},{"t":"The receipt doesn’t match what was actually sent, and no one can tell who got paid.","bad":false},{"t":"The upload button is a slightly different shade of blue than the rest of the page.","bad":true,"why":"A polish detail, not a reason the change would fail."},{"t":"The company’s internet drops for an afternoon across the whole office.","bad":true,"why":"Not something this change can control — pure noise for this exercise."}],"premortemSuccess":"Four real failure modes named — the double-paid batch, the dropped supplier, the overdrawn account, the receipt that doesn’t match. Each becomes a safeguard before a single thing is built."},
 {"id":"payroll","title":"Run payroll","short":"paying everyone’s salary in one go","ticket":"„Let a company pay everyone’s salary in one go.“","hookBuild":["A „run payroll“ button that pays every employee the moment it’s pressed.","If payday lands on a Saturday, it pays whenever — could be a day late, could be never. You didn’t say to move it to a working day.","If one person’s bank details are wrong, I stop the entire run so nobody gets paid. Seemed safest.","I emailed everyone’s full salary to the whole company in one list, to be transparent. You said pay everyone.","I ignored whether there’s enough in the account and fired off every payment anyway; the ones that bounce, bounce. Bonus: I paid the gross amount, before tax. You’re welcome."],"mapSuccess":"The map holds. The goal, the rules on net pay, privacy and moving payday, the everyday run and the wrong-details case — and the open questions about short funds and retries.","map":[{"t":"As a company I want to pay every employee’s salary in one run so I don’t pay each person by hand each month.","c":"goal"},{"t":"Each person is paid their net amount — what’s left after tax — not the gross.","c":"rule"},{"t":"Salary figures are kept private; no one sees another person’s pay.","c":"rule"},{"t":"If payday falls on a weekend or holiday, the run moves to the nearest working day so no one is paid late.","c":"rule"},{"t":"50 employees, enough money in the account, payday on a Wednesday → everyone paid their net salary that day.","c":"ex"},{"t":"One person’s account number is wrong → that one payment is held and flagged, and the other 49 still go out.","c":"ex"},{"t":"If there isn’t enough for the whole run, do we pay no one, or pay in an order the company sets?","c":"q"},{"t":"When a held payment is fixed, do we retry it automatically or wait for the team to release it?","c":"q"}],"behaviour":{"happy":{"label":"When it works","lines":[{"kw":"Given","segs":["50 employees and enough money in the account for the whole run","a company with staff to pay"]},{"kw":"And","segs":["payday is a normal working Wednesday","it’s just an ordinary day"]},{"kw":"When","segs":["the run is approved","payroll happens"]},{"kw":"Then","segs":["everyone is paid their net salary that day, and no one can see anyone else’s pay","the staff get paid"]}]},"negative":{"label":"When it’s refused / fails","lines":[{"kw":"Given","segs":["one employee’s account number is wrong","something is off with an employee"]},{"kw":"When","segs":["the run is sent","the run goes ahead"]},{"kw":"Then","segs":["that one payment is held and flagged while the other 49 still go out","it gets handled"]}]},"edge":{"label":"An edge case — payday lands on a weekend","lines":[{"kw":"Given","segs":["a run whose payday falls on a Saturday","a run around the weekend"]},{"kw":"And","segs":["the nearest working day before it is the Friday","there’s a day close by"]},{"kw":"When","segs":["the run is due","the date comes up"]},{"kw":"Then","segs":["everyone is paid on the Friday so no one is paid late","it works out timing-wise"]}]},"fail":"The normal run is clear. But when one person’s details are wrong, or payday lands on a Saturday, you’ve left it vague. The agent will guess — stalling the whole run over one typo, or paying a day late. Spell the „goes wrong“ case and the weekend case out as clearly as the normal one.","success":"All three are spelled out — a clean run where everyone is paid their net salary privately, one wrong account held while the other 49 go out, and a weekend payday moved to the Friday so no one is late. The agent has no room to improvise."},"noguess":[{"t":"Do we pay the net amount or the gross? — Finance answered: net, always.","c":"done"},{"t":"Can one person see another’s salary? — Confirmed: never; each person only sees their own.","c":"done"},{"t":"Do we support paying staff in other countries at launch? — We deliberately start with home-country accounts; others later.","c":"limit"},{"t":"Do we handle mid-month bonuses in the same run? — Out of scope for now; monthly salary only, revisit later.","c":"limit"},{"t":"If there isn’t enough for the whole run, do we pay no one or pay in a set order? — Not decided; blocked until finance sets the rule.","c":"block"}],"overreach":[{"t":"A payroll run that pays each person their net salary, privately.","bad":false},{"t":"Pays the gross amount, before tax is taken off.","bad":true,"why":"Everyone is overpaid and the tax is wrong — a mess to claw back and report."},{"t":"Moves the run to the nearest working day when payday is a weekend or holiday.","bad":false},{"t":"Emails a list of everyone’s salary to the whole company „for transparency“.","bad":true,"why":"Leaks the most sensitive data there is — a serious privacy breach that must never ship."},{"t":"Fires off every payment even when the account can’t cover the run, letting some bounce.","bad":true,"why":"You agreed to settle the short-funds rule first — this pays some and bounces others at random."},{"t":"Holds a payment with wrong bank details and flags it, paying everyone else.","bad":false},{"t":"Retries a held payment on its own, over and over, once details look changed.","bad":true,"why":"Invented behaviour — an automatic retry nobody approved could double-pay someone."}],"overreachSuccess":"Four traps caught: paying gross, the salary leak, paying past the balance, and the silent auto-retry. The draft is safe now.","slices":[{"t":"Get one clean run paying everyone their net salary, end to end.","bad":false},{"t":"Handle the wrong-details case so one bad account doesn’t stop the rest.","bad":false},{"t":"Add moving payday to a working day when it lands on a weekend or holiday.","bad":false},{"t":"Build the salary calculator first, the payment screen next week, the sending the week after.","bad":true,"why":"Cut by technical layer — no piece pays a single employee on its own."},{"t":"Ship the paying now; add the privacy protection and the funds check later.","bad":true,"why":"Leaving out the parts that keep salaries private and stop the account overdrawing."},{"t":"Split it into one tiny piece per employee.","bad":true,"why":"So small that coordinating the pieces costs more than running them together ever would."}],"slicesSuccess":"Three pieces, each one a company could actually run, each small enough to check on its own.","premortem":[{"t":"There isn’t enough in the account and the run pays some staff but not others.","bad":false},{"t":"One person’s wrong account number stops the whole run and nobody is paid.","bad":false},{"t":"A salary list is seen by someone who shouldn’t see it.","bad":false},{"t":"Payday lands on a holiday and everyone is paid a day late.","bad":false},{"t":"The payslip uses a font the finance team finds a bit dull.","bad":true,"why":"A cosmetic nit, not a reason the run would fail."},{"t":"The tax office changes the rules in three years’ time.","bad":true,"why":"Outside this change’s control and far in the future — noise for this exercise."}],"premortemSuccess":"Four real failure modes named — the half-paid run, the whole run stalled by one typo, the leaked salaries, the late payday. Each becomes a safeguard before a single thing is built."},
@@ -288,6 +336,9 @@ function setHUD(){
   document.getElementById("cycVal").textContent=S.cycle+"d";
   document.getElementById("rwVal").textContent=S.rework.reduce(function(s,r){return s+r.days;},0)+"d";
   document.getElementById("badgeVal").textContent=S.badges.length;
+  var curSt=STAGES?STAGES[S.i]:null;
+  var canLookBack=STAGES&&S.i>0&&curSt&&curSt.type!=="finale"&&curSt.type!=="teamfinale";
+  var nf=document.getElementById("navFoot");if(nf)nf.style.display=canLookBack?"":"none";
   var p=document.getElementById("progress");p.innerHTML="";
   if(!STAGES)return;
   for(var k=2;k<=8;k++){var d=document.createElement("div");d.className="dot";if(k<S.i)d.classList.add("done");if(k===S.i)d.classList.add("now");p.appendChild(d);}
@@ -306,21 +357,50 @@ function render(){
   if(st.type==="categorize")return renderCategorize(st);
   if(st.type==="build")return renderBuild(st);
   if(st.type==="select")return renderSelect(st);
+  /* FEATURE-009: Team mode stage types — additive only, no existing branch above changed. */
+  if(st.type==="teamroster")return renderTeamRoster(st);
+  if(st.type==="teammap")return renderTeamMap(st);
+  if(st.type==="teamfork")return renderTeamFork(st);
+  if(st.type==="teamgherkin")return renderTeamGherkin(st);
+  if(st.type==="teamselect")return renderTeamSelect(st);
+  if(st.type==="teamdor")return renderTeamDoR(st);
+  if(st.type==="teamimpl")return renderTeamImpl(st);
+  if(st.type==="teamfinale")return renderTeamFinale();
 }
 function stageHead(st){return '<div class="mcode">'+st.mcode+'</div><div class="kicker">'+st.kicker+'</div><h1 class="title">'+st.title+'</h1><div class="setup">'+st.setup+(st.ticket?'<span class="ticket">'+st.ticket+'</span>':'')+'</div>';}
-function debriefHTML(st,extra){
-  var b='';if(st.badge){b='<div class="badgewon"><span>'+st.badge.e+'</span> Badge unlocked: '+st.badge.name+'</div>';}
-  if(st.analysisDays){b+='<div class="analysiswon">🧭 +'+st.analysisDays+'d analysis — and it’s free</div>';}
+function debriefHTML(st,extra,noCredit){
+  var b='';
+  if(!noCredit){
+    if(st.badge){b='<div class="badgewon"><span>'+st.badge.e+'</span> Badge unlocked: '+st.badge.name+'</div>';}
+    if(st.analysisDays){b+='<div class="analysiswon">🧭 +'+st.analysisDays+'d analysis — and it’s free</div>';}
+  }
   return '<div class="debrief"><div class="lab">Team debrief — pause and talk</div><div class="take">'+st.debrief.take+'</div><div class="q">💬 <b>Talk as a team:</b> '+st.debrief.q+'</div>'+b+(extra||'')+'<div class="row"><button class="btn go" id="nextBtn">'+(st.isBoss?'See the results →':'Next step →')+'</button></div></div>';
 }
 function wireNext(){var n=document.getElementById("nextBtn");if(n)n.onclick=next;}
-function completeStep(st,container,extra){
-  if(st.analysisDays){S.analysis+=st.analysisDays;document.getElementById("anaVal").textContent=S.analysis+"d";}
-  if(st.badge)S.badges.push({e:st.badge.e,name:st.badge.name,i:S.i});
+/* completeStep(st,container,extra,noCredit): noCredit=true means a shortcut was taken —
+   the free analysisDays/badge credit is withheld (FEATURE-009 scoring fix, 22.07.2026:
+   a rushed/incomplete team-map board or a deliberately vague behaviour spec must not be
+   credited like the honest, complete outcome). Existing (non-team) call sites never pass
+   this 4th argument, so their behaviour is unchanged. */
+function completeStep(st,container,extra,noCredit){
+  if(!noCredit){
+    // FEATURE-011: record analysis credit per stage index regardless of
+    // whether the stage has a badge — some credited stages (e.g. the Team
+    // "teamdor"/"teamfork" steps) never push a badge, so S.badges alone can't
+    // tell the retro breakdown which specific steps were actually credited.
+    if(st.analysisDays){S.analysis+=st.analysisDays;document.getElementById("anaVal").textContent=S.analysis+"d";if(!S.credited)S.credited=[];S.credited.push(S.i);}
+    if(st.badge)S.badges.push({e:st.badge.e,name:st.badge.name,i:S.i});
+  }
   if(st.isBoss&&st.buildDays){bumpCycle(st.buildDays);}
   setHUD();
-  container.insertAdjacentHTML("beforeend",debriefHTML(st,extra));wireNext();
-  document.querySelector(".debrief").scrollIntoView({behavior:"smooth",block:"center"});
+  container.insertAdjacentHTML("beforeend",debriefHTML(st,extra,noCredit));wireNext();
+  // FEATURE-009 Runde 8 (23.07.2026, Stephan-Feedback): "The team starts
+  // building" spielt eine lange, sich von selbst abspielende Kette von
+  // Chat-Nachrichten und Rework-Einträgen ab — ein automatischer Sprung ans
+  // Ende hätte all das übersprungen, bevor man es lesen konnte. Der Bildschirm
+  // bleibt hier bewusst stehen, wo er ist; jeder andere (kurze) Schritt
+  // scrollt weiterhin wie gewohnt zum Debrief.
+  if(st.type!=="teamimpl")document.querySelector(".debrief").scrollIntoView({behavior:"smooth",block:"center"});
 }
 
 /* ---------------- PICKER ---------------- */
@@ -362,7 +442,10 @@ function detonate(container,st){
   var wrap=document.createElement("div");wrap.className="rework";wrap.innerHTML='<div class="rh">⏱️ Cycle time starts running — avoidable loops</div>';container.appendChild(wrap);var idx=0;
   (function addOne(){
     if(idx>=st.penalties.length){if(st.isBenchmark)S.benchmark=S.cycle;wrap.insertAdjacentHTML("beforeend",'<div class="sum">'+st.penaltySum+'</div>');
-      setTimeout(function(){container.insertAdjacentHTML("beforeend",debriefHTML(st));var n=document.getElementById("nextBtn");if(n){n.textContent=st.cont||"Continue →";n.onclick=next;}document.querySelector(".debrief").scrollIntoView({behavior:"smooth",block:"center"});},500);return;}
+      // FEATURE-009 Runde 8 (23.07.2026, Stephan-Feedback): dieselbe lange,
+      // sich von selbst abspielende Sequenz wie beim Team-Handover — kein
+      // automatischer Sprung ans Ende, der Bildschirm bleibt stehen, wo er ist.
+      setTimeout(function(){container.insertAdjacentHTML("beforeend",debriefHTML(st));var n=document.getElementById("nextBtn");if(n){n.textContent=st.cont||"Continue →";n.onclick=next;}},500);return;}
     var p=st.penalties[idx++];S.rework.push(p);bumpCycle(p.days);document.getElementById("rwVal").textContent=S.rework.reduce(function(s,r){return s+r.days;},0)+"d";
     wrap.insertAdjacentHTML("beforeend",'<div class="rticket"><span>'+p.item+'</span><span class="d">+'+p.days+'d</span></div>');setTimeout(addOne,650);
   })();
@@ -476,17 +559,88 @@ function lbar(cls,title,a,c,total,note){
     '<div class="seg-c" style="width:'+cw+'%">'+(c>0?c+'d':'')+'</div></div></div>'+
     '<div class="note">'+note+'</div></div>';
 }
+/* FEATURE-011: shared breakdown helpers — used by both renderFinale() (agent
+   mode) and renderTeamFinale() (team mode) so a team's retrospective can see
+   WHICH decisions produced the analysis/cycle numbers on the finale, not just
+   the totals. */
+function analysisRows(){
+  var rows=[];
+  if(!STAGES)return rows;
+  STAGES.forEach(function(st,idx){
+    if(typeof st.analysisDays==="number"&&st.analysisDays>0){
+      var earned=(S.credited||[]).indexOf(idx)!==-1;
+      rows.push({label:st.badge?st.badge.name:(st.kicker||st.title||("Step "+(idx+1))),emoji:st.badge?st.badge.e:"🧭",days:st.analysisDays,earned:earned});
+    }
+  });
+  return rows;
+}
+/* The true best-case analysis credit for THIS run: every analysis-eligible
+   step in STAGES counted, regardless of what was actually earned. In agent
+   mode this always equals S.analysis (every step must be solved correctly to
+   proceed — no partial-credit path exists there). In team mode it can be
+   higher than S.analysis when a shortcut (map timeout, vague behaviour, a
+   guessed business value, a deferred question) skipped the credit. */
+function maxAnalysisDays(){
+  return analysisRows().reduce(function(s,r){return s+r.days;},0);
+}
+function analysisBreakdownHTML(kind){
+  var rows=analysisRows();
+  if(!rows.length)return '<p style="margin:0;color:var(--muted);font-size:13px">No analysis-earning steps in this run.</p>';
+  return rows.map(function(r){
+    if(kind==="ideal"){
+      var missedNote=r.earned?'':' <i style="color:var(--muted);font-weight:400">— you missed this one this run</i>';
+      return '<div class="bkrow"><span>'+r.emoji+' '+r.label+missedNote+'</span><span class="d">+'+r.days+'d</span></div>';
+    }
+    if(r.earned)return '<div class="bkrow"><span>'+r.emoji+' '+r.label+'</span><span class="d">+'+r.days+'d</span></div>';
+    return '<div class="bkrow miss"><span>'+r.emoji+' '+r.label+' — no credit (shortcut taken)</span><span class="d">0d</span></div>';
+  }).join("");
+}
+function cycleBaseDays(){
+  var bossSt=STAGES&&STAGES.filter(function(st){return st.isBoss;})[0];
+  return bossSt?(bossSt.buildDays||0):0;
+}
+function cycleBreakdownHTML(kind){
+  var base=cycleBaseDays();
+  var rows='<div class="bkrow"><span>🏗️ Build itself — the baseline no run can avoid</span><span class="d">+'+base+'d</span></div>';
+  if(!S.rework.length)return rows+'<div class="bkrow"><span>✅ No avoidable rework'+(kind==="ideal"?" — matches your actual run":"")+'</span><span class="d">0d</span></div>';
+  if(kind==="actual")return rows+S.rework.map(function(r){return '<div class="bkrow"><span>⏱️ '+r.item+'</span><span class="d">+'+r.days+'d</span></div>';}).join("");
+  return rows+S.rework.map(function(r){return '<div class="bkrow miss"><span>⏱️ '+r.item+' — avoided</span><span class="d">0d</span></div>';}).join("");
+}
+var bkSeq=0;
+function bkBlock(kind){
+  bkSeq++;
+  var id="bk"+bkSeq;
+  return '<button type="button" class="bktoggle" data-t="'+id+'">Show the breakdown ▾</button>'+
+    '<div class="bkpanel" id="'+id+'">'+
+      '<div class="bklab">🧭 Analysis time — '+(kind==="ideal"?"every decision made correctly":"what actually happened")+'</div>'+
+      '<div class="bkgroup-ana">'+analysisBreakdownHTML(kind)+'</div>'+
+      '<div class="bklab" style="margin-top:8px">⏱️ Cycle time — '+(kind==="ideal"?"zero avoidable rework":"what actually happened")+'</div>'+
+      '<div class="bkgroup-cyc">'+cycleBreakdownHTML(kind)+'</div>'+
+    '</div>';
+}
+function wireBkToggles(){
+  document.querySelectorAll(".bktoggle").forEach(function(b){
+    b.onclick=function(){
+      var p=document.getElementById(b.dataset.t);
+      p.classList.toggle("show");
+      b.textContent=p.classList.contains("show")?"Hide the breakdown ▴":"Show the breakdown ▾";
+    };
+  });
+}
 var Lmax=1;
 function renderFinale(){
   var analysis=S.analysis, actualCycle=S.cycle, rushed=S.benchmark||15;
   var reworkTotal=S.rework.reduce(function(s,r){return s+r.days;},0);
   var idealCycle=Math.max(0,actualCycle-reworkTotal);
-  var leadActual=analysis+actualCycle, leadIdeal=analysis+idealCycle, leadFast=rushed;
+  // FEATURE-011: the ideal/theoretical bar is the true best-possible run —
+  // every analysis-eligible step credited, not just what this run actually earned.
+  var idealAnalysis=maxAnalysisDays();
+  var leadActual=analysis+actualCycle, leadIdeal=idealAnalysis+idealCycle, leadFast=rushed;
   Lmax=Math.max(leadFast,leadActual,leadIdeal,1);
   var tookShortcut=reworkTotal>0;
-  var badges=S.badges.map(function(b){return '<div class="fbadge" data-i="'+b.i+'" title="Look back at this step"><div class="e">'+b.e+'</div><div class="nm">'+b.name+'</div></div>';}).join("");
+  var badges=reviewGridHTML();
   var yourNote=tookShortcut?(analysis+'d analysis + '+actualCycle+'d cycle — incl. '+reworkTotal+'d avoidable rework from a shortcut you took'):(analysis+'d analysis + '+actualCycle+'d cycle');
-  var idealNote=tookShortcut?(analysis+'d analysis + '+idealCycle+'d cycle — resist every shortcut and this is yours'):('You took it — your run WAS the best case: '+analysis+'d analysis + '+idealCycle+'d cycle');
+  var idealNote=tookShortcut?(idealAnalysis+'d analysis + '+idealCycle+'d cycle — resist every shortcut and this is yours'):('You took it — your run WAS the best case: '+idealAnalysis+'d analysis + '+idealCycle+'d cycle');
   var reworkTile=tookShortcut
     ? '<div class="t"><span class="e">🧾</span><span><b>A shortcut mid-game cost you '+reworkTotal+' days.</b><span>Your run landed at '+leadActual+' days instead of the '+leadIdeal+' it could have been — because starting before you were ready turned into rework. That whole gap was avoidable.</span></span></div>'
     : '<div class="t"><span class="e">🏆</span><span><b>No avoidable rework.</b><span>You resisted every shortcut, so your run IS the '+leadIdeal+'-day best case — '+analysis+' days of analysis and only the '+idealCycle+' days of building.</span></span></div>';
@@ -494,8 +648,8 @@ function renderFinale(){
     '<div class="lead">You shipped the change — '+SC.short+'. Lead time is the whole journey: from the need on the board to users’ hands — your analysis time plus your cycle time.</div>'+
     '<div class="score">'+
       lbar('rushed','The fast start — one line straight to code',0,rushed,leadFast,'0 analysis + '+rushed+'d cycle · and it still wasn’t right')+
-      lbar('','Your run — get ready, then hand over',analysis,actualCycle,leadActual,yourNote)+
-      lbar('best','What it could have been — ready, no shortcuts',analysis,idealCycle,leadIdeal,idealNote)+
+      lbar('','Your run — get ready, then hand over',analysis,actualCycle,leadActual,yourNote)+bkBlock('actual')+
+      lbar('best','What it could have been — ready, no shortcuts',idealAnalysis,idealCycle,leadIdeal,idealNote)+bkBlock('ideal')+
       '<div class="lblegend"><span><i style="background:#3fb950"></i> Analysis time — free of cycle time, part of lead time</span><span><i style="background:#f0a531"></i> Cycle time — the clock once you start building</span></div>'+
       '<div class="cyline">Cycle time alone, the days the clock counts once you start building: <b>'+rushed+'d</b> rushed → <b>'+actualCycle+'d</b> your run → <b>'+idealCycle+'d</b> if you’d resisted every shortcut.</div>'+
     '</div>'+
@@ -505,7 +659,7 @@ function renderFinale(){
       '<div class="t"><span class="e">🧭</span><span><b>Analysis isn’t waste — it’s the investment.</b><span>Those '+analysis+' analysis days never cost you cycle time. They’re what kept the build down to '+idealCycle+' days instead of the rush’s '+rushed+'. This was never about analysing forever — just being ready.</span></span></div>'+
       '<div class="t"><span class="e">🤝</span><span><b>Ready = no one has to guess.</b><span>Not more meetings, not a thicker document. Just: every open question answered, limited, or blocked — for people and for the agent — before anyone starts.</span></span></div>'+
     '</div>'+
-    '<div class="badgehint">Tap a badge to look back at that step — just to view it, no edits.</div>'+
+    '<div class="badgehint">Tap any step to look back at it — just to view it, no edits.</div>'+
     '<div class="badgegrid">'+badges+'</div>'+
     '<div class="panel" style="text-align:left;max-width:720px;margin:10px auto 0"><div class="kicker">Take it to your work</div><p style="font-size:16px;margin:8px 0 0">Next real ticket, before anyone starts: run it through the six-part contract, and give every open question a state — answered, limited, or blocked. Then watch your lead time.</p><p style="font-size:15px;color:var(--muted);margin:12px 0 0">💬 <b>Last team question:</b> Where does your team most often start before it’s ready — and what would holding the line there do to your lead time?</p></div>'+
     '<div class="row" style="justify-content:center"><button class="btn go" id="againSame">Play this scenario again</button><button class="btn ghost" id="againNew">Pick another scenario</button></div></div></div>';
@@ -513,16 +667,620 @@ function renderFinale(){
   document.getElementById("againSame").onclick=function(){S={i:0,analysis:0,cycle:0,benchmark:0,badges:[],rework:[],forks:{},history:[]};go(0);};
   document.getElementById("againNew").onclick=function(){STAGES=null;SC=null;S={i:0,analysis:0,cycle:0,benchmark:0,badges:[],rework:[],forks:{},history:[]};setHUD();renderPicker();window.scrollTo({top:0,behavior:"smooth"});};
   document.querySelectorAll(".fbadge").forEach(function(el){el.onclick=function(){openReview(+el.dataset.i);};});
+  wireBkToggles();
   burst();setTimeout(burst,500);setTimeout(burst,1000);
 }
+var reviewIdx=null;
 function openReview(i){
   var snap=S.history[i];if(snap==null)return;
+  reviewIdx=i;
   var st=STAGES&&STAGES[i];
   var label=st?((st.mcode?st.mcode+" — ":"")+(st.title||"this step")):"this step";
   document.getElementById("reviewTitle").textContent="🔍 "+label;
   document.getElementById("reviewBody").innerHTML=snap;
+  var prevBtn=document.getElementById("reviewPrev"), nextBtn2=document.getElementById("reviewNext");
+  if(prevBtn)prevBtn.disabled=(i<=0||S.history[i-1]==null);
+  // Stephan-Feedback (23.07.2026): "Next" darf nie in einer Sackgasse enden —
+  // am letzten ansehbaren Schritt führt "Next" zurück zur eigentlich laufenden
+  // Seite, statt einfach nur deaktiviert zu sein.
+  var atLatest=(i>=S.i-1||S.history[i+1]==null);
+  if(nextBtn2){nextBtn2.disabled=false;nextBtn2.textContent=atLatest?"Back to where you are →":"Next step →";}
   document.getElementById("ovReview").classList.add("show");
 }
+document.getElementById("reviewPrev").onclick=function(){if(reviewIdx!=null&&reviewIdx>0)openReview(reviewIdx-1);};
+document.getElementById("reviewNext").onclick=function(){
+  if(reviewIdx==null)return;
+  if(reviewIdx<S.i-1&&S.history[reviewIdx+1]!=null)openReview(reviewIdx+1);
+  else document.getElementById("ovReview").classList.remove("show");
+};
+document.getElementById("navFootPrev").onclick=function(){if(STAGES&&S.i>0)openReview(S.i-1);};
+// Stephan-Feedback (23.07.2026): am Ende sollen ALLE tatsächlich durchlaufenen
+// Schritte ansehbar sein, nicht nur die, die ein Badge vergeben — Badge-Emoji
+// wenn vorhanden, sonst ein neutrales Augen-Symbol als Platzhalter.
+function reviewGridHTML(){
+  if(!STAGES)return "";
+  var tiles=[];
+  for(var idx=0;idx<STAGES.length;idx++){
+    var snap=S.history[idx];if(snap==null)continue;
+    var st=STAGES[idx];
+    if(st.type==="finale"||st.type==="teamfinale")continue;
+    var e=st.badge?st.badge.e:"👁️";
+    var nm=st.badge?st.badge.name:(st.kicker||st.title||("Step "+(idx+1)));
+    tiles.push('<div class="fbadge" data-i="'+idx+'" title="Look back at this step"><div class="e">'+e+'</div><div class="nm">'+nm+'</div></div>');
+  }
+  return tiles.join("");
+}
+/* ================================================================
+   TEAM MODE — FEATURE-009 ("Work as a Team" — Vertical Slice)
+   Reuses the shared engine (S, STAGES, SC, go, next, render, stageHead,
+   completeStep, debriefHTML, wireNext, setHUD, bumpCycle, shuffle, toast,
+   mkBehaviour, lbar) exactly as the existing "Collaborate with Agents"
+   mode does. New, self-contained render functions below never emit the
+   🤖 emoji or the word "Agent" — see FEATURE-009 Fundstellen-Sweep.
+   ================================================================ */
+var TEAM_SCENARIO_ID = "four-eyes"; // "Second approver for large payments" — chosen in FEATURE-009 analysis
+var TEAM_ROLES = [
+  { id: "dev", label: "Developer" },
+  { id: "qa", label: "QA" },
+  { id: "tech", label: "Tech Lead" },
+  { id: "po", label: "Product Owner" }
+];
+var TeamState = {};
+// FEATURE-010: base days for the rough, pre-meeting size guess — fixed for the
+// one existing team scenario; keyed by scenario if/when more are added.
+var TEAM_ESTIMATE_BASE_DAYS = 2;
+
+function findTeamScenario() {
+  for (var i = 0; i < SCENARIOS.length; i++) { if (SCENARIOS[i].id === TEAM_SCENARIO_ID) return SCENARIOS[i]; }
+  return SCENARIOS[0];
+}
+function pickMissingRoleId() {
+  // Product Owner missing in the majority of runs (matches FEATURE-009 concept, Schritt 1).
+  if (Math.random() < 0.6) return "po";
+  var others = TEAM_ROLES.filter(function (r) { return r.id !== "po"; });
+  return others[Math.floor(Math.random() * others.length)].id;
+}
+function teamOpenQuestions(sc) {
+  return sc.map.filter(function (m) { return m.c === "q"; });
+}
+
+/* ---------------- MODE PICKER ---------------- */
+function renderModePicker() {
+  host.innerHTML = '<div class="stage"><div class="panel">' +
+    '<p style="font-size:17px;margin:0 0 8px"><b>Same story. Two very different approaches.</b> Get one change request for a banking feature into users’ hands — with the least avoidable rework. What matters isn’t a fast start, it’s a fast finish: the whole journey from the need on the board to users’ hands. Starting fast feels like progress, but skipped clarity has a way of turning into rework later.</p>' +
+    '<h3 style="margin:24px 0 14px;font-size:15px;text-align:center;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)">Choose how your team works today</h3>' +
+    '<div class="modecards">' +
+      '<div class="modecard modeagent"><div class="e">🤖</div><h2>Collaborate with Agents</h2>' +
+      '<p class="story">Software delivery is complex. Customers keep pushing. Leadership has a backlog of ideas waiting to ship. Lucky for you — agentic software development just joined the team.</p>' +
+      '<button class="btn big" id="pickAgentMode" style="width:100%">Start →</button>' +
+      '<details class="moredet"><summary>What’s different here?</summary><div class="difflist">' +
+        '<div class="diffitem"><b>Two time measurements</b> — Analysis time is free; only cycle time counts toward your score.</div>' +
+        '<div class="diffitem"><b>21 banking scenarios</b> — every round is a real corporate-banking change.</div>' +
+        '<div class="diffitem"><b>Examples over guesswork</b> — Given/When/Then, sorting tasks and a pre-mortem prepare the handover.</div>' +
+        '<div class="diffitem"><b>Definition of Ready</b> — a six-point contract with the agent.</div>' +
+      '</div></details></div>' +
+      '<div class="modecard team"><div class="e">👥</div><h2>Work as a Team</h2>' +
+      '<p class="story">Time’s tight. The customer is waiting. The Product Owner is juggling a dozen fires at once, and the whole team is racing toward a deadline nobody can move.</p>' +
+      '<button class="btn team" id="pickTeamMode" style="width:100%">Start →</button>' +
+      '<details class="moredet"><summary>What’s different here?</summary><div class="difflist">' +
+        '<div class="diffitem"><b>Refinement has a hard time limit</b> — when the clock hits zero, the process moves on regardless.</div>' +
+        '<div class="diffitem"><b>The room is never quite full</b> — the Product Owner isn’t always there.</div>' +
+        '<div class="diffitem"><b>"Later" means mid-build</b> — deferred questions resurface as a chat message.</div>' +
+        '<div class="diffitem"><b>A Definition of Ready that can be worthless</b> — same checklist, only real if it’s actually checked.</div>' +
+        '<div class="diffitem"><b>No agent</b> — the work is done entirely by the team itself.</div>' +
+      '</div></details></div>' +
+    '</div>' +
+    '<div class="footnote">Runs entirely in your browser. No login, no data leaves this machine.</div>' +
+  '</div></div>';
+  document.getElementById("pickAgentMode").onclick = function () { renderPicker(); };
+  document.getElementById("pickTeamMode").onclick = function () { startTeamMode(); };
+}
+
+function startTeamMode() {
+  var sc = findTeamScenario();
+  SC = sc;
+  TeamState = {
+    roleMissing: pickMissingRoleId(),
+    businessValueHonest: true,
+    acPrecise: true,
+    mappingComplete: true,
+    mapRushed: false,
+    mapUnsortedCount: 0,
+    questionHandledHonest: true,
+    deferredQuestion: null
+  };
+  TeamState.mappingComplete = (TeamState.roleMissing !== "po");
+  // FEATURE-010: "Fast Start" replaces the old fixed 12. It's fixed right here —
+  // the moment the missing role is rolled, before the team has even looked at
+  // the ticket — and never recalculated from what the player actually does in
+  // the meeting afterwards. The surcharge is higher when the Product Owner is
+  // the missing role, because that's the only case where the guessed-business-
+  // value consequence (teamfork "bizvalue") can happen at all.
+  TeamState.fastStart = TEAM_ESTIMATE_BASE_DAYS + (TeamState.roleMissing === "po" ? 18 : 14);
+  S = { i: 0, analysis: 0, cycle: 0, benchmark: TeamState.fastStart, badges: [], rework: [], forks: {}, history: [], dorPaperwork: 0 };
+  STAGES = buildTeamStages(sc);
+  go(0);
+}
+
+/* ---------------- TEAM STAGE BUILDER ---------------- */
+function buildTeamStages(sc) {
+  var q = teamOpenQuestions(sc); // real, code-verified open questions from this scenario's map
+  var thresholdQ = q[0] || { t: "What exactly is the threshold, and who decides it?" };
+  var expiryQ = q[1] || q[0] || { t: "What happens if this waits too long?" };
+  var stages = [
+    { type: "teamroster", mcode: "Team · 1", kicker: "Who's in the room?", title: "Your refinement, right now",
+      setup: "Before you touch the ticket, here’s who showed up for this refinement." },
+    { type: "teammap", mcode: "Team · 2", kicker: "A shared picture", title: "Map the change — before the clock runs out",
+      setup: "First, break the requirement apart. What are you actually trying to achieve (the Goal)? What must always hold, no matter what (a Rule)? What's one real case that shows a Rule in action (an Example)? And what hasn't anyone settled yet (an Open question)? Sort each statement below into the kind it is — you have a limited window, and when it’s up, the team moves on, finished board or not.",
+      buckets: MAP_BUCKETS, items: TeamState.mappingComplete ? sc.map : sc.map.filter(function (m) { return m.c !== "goal"; }),
+      timerSeconds: 68, analysisDays: 1, badge: { e: "🗺️", name: "Team mapper" }, // 45s + 50% (Stephan-Feedback 22.07.2026), gerundet
+      debrief: { take: "The clock didn’t care whether the board was finished — that’s the point. A meeting that ends on time doesn’t mean the team understood the change.",
+        q: "If the timer had run out one card earlier, would anyone have noticed before the build started?" } }
+  ];
+  if (TeamState.roleMissing === "po") {
+    stages.push({ type: "teamfork", kind: "bizvalue", mcode: "Team · 3", kicker: "Someone has to decide", title: "The business value question",
+      setup: "The Product Owner would normally answer this one. Today, someone else in the room has to decide what happens to it.",
+      situation: "The open question on the board: “" + thresholdQ.t + "” The Product Owner isn’t here to answer it.",
+      tempt: { e: "✅", h: "Mark it as clarified", p: "Write down a sensible-sounding number and move on. No one will check right now." },
+      solid: { e: "🕓", h: "Mark it as honestly open", p: "Note that this still needs the Product Owner. Free — it’s still analysis." },
+      analysisDays: 1,
+      debrief: { take: "A guessed number looks exactly as finished as a real one — until it’s the wrong number.",
+        q: "Who in your team could actually answer this today, and are they usually in the room?" } });
+  }
+  stages.push({ type: "teamgherkin", mcode: "Team · 4", kicker: "Spell it out", title: "Make the behaviour concrete",
+    setup: "A first draft reads: “The user gets a reasonable error message when approval fails.” Keep it as is, or make it precise.",
+    scenarios: mkBehaviour(sc.behaviour), analysisDays: 1, badge: { e: "🎯", name: "Behaviour spelled out" },
+    debrief: { take: "“Reasonable” means something different to everyone who reads it. Given/When/Then leaves nothing to interpretation.",
+      q: "Who ends up deciding what “reasonable” means if the team never does — the person who builds it, or the person who reports the bug?" } });
+  stages.push({ type: "teamfork", kind: "question", mcode: "Team · 5", kicker: "Decide now or later", title: "One more open question",
+    setup: "The clock's nearly out, and one open question is still sitting on the board.",
+    situation: "Still on the board: “" + expiryQ.t + "” The meeting clock is nearly out.",
+    tempt: { e: "📎", h: "Put it in the “decide later” pile", p: "Flag it and keep moving. Someone will pick it up." },
+    solid: { e: "💬", h: "Settle it right now", p: "Two minutes of discussion while it’s still free — analysis time only." },
+    questionText: expiryQ.t, analysisDays: 1,
+    debrief: { take: "“Later” always sounds cheap in the meeting. It never is once the build has already started.",
+      q: "How does an open question usually resurface on your team — a chat message, a stand-up, a bug report?" } });
+  stages.push({ type: "teamselect", kind: "premortem", mode: "pick", mcode: "Team · 6", kicker: "Look ahead at the crash", title: "What could go wrong?",
+    setup: "Nothing's been built yet — this is the cheapest moment to catch what could go wrong.",
+    listLabel: "What could go wrong if the team builds this now, without settling the open points — pick the real risks:",
+    options: sc.premortem, analysisDays: 1, badge: { e: "🔮", name: "Pre-mortem" },
+    debrief: { take: "A pre-mortem turns a likely failure into a decision made now, while it’s still cheap.",
+      q: "Which of these would your team only find out about weeks later — after it already cost something?" } });
+  stages.push({ type: "teamselect", kind: "overreach", mode: "catch", mcode: "Team · 7", kicker: "Someone has to read it", title: "What's explicitly NOT in this change?",
+    setup: "Not everything worth flagging is a risk — some of it is just extra work nobody actually asked for.",
+    listLabel: "Flag every line that goes beyond what was actually asked for:",
+    options: sc.overreach, analysisDays: 1, badge: { e: "🔍", name: "Scope guardian" },
+    debrief: { take: "Nobody put those extra lines in the ticket. Someone still has to say so out loud.",
+      q: "In your team, whose job is it to say “that wasn’t part of the ask”?" } });
+  stages.push({ type: "teamdor", mcode: "Team · 8", kicker: "The gate", title: "Your Definition of Ready",
+    setup: "Six things should be true before anyone starts building. Check them off — honestly, or all at once.",
+    analysisDays: 1,
+    debrief: { take: "A Definition of Ready only protects the team if it’s checked against what actually happened — not against what would be convenient.",
+      q: "Has your team ever ticked a Definition of Ready box that, if you’re honest, wasn’t really true yet?" } });
+  stages.push({ type: "teamimpl", mcode: "Team · 9", kicker: "Handover", title: "The team starts building",
+    setup: "The meeting's over. Whatever didn't get settled comes with the team into the build — and building the actual solution always takes some time of its own, no matter how ready you were.",
+    button: "Start Development",
+    isBoss: true, buildDays: 4,
+    debrief: { take: "Whatever didn’t get settled in the meeting doesn’t disappear — it just waits for the build to trip over it.",
+      q: "Where does your team usually pay for a shortcut taken in refinement — a chat thread, a re-opened ticket, a late-night message?" } });
+  stages.push({ type: "teamfinale" });
+  return stages;
+}
+
+/* ---------------- 1. ROSTER ---------------- */
+function renderTeamRoster(st) {
+  var chips = TEAM_ROLES.map(function (r) {
+    var missing = r.id === TeamState.roleMissing;
+    return '<div class="rolechip' + (missing ? ' missing' : '') + '">' + (missing ? '' : '✅ ') + r.label + (missing ? ' — not here' : '') + '</div>';
+  }).join("");
+  // FEATURE-010: rough size estimate, shown once per run before anything else —
+  // pure narrative, no click of its own. Folded into this same first screen
+  // (rather than its own stage/step) so it never shifts the existing team-mode
+  // stage sequence or indices.
+  var estimateHTML = '<div class="estimatebox"><div class="lab">Before anyone looks at the ticket</div>' +
+    '<p>The team throws out a rough size — “medium, maybe a couple of days” — before anyone’s actually read the requirement. In a real team, a number like that only means something once you know this team’s real pace on similar, already-finished work. This team doesn’t have that yet — it was assembled for exactly this meeting.</p>' +
+    '<div class="hint">Write it down anyway. It’s a starting guess, not a plan — and the less is settled right now, the wider it can miss.</div></div>';
+  host.innerHTML = '<div class="stage">' + stageHead(st) + '<div class="panel">' + estimateHTML + '<div class="roster">' + chips + '</div>' +
+    '<div class="row"><button class="btn go" id="teamNext">Start the meeting →</button></div></div></div>';
+  document.getElementById("teamNext").onclick = next;
+}
+
+/* ---------------- 2. TEAM MAP (timer + 4-bucket board) ---------------- */
+function renderTeamMap(st) {
+  // FEATURE-009 Runde 4 (23.07.2026, Stephan-Feedback): "advanced" markiert nur
+  // noch "finishMap ist schon einmal gelaufen" (verhindert Doppel-Debrief).
+  // "locked" sperrt die Bedienung — und das NUR, wenn die Zeit wirklich abläuft,
+  // nicht schon dann, wenn das Board fertig sortiert ist. Solange die Zeit noch
+  // läuft bzw. der Schritt noch aktiv ist, darf jede Karte einer neuen Kategorie
+  // zugewiesen werden.
+  var placement = {}, picked = null, timeLeft = st.timerSeconds, timerId = null, advanced = false, locked = false;
+  var isTouch = window.matchMedia("(pointer: coarse)").matches;
+  var bucketsHTML = st.buckets.map(function (b) {
+    return '<div class="bucket" data-b="' + b.id + '"><h4>' + b.label + '</h4><div class="bh">' + b.hint + '</div><div class="dropwrap" data-slots="' + b.id + '"></div></div>';
+  }).join("");
+  host.innerHTML = '<div class="stage">' + stageHead(st) + '<div class="panel">' +
+    '<div class="timerwrap"><div class="timerbar"><div class="timerfill" id="timerFill" style="width:100%"></div></div>' +
+    '<div class="timerlabel"><span>Meeting time left</span><span id="timerText">' + timeLeft + 's</span></div></div>' +
+    '<div class="bank" id="bank"></div><div class="buckets">' + bucketsHTML + '</div>' +
+    '<div class="row"><span style="color:var(--dim);font-size:14px" id="cnt"></span><span style="color:var(--dim);font-size:13px">Sorted a card wrong? Tap ↩ on it to put it back, or tap the card itself to move it straight to a different category.</span></div><div id="react"></div></div></div>';
+  var bank = document.getElementById("bank");
+  shuffle(st.items.map(function (_, i) { return i; })).forEach(function (idx) {
+    var it = st.items[idx]; var d = document.createElement("div"); d.className = isTouch ? "item titem touch" : "item titem"; d.dataset.idx = idx;
+    if (isTouch) {
+      var txt = document.createElement("div"); txt.textContent = it.t; d.appendChild(txt);
+      var btnrow = document.createElement("div"); btnrow.className = "itembtns";
+      st.buckets.forEach(function (b) {
+        var btn = document.createElement("button"); btn.type = "button"; btn.className = "chip"; btn.textContent = b.label;
+        btn.onclick = function (ev) { ev.stopPropagation(); assign(idx, b.id); }; btnrow.appendChild(btn);
+      });
+      d.appendChild(btnrow);
+    } else {
+      d.textContent = it.t; d.setAttribute("draggable", "true");
+      d.onclick = function () { pickCard(idx); };
+      d.ondragstart = function (e) { if (locked) { e.preventDefault(); return; } picked = idx; e.dataTransfer.setData("text", idx); };
+    }
+    bank.appendChild(d);
+  });
+  document.querySelectorAll(".bucket").forEach(function (bk) {
+    bk.ondragover = function (e) { e.preventDefault(); bk.classList.add("over"); };
+    bk.ondragleave = function () { bk.classList.remove("over"); };
+    bk.ondrop = function (e) { e.preventDefault(); bk.classList.remove("over"); assign(picked, bk.dataset.b); };
+    bk.onclick = function () { if (picked != null) assign(picked, bk.dataset.b); };
+  });
+  // FEATURE-009 Runde 5 (23.07.2026, Stephan-Feedback): re-picking only worked
+  // by scrolling back up to the faded original card in the bank — the card as
+  // it visually appears INSIDE the bucket (a "slot") had no click handler at
+  // all, so clicking what the player actually looks at did nothing. Both the
+  // bank card and its slot now pick the same item.
+  function pickCard(idx) {
+    if (locked) return;
+    var itemEl = bank.querySelector('.item[data-idx="' + idx + '"]');
+    var slotEl = document.querySelector('.slot[data-idx="' + idx + '"]');
+    if (picked === idx) {
+      picked = null;
+      if (itemEl) itemEl.classList.remove("picked");
+      if (slotEl) slotEl.classList.remove("picked");
+    } else {
+      document.querySelectorAll(".item.picked, .slot.picked").forEach(function (x) { x.classList.remove("picked"); });
+      picked = idx;
+      if (itemEl) itemEl.classList.add("picked");
+      if (slotEl) slotEl.classList.add("picked");
+    }
+  }
+  // FEATURE-009 Runde 6 (23.07.2026, Stephan-Feedback): matches the agent-mode
+  // categorize step's own pattern exactly (renderCategorize) — a visible "↩"
+  // put-back icon right on the card, not a hidden "tap it again" gesture.
+  function putBack(idx) {
+    if (locked) return;
+    delete placement[idx];
+    var itemEl = bank.querySelector('.item[data-idx="' + idx + '"]'); if (itemEl) itemEl.classList.remove("assigned", "picked");
+    var slotEl = document.querySelector('.slot[data-idx="' + idx + '"]'); if (slotEl) slotEl.remove();
+    if (picked === idx) picked = null;
+    document.getElementById("cnt").textContent = Object.keys(placement).length + " / " + st.items.length + " sorted";
+  }
+  function assign(idx, bid) {
+    if (idx == null || locked) return;
+    placement[idx] = bid;
+    var itemEl = bank.querySelector('.item[data-idx="' + idx + '"]'); itemEl.classList.add("assigned");
+    var slotWrap = document.querySelector('[data-slots="' + bid + '"]');
+    var oldSlot = document.querySelector('.slot[data-idx="' + idx + '"]'); if (oldSlot) oldSlot.remove();
+    var slot = document.createElement("div"); slot.className = "slot"; slot.dataset.idx = idx;
+    slot.innerHTML = '<span>' + st.items[idx].t + '</span><span class="x" title="put back">↩</span>';
+    slot.querySelector(".x").onclick = function (e) { e.stopPropagation(); putBack(idx); };
+    slot.onclick = function (e) { e.stopPropagation(); pickCard(idx); };
+    slotWrap.appendChild(slot);
+    picked = null; document.querySelectorAll(".item.picked, .slot.picked").forEach(function (x) { x.classList.remove("picked"); });
+    document.getElementById("cnt").textContent = Object.keys(placement).length + " / " + st.items.length + " sorted";
+    if (Object.keys(placement).length >= st.items.length) finishMap(true);
+  }
+  timerId = setInterval(function () {
+    timeLeft--;
+    var fill = document.getElementById("timerFill"), txt = document.getElementById("timerText");
+    if (fill) fill.style.width = Math.max(0, (timeLeft / st.timerSeconds) * 100) + "%";
+    if (txt) txt.textContent = Math.max(0, timeLeft) + "s";
+    if (timeLeft <= 0) { clearInterval(timerId); finishMap(false); }
+  }, 1000);
+  function finishMap(finishedInTime) {
+    if (advanced) return; advanced = true; clearInterval(timerId);
+    // FEATURE-009 Runde 4 (23.07.2026, Stephan-Feedback): a board finished early
+    // is NOT locked — the team can keep re-sorting cards until the clock actually
+    // runs out. Only a real timeout locks further changes.
+    locked = !finishedInTime;
+    var react = document.getElementById("react");
+    // FEATURE-009 scoring fix (22.07.2026): a board the clock cut off is a
+    // shortcut, not free analysis time — it must not be credited, and it
+    // resurfaces as real rework once the team starts building (see renderTeamImpl).
+    // FEATURE-009 Runde 3 (23.07.2026, Stephan-Feedback): the rework this causes
+    // now scales with how many cards were actually left unsorted, not a flat
+    // yes/no penalty — see TeamState.mapUnsortedCount, consumed in renderTeamImpl.
+    TeamState.mapRushed = !finishedInTime;
+    TeamState.mapUnsortedCount = finishedInTime ? 0 : (st.items.length - Object.keys(placement).length);
+    var msg = finishedInTime
+      ? "The board is sorted. Everyone in the room sees the same picture."
+      : "Time’s up. The meeting moves on — sorted or not, that’s what made it to the board.";
+    if (!TeamState.mappingComplete) msg += " The goal statement never made it onto the board — the Product Owner wasn’t here to give it.";
+    react.innerHTML = '<div class="agent' + (finishedInTime ? ' win' : '') + '"><div class="who">🗒️ Team notes</div><div class="body">' + msg + '</div></div>';
+    completeStep(st, react, undefined, !finishedInTime);
+  }
+}
+
+/* ---------------- 3/5. TEAM FORK (Shortcuts A & B) ---------------- */
+function renderTeamFork(st) {
+  host.innerHTML = '<div class="stage">' + stageHead(st) + '<div class="fork"><div class="situation">' + st.situation + '</div>' +
+    '<div class="choices"><div class="choice tempt" id="tTempt"><div class="ce">' + st.tempt.e + '</div><h3>' + st.tempt.h + '</h3><p>' + st.tempt.p + '</p></div>' +
+    '<div class="choice solid" id="tSolid"><div class="ce">' + st.solid.e + '</div><h3>' + st.solid.h + '</h3><p>' + st.solid.p + '</p></div></div>' +
+    '<div id="tOut"></div></div></div>';
+  document.getElementById("tTempt").onclick = function () { resolve(false); };
+  document.getElementById("tSolid").onclick = function () { resolve(true); };
+  function resolve(honest) {
+    document.getElementById("tTempt").style.pointerEvents = "none"; document.getElementById("tSolid").style.pointerEvents = "none";
+    var out = document.getElementById("tOut");
+    if (st.kind === "bizvalue") TeamState.businessValueHonest = honest;
+    if (st.kind === "question") { TeamState.questionHandledHonest = honest; TeamState.deferredQuestion = honest ? null : st.questionText; }
+    var note = honest ? "Noted honestly — nothing hidden, no extra cost right now." : "Looks settled on the board. Nobody has to know it isn’t — yet.";
+    out.innerHTML = '<div class="sum" style="margin-top:16px">' + note + '</div>';
+    // FEATURE-009 Runde 7 (23.07.2026, Stephan-Feedback): die unehrliche
+    // Abkürzung (raten statt klären, vertagen statt jetzt klären) darf die
+    // freie Analysezeit nicht gutschreiben bekommen — die Analysearbeit fand
+    // ja gerade nicht statt. Gleiches Prinzip wie schon beim Map-Timeout und
+    // der vagen Gherkin-Abkürzung (siehe completeStep-Parameter noCredit).
+    setTimeout(function () { completeStep(st, out, undefined, !honest); }, 500);
+  }
+}
+
+/* ---------------- 4. TEAM GHERKIN (Shortcut C) ---------------- */
+function renderTeamGherkin(st) {
+  var sel = {}, total = 0; st.scenarios.forEach(function (sc) { total += sc.lines.length; });
+  var vagueHTML = '<div class="opt" id="vagueChoice" style="cursor:pointer"><div class="box"></div><div><span class="txt">Keep it vague: “The user gets a reasonable error message.”</span></div></div>';
+  host.innerHTML = '<div class="stage">' + stageHead(st) + '<div class="panel"><div class="opts">' + vagueHTML + '</div>' +
+    '<div class="row"><button class="btn ghost" id="precise">Make it precise instead →</button></div>' +
+    '<div id="ghOut"></div></div></div>';
+  document.getElementById("vagueChoice").onclick = function () {
+    TeamState.acPrecise = false;
+    document.getElementById("ghOut").innerHTML = '<div class="sum" style="margin-top:16px">Vague it stays. Whoever builds it will have to guess what “reasonable” means.</div>';
+    // FEATURE-009 scoring fix (22.07.2026): staying vague is the shortcut, not
+    // free analysis time — no credit here; it resurfaces as rework at the build step.
+    setTimeout(function () { completeStep(st, document.getElementById("ghOut"), undefined, true); }, 500);
+  };
+  document.getElementById("precise").onclick = function () {
+    var scHTML = st.scenarios.map(function (sc, si) {
+      var lines = sc.lines.map(function (ln, li) {
+        var order = shuffle(ln.segs.map(function (_, i) { return i; }));
+        var segs = order.map(function (gi) { return '<div class="seg" data-k="' + si + '.' + li + '" data-g="' + gi + '">' + ln.segs[gi].t + '</div>'; }).join("");
+        return '<div class="slot-line"><div class="slot-key">' + ln.key + '</div><div class="segs">' + segs + '</div></div>';
+      }).join("");
+      return '<div class="scenario"><h4><span class="tag ' + sc.tag + '">' + (sc.tag === "win" ? "Happy path" : sc.tag === "fail" ? "Negative" : "Edge case") + '</span>' + sc.label + '</h4>' + lines + '</div>';
+    }).join("");
+    host.innerHTML = '<div class="stage">' + stageHead(st) + '<div class="panel">' + scHTML +
+      '<div class="row"><button class="btn primary" id="check" disabled>Confirm the behaviour</button></div><div id="react"></div></div></div>';
+    document.querySelectorAll(".seg").forEach(function (sg) {
+      sg.onclick = function () {
+        var k = sg.dataset.k; document.querySelectorAll('.seg[data-k="' + k + '"]').forEach(function (o) { o.classList.remove("sel"); });
+        sg.classList.add("sel"); sel[k] = parseInt(sg.dataset.g, 10);
+        document.getElementById("check").disabled = Object.keys(sel).length < total;
+      };
+    });
+    document.getElementById("check").onclick = function () {
+      var ok = true; st.scenarios.forEach(function (sc, si) { sc.lines.forEach(function (ln, li) { var g = sel[si + "." + li]; if (g == null || !ln.segs[g].c) ok = false; }); });
+      var react = document.getElementById("react");
+      if (ok) {
+        this.disabled = true; TeamState.acPrecise = true;
+        react.innerHTML = '<div class="agent win"><div class="who">✅ Precise now</div><div class="body">Happy path, negative case and edge case are all spelled out — nothing left to guess.</div></div>';
+        completeStep(st, react);
+      } else {
+        react.innerHTML = '<div class="agent fail"><div class="who">✋ Not concrete enough</div><div class="body">A few blocks are still too vague. Look again.</div></div>';
+        toast("Vague blocks — pick the concrete ones.");
+      }
+    };
+  };
+}
+
+/* ---------------- 6/7. TEAM SELECT (pre-mortem & out-of-scope) ---------------- */
+function renderTeamSelect(st) {
+  var chosen = {}; var order = shuffle(st.options.map(function (_, i) { return i; }));
+  var optsHTML = order.map(function (idx) { return '<div class="opt" data-idx="' + idx + '"><div class="box"></div><div><span class="txt">' + st.options[idx].t + '</span></div></div>'; }).join("");
+  host.innerHTML = '<div class="stage">' + stageHead(st) + '<div class="panel"><div class="hintline">' + st.listLabel + '</div><div class="opts">' + optsHTML + '</div>' +
+    '<div class="row"><button class="btn primary" id="check">Confirm</button></div><div id="react"></div></div></div>';
+  document.querySelectorAll(".opt").forEach(function (op) {
+    op.onclick = function () {
+      var i = op.dataset.idx;
+      if (chosen[i]) { delete chosen[i]; op.classList.remove("sel"); op.querySelector(".box").textContent = ""; }
+      else { chosen[i] = true; op.classList.add("sel"); op.querySelector(".box").textContent = "✓"; }
+    };
+  });
+  document.getElementById("check").onclick = function () {
+    var missed = [], extra = [];
+    st.options.forEach(function (o, idx) {
+      var target = (st.mode === "catch") ? o.bad : !o.bad; var picked = !!chosen[idx];
+      if (target && !picked) missed.push(o); if (!target && picked) extra.push(o);
+    });
+    var react = document.getElementById("react");
+    if (missed.length === 0 && extra.length === 0) {
+      this.disabled = true;
+      react.innerHTML = '<div class="agent win"><div class="who">✅ Good catch</div><div class="body">The team caught everything on this pass.</div></div>';
+      completeStep(st, react);
+    } else {
+      react.innerHTML = '<div class="agent fail"><div class="who">✋ Not quite</div><div class="body">Look again — a few are still off.</div></div>';
+      toast("Close — look again.");
+    }
+  };
+}
+
+/* ---------------- 8. TEAM DoR CHECKLIST (Shortcut E) ---------------- */
+function dorItems() {
+  return [
+    { t: "Written as a user story", truth: true },
+    { t: "Business value is defined", truth: TeamState.businessValueHonest },
+    { t: "Behaviour is defined precisely", truth: TeamState.acPrecise },
+    { t: "Understood by the whole team", truth: TeamState.mappingComplete },
+    { t: "Estimated by the team", truth: true },
+    { t: "Risks and open questions confirmed", truth: TeamState.questionHandledHonest }
+  ];
+}
+function renderTeamDoR(st) {
+  var items = dorItems(); var checked = {};
+  var listHTML = items.map(function (it, idx) {
+    return '<div class="opt dorpoint" data-idx="' + idx + '"><div class="box"></div><div><span class="txt">' + it.t + '</span></div></div>';
+  }).join("");
+  host.innerHTML = '<div class="stage">' + stageHead(st) + '<div class="panel"><div class="opts">' + listHTML + '</div>' +
+    '<div class="row"><button class="btn ghost" id="markAll">☑️ Mark everything as done</button><button class="btn primary" id="dorContinue">Hand it over →</button></div>' +
+    '<div id="react"></div></div></div>';
+  function paint(idx) {
+    var el = document.querySelector('.dorpoint[data-idx="' + idx + '"]');
+    el.classList.toggle("sel", !!checked[idx]); el.querySelector(".box").textContent = checked[idx] ? "✓" : "";
+  }
+  document.querySelectorAll(".dorpoint").forEach(function (op) {
+    op.onclick = function () { var idx = op.dataset.idx; checked[idx] = !checked[idx]; paint(idx); };
+  });
+  document.getElementById("markAll").onclick = function () {
+    items.forEach(function (_, idx) { checked[idx] = true; paint(idx); });
+  };
+  document.getElementById("dorContinue").onclick = function () {
+    var paperwork = 0;
+    items.forEach(function (it, idx) { if (checked[idx] && !it.truth) paperwork++; });
+    S.dorPaperwork += paperwork;
+    var react = document.getElementById("react");
+    react.innerHTML = paperwork > 0
+      ? '<div class="agent"><div class="who">📜 Contract signed</div><div class="body">' + paperwork + ' of those checkmarks weren’t actually true yet. Nobody stopped you — the team moves on.</div></div>'
+      : '<div class="agent win"><div class="who">📜 Contract signed</div><div class="body">Every checked point really was true. Nothing hidden.</div></div>';
+    completeStep(st, react);
+  };
+}
+
+/* ---------------- 9. TEAM IMPLEMENTATION + CHAT INTERRUPT ---------------- */
+function renderTeamImpl(st) {
+  host.innerHTML = '<div class="stage">' + stageHead(st) + '<div class="panel"><div class="row" style="margin-top:4px"><button class="btn big" id="handoff">' + st.button + '</button></div><div id="impl"></div></div></div>';
+  document.getElementById("handoff").onclick = function () {
+    this.disabled = true; var r = document.getElementById("impl");
+    r.innerHTML = '<div class="agent"><div class="working"><span class="spinner"></span> The team is building…</div></div>';
+    setTimeout(function () {
+      // FEATURE-009 scoring fix (22.07.2026): every shortcut taken earlier — the
+      // deferred question, a meeting-map board the clock cut off, or behaviour
+      // left deliberately vague — resurfaces here as real, paid-for rework
+      // instead of vanishing. Whichever of these actually happened, each gets
+      // its own chat message and its own rework ticket (not just the first one).
+      var threads = [];
+      if (TeamState.deferredQuestion) {
+        threads.push({
+          bubble: '<div class="bubble them"><div class="who">PO · Teams chat · replies after 4 hours</div>“' + TeamState.deferredQuestion + '” Sorry — missed this in the meeting, catching up now.</div>',
+          item: "Chasing down the answer that was put off in the meeting", days: 2
+        });
+      }
+      // FEATURE-009 Runde 3 (23.07.2026, Stephan-Feedback): scales with how many
+      // cards the clock actually cut off, not a flat yes/no penalty — capped so a
+      // near-empty board doesn't dominate the whole run.
+      if (TeamState.mapUnsortedCount > 0) {
+        var mapDays = Math.min(TeamState.mapUnsortedCount, 3);
+        var mapPlural = TeamState.mapUnsortedCount === 1 ? "part" : "parts";
+        threads.push({
+          bubble: '<div class="bubble them"><div class="who">QA · Teams chat</div>Wait — ' + TeamState.mapUnsortedCount + ' ' + mapPlural + ' of this were never on the board. Are they actually in scope?</div>',
+          item: "Re-mapping the " + TeamState.mapUnsortedCount + " " + mapPlural + " the meeting ran out of time for", days: mapDays
+        });
+      }
+      if (!TeamState.acPrecise) {
+        threads.push({
+          bubble: '<div class="bubble them"><div class="who">Dev · Teams chat</div>What does “reasonable” actually mean here — can you give me Given/When/Then?</div>',
+          item: "Clarifying the vague behaviour spec mid-build instead of in the meeting", days: 2
+        });
+      }
+      // FEATURE-009 Runde 3 (23.07.2026, Stephan-Feedback): the business-value
+      // guess made without the Product Owner now has the same kind of delayed
+      // consequence as the other shortcuts — it was free at the fork, not free here.
+      if (TeamState.businessValueHonest === false) {
+        threads.push({
+          bubble: '<div class="bubble them"><div class="who">Customer · support ticket</div>The number your team assumed for this doesn’t match what we actually agreed — can someone check?</div>',
+          item: "Chasing down the business-value number that was guessed instead of confirmed", days: 2
+        });
+      }
+      // FEATURE-009 Runde 3 (23.07.2026, Stephan-Feedback): every run starts with
+      // one role missing from the room (see teamroster) — that gap has its own
+      // guaranteed, role-specific consequence, same idea as the other threads.
+      var ROLE_GAP_THREAD = {
+        po: { bubble: '<div class="bubble them"><div class="who">Dev · Teams chat</div>Nobody actually confirmed what “done” means for this — the Product Owner never got to weigh in.</div>',
+          item: "Clearing up what “done” actually means, since the Product Owner wasn’t in the meeting", days: 2 },
+        dev: { bubble: '<div class="bubble them"><div class="who">Dev · Teams chat</div>Just found a technical wrinkle nobody flagged — no developer was in the room to catch it earlier.</div>',
+          item: "Working around a technical wrinkle nobody flagged, since no developer was in the meeting", days: 2 },
+        qa: { bubble: '<div class="bubble them"><div class="who">QA · Teams chat</div>Found an edge case that never made it into the meeting notes — no QA voice was there to raise it.</div>',
+          item: "Chasing an edge case that slipped through, since no QA was in the meeting", days: 2 },
+        tech: { bubble: '<div class="bubble them"><div class="who">Tech Lead · Teams chat</div>This touches a dependency nobody flagged — I wasn’t in that meeting to catch it.</div>',
+          item: "Untangling a dependency risk nobody flagged, since no Tech Lead was in the meeting", days: 2 }
+      };
+      if (ROLE_GAP_THREAD[TeamState.roleMissing]) threads.push(ROLE_GAP_THREAD[TeamState.roleMissing]);
+      // FEATURE-009 Runde 3 (23.07.2026, Stephan-Feedback): a Definition of Ready
+      // box checked despite not being true is a skipped control, not free paperwork
+      // — it now costs real cycle time too (an audit/compliance review), and is
+      // named as such rather than folded into the other threads' wording.
+      if (S.dorPaperwork > 0) {
+        var dorPlural = S.dorPaperwork === 1 ? "checkbox" : "checkboxes";
+        threads.push({
+          bubble: '<div class="bubble them"><div class="who">⚠️ Compliance · internal audit</div>The Definition of Ready check that should have caught this got skipped — this now needs to go through an audit review before it can ship.</div>',
+          item: "Audit review triggered by " + S.dorPaperwork + " Definition of Ready " + dorPlural + " that wasn’t actually true", days: S.dorPaperwork
+        });
+      }
+      var chatHTML = threads.length
+        ? ('<div class="chatwrap">' + threads.map(function (t) { return t.bubble; }).join("") + '</div>' +
+           '<div class="sum">What the meeting skipped didn’t disappear — it just waited for the build to trip over it.</div>')
+        : ('<div class="chatwrap"><div class="bubble them"><div class="who">PO · Teams chat</div>Quick check on the open point — looks like you already nailed it down. 👍</div></div>' +
+           '<div class="sum">Already settled in the meeting — no surprise, no extra cost.</div>');
+      r.innerHTML = '<div class="agent"><div class="who">🚧 Build in progress</div><div class="body">The team starts on the ticket.</div></div>' + chatHTML;
+      if (threads.length) {
+        var wrap = document.createElement("div"); wrap.className = "rework"; wrap.innerHTML = '<div class="rh">⏱️ Cycle time starts running — what got skipped in the meeting comes due</div>';
+        r.appendChild(wrap);
+        threads.forEach(function (t) {
+          var p = { item: t.item, days: t.days };
+          S.rework.push(p); bumpCycle(p.days);
+          wrap.insertAdjacentHTML("beforeend", '<div class="rticket"><span>' + p.item + '</span><span class="d">+' + p.days + 'd</span></div>');
+        });
+        var rwVal = document.getElementById("rwVal"); if (rwVal) rwVal.textContent = S.rework.reduce(function (s, x) { return s + x.days; }, 0) + "d";
+      }
+      setTimeout(function () { completeStep(st, r); }, 900);
+    }, 1400);
+  };
+}
+
+/* ---------------- 10. TEAM FINALE ---------------- */
+function renderTeamFinale() {
+  // FEATURE-010: S.benchmark is always set by startTeamMode() now (16 or 20,
+  // depending on the rolled missing role) — the "|| 16" is a defensive
+  // fallback only, not an expected value in normal play.
+  var analysis = S.analysis, actualCycle = S.cycle, rushed = S.benchmark || 16;
+  var reworkTotal = S.rework.reduce(function (s, r) { return s + r.days; }, 0);
+  var idealCycle = Math.max(0, actualCycle - reworkTotal);
+  // FEATURE-011: the ideal/theoretical bar is the true best-possible run —
+  // every analysis-eligible step credited, not just what this run actually
+  // earned (in Team mode a shortcut like a map timeout, vague behaviour, a
+  // guessed business value or a deferred question skips that credit).
+  var idealAnalysis = maxAnalysisDays();
+  var leadActual = analysis + actualCycle, leadIdeal = idealAnalysis + idealCycle, leadFast = rushed;
+  Lmax = Math.max(leadFast, leadActual, leadIdeal, 1);
+  var badges = reviewGridHTML();
+  host.innerHTML = '<div class="stage"><div class="final"><div class="stamp">In users’ hands</div><h1>Same change. A different room.</h1>' +
+    '<div class="lead">Your team shipped the change — ' + SC.short + '. Lead time is the whole journey: from the need on the board to users’ hands.</div>' +
+    '<div class="score">' +
+      lbar('rushed', 'The fast start', 0, rushed, leadFast, '0 analysis + ' + rushed + 'd cycle') +
+      lbar('', 'Your run — the meeting, then the build', analysis, actualCycle, leadActual, analysis + 'd analysis + ' + actualCycle + 'd cycle') + bkBlock('actual') +
+      lbar('best', 'What it could have been', idealAnalysis, idealCycle, leadIdeal, idealAnalysis + 'd analysis + ' + idealCycle + 'd cycle') + bkBlock('ideal') +
+      '<div class="lblegend"><span><i style="background:#3fb950"></i> Analysis time</span><span><i style="background:#f0a531"></i> Cycle time</span></div>' +
+    '</div>' +
+    '<div class="msg">' +
+      (S.dorPaperwork > 0
+        ? '<div class="t"><span class="e">📜</span><span><b>The Definition of Ready wasn’t just paperwork.</b><span>' + S.dorPaperwork + ' day(s) of your cycle time came from checking a box that wasn’t actually true yet — the checklist exists to catch exactly that, and skipping it means an audit review before it ships.</span></span></div>'
+        : '<div class="t"><span class="e">📜</span><span><b>DoR held up.</b><span>Every point you checked off was actually true. No audit rework this run.</span></span></div>') +
+      '<div class="t"><span class="e">🤝</span><span><b>Same lesson, different room.</b><span>No agent this time — just a meeting that ended on the clock, a room that wasn’t quite full, and a contract that’s only worth what was actually checked.</span></span></div>' +
+    '</div>' +
+    '<div class="badgehint">Tap any step to look back at it — just to view it, no edits.</div>' +
+    '<div class="badgegrid">' + badges + '</div>' +
+    '<div class="row" style="justify-content:center"><button class="btn ghost" id="teamAgain">Back to mode selection</button></div>' +
+  '</div></div>';
+  setTimeout(function () { document.querySelectorAll(".fillL").forEach(function (f) { f.style.width = f.dataset.w + "%"; }); }, 200);
+  wireBkToggles();
+  document.getElementById("teamAgain").onclick = function () {
+    STAGES = null; SC = null; S = { i: 0, analysis: 0, cycle: 0, benchmark: 0, badges: [], rework: [], forks: {}, history: [], dorPaperwork: 0 };
+    setHUD(); renderModePicker(); window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+  burst(); setTimeout(burst, 500);
+}
+
 /* ---------------- modals ---------------- */
 document.getElementById("badgeChip").onclick=function(){var list=document.getElementById("badgeList");list.innerHTML=S.badges.length?S.badges.map(function(b){return '<div class="spec specClick" data-i="'+b.i+'" title="Look back at this step"><span class="e">'+b.e+'</span><div><h4>'+b.name+'</h4><p style="margin-top:2px">Tap to look back — view only</p></div></div>';}).join(""):'<p style="color:var(--muted)">No badges yet — pick a scenario to begin.</p>';document.getElementById("ovBadges").classList.add("show");list.querySelectorAll(".specClick").forEach(function(el){el.onclick=function(){document.getElementById("ovBadges").classList.remove("show");openReview(+el.dataset.i);};});};
 document.getElementById("reworkChip").onclick=function(){var list=document.getElementById("rwList");if(S.rework.length===0){list.innerHTML='<div class="spec"><span class="e">✅</span><div><h4>Clean so far</h4><p>No avoidable rework yet. Keep getting ready before you start.</p></div></div>';}else{list.innerHTML=S.rework.map(function(r){return '<div class="spec"><span class="e">⏱️</span><div><h4>+'+r.days+' days</h4><p>'+r.item+'</p></div></div>';}).join("");}document.getElementById("ovRework").classList.add("show");};
@@ -535,7 +1293,7 @@ function burst(){var cols=["#4c8dff","#3fb950","#f0a531","#b98bff","#ff6b6b","#4
 function loop(){cx.clearRect(0,0,cv.width,cv.height);for(var k=parts.length-1;k>=0;k--){var p=parts[k];p.vy+=p.g;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;p.life++;cx.save();cx.translate(p.x,p.y);cx.rotate(p.r);cx.fillStyle=p.c;cx.globalAlpha=Math.max(0,1-p.life/150);cx.fillRect(-p.s/2,-p.s/2,p.s,p.s*0.6);cx.restore();if(p.y>cv.height+40||p.life>160)parts.splice(k,1);}requestAnimationFrame(loop);}
 loop();
 document.getElementById('versionTag').textContent = 'Spec or Regret v' + GAME_VERSION;
-function startGame(){document.getElementById('ovIntro').classList.remove('show');renderPicker();}
+function startGame(){document.getElementById('ovIntro').classList.remove('show');renderModePicker();}
 document.getElementById('introCta').onclick=startGame;
 document.getElementById('introClose').onclick=startGame;
 document.getElementById('ovIntro').onclick=function(e){if(e.target===this)startGame();};
