@@ -78,6 +78,69 @@ Umgesetzt in `public/index.html` (Basis: v1.6.1 / Commit `900dc1f`, vor dem Schr
 
 ## 📋 ToDo
 
+### FEATURE-012 Die übrigen 20 Bank-Themen auch im Team-Modus spielbar machen
+
+| Feld | Wert |
+|------|------|
+| **Typ** | Feature |
+| **Priorität** | Mittel |
+| **Status** | ToDo |
+| **Erstellt** | 2026-07-23 |
+
+**Beschreibung:** Der Team-Modus (FEATURE-008) läuft heute technisch fest auf genau einem der 21 Bank-Themen („Second approver for large payments", intern `four-eyes`) — das war beim ursprünglichen Vertical-Slice-Ticket bewusst so begrenzt und ausdrücklich als eigenes Folgeticket vorgemerkt („die übrigen 20 Szenarien im Team-Modus"). Am echten Code nachgeprüft (nicht angenommen): Der komplette Team-Modus-Ablauf selbst — Besetzung, Meeting mit Kategorien-Sortierung, Formulierungsübung, zwei Weggabelungen, Vorausschau, Abgrenzung, Checkliste, Übergabe, Abschluss — verarbeitet die Inhalte eines Themas bereits durchgängig generisch, genau wie es der Agenten-Modus für alle 21 Themen tut. Es fehlt im Kern nur eine Stelle, an der für den Team-Modus überhaupt eines der 21 Themen ausgewählt wird, statt immer dasselbe zu verwenden.
+
+**User Story:** Als Moderator:in/Spielerin möchte ich im Team-Modus zwischen allen 21 Bank-Themen wählen (oder eines auswürfeln lassen) können — genau wie im Agenten-Modus —, damit ich eine zur Runde passende Geschichte wählen kann und der Team-Modus nicht dauerhaft auf ein einziges, immer gleiches Thema beschränkt bleibt.
+
+**Scope:**
+Eingeschlossen: alle 21 im Spiel bereits vorhandenen Bank-Themen werden im Team-Modus spielbar, mit demselben Ablauf, derselben Anzahl und Reihenfolge an Schritten wie beim bisherigen einen Thema; eine Möglichkeit, vor dem Meeting-Start eines der 21 Themen bewusst auszuwählen oder eines zufällig auswürfeln zu lassen (die konkrete Umsetzung dieser Auswahl ist die zentrale, noch zu entscheidende Frage — siehe Optionenvergleich).
+Ausgeschlossen: die geplante thematische Gruppierung der 21 Themen auf dem Startbildschirm (eigenes, separates Ticket FEATURE-009, noch nicht umgesetzt) — eine neue Team-Auswahl zeigt die 21 Themen zunächst flach, genau wie aktuell auch im Agenten-Modus; eigene Facilitator-Hinweistexte für den Team-Modus (bereits an anderer Stelle als eigenes Folgeticket vorgemerkt); jede Änderung an der Grundpreis-/Schätz-Logik für die „Fast Start"-Vergleichszeile, die bereits bewusst themenunabhängig gestaltet ist und unverändert für alle 21 Themen gilt; jede Änderung am Agenten-Modus über das reine Nachlesen hinaus.
+
+**Akzeptanzkriterien:**
+- [ ] Im Team-Modus lässt sich vor dem Meeting jedes der 21 Bank-Themen auswählen (oder zufällig auswürfeln) — nicht mehr nur das eine bisherige Thema.
+- [ ] Jedes der 21 Themen lässt sich im Team-Modus vollständig und ohne Absturz oder Platzhaltertext bis zum Abschlussbildschirm durchspielen.
+- [ ] Bei jedem der 21 Themen zeigen Meeting-Board, Vorausschau und Abgrenzung tatsächlich zum jeweiligen Thema passende Inhalte — nicht länger das alte „Second approver"-Thema, egal welche Auswahl getroffen wurde.
+- [ ] Der Agenten-Modus verhält sich unverändert (alle 21 Themen weiterhin da, keine Regressionen).
+- [ ] Bei keinem der 21 Themen taucht im Team-Modus ein Agentenbezug (Text oder 🤖-Symbol) auf.
+- [ ] Keine Konsolenfehler bei irgendeinem der 21 Themen; die Versionsanzeige wird erhöht.
+
+**Fundstellen-Sweep:** Gesucht nach `TEAM_SCENARIO_ID`/`findTeamScenario` (die Stelle, die den Team-Modus heute auf ein Thema festlegt): genau 1 Fundstelle. Zusätzlich programmatisch geprüft (Node-Skript gegen die echte, aktuelle Themenliste im Code, alle 21 Einträge einzeln durchlaufen): jedes der 21 Themen hat exakt dieselbe Datenform wie das bisher genutzte „four-eyes" — 8 Meeting-Board-Karten (1 Ziel/3 Regeln/2 Beispiele/2 offene Fragen), 6 Vorausschau-Punkte, 7 Abgrenzungspunkte, vollständige Verhaltens-Beispiele für den glücklichen Fall, den Fehlerfall und einen Randfall — ausnahmslos bei allen 21, keine Lücke. Das bedeutet: der gesamte bestehende Team-Ablauf braucht inhaltlich keine Anpassung pro Thema, er verarbeitet heute schon jedes beliebige Thema gleich. Zusätzlich gesucht nach „four-eyes" im gesamten Code: nur die 2 erwarteten Fundstellen (die Themendefinition selbst und die genannte Konstante) — keine weitere Stelle im Code ist an dieses eine Thema gebunden. Keine weiteren Fundstellen.
+
+**Zustands-Check:** Wartezustand: Die Auswahl eines Themas ist — wie im Agenten-Modus — ein sofortiger Klick ohne Ladezeit, kein eigener Wartezustand nötig. Leerzustand: nicht relevant, alle 21 Themen sind immer vorhanden, es gibt keinen Fall „kein Thema verfügbar". Fehlerfall: rein clientseitig, kein Netzwerkzugriff nötig, daher kein neues Fehlerverhalten vorgesehen. Das einzige echte Risiko wäre ein künftig neu angelegtes 22. Thema, das nicht der heute bei allen 21 bestätigten Datenform entspricht (z. B. nur eine statt zwei offene Fragen) — dafür ist ein automatisierter Test vorgesehen, der diese Form für jedes Thema in der Liste prüft, statt sich nur auf die heutige Stichprobe zu verlassen (siehe Testplan).
+
+**Pre-Mortem:**
+- 💀 Ein künftig neu hinzugefügtes Thema hält sich nicht an die heute bei allen 21 bestätigte Datenform und der Team-Modus zeigt dafür einen leeren oder kaputten Text, ohne dass es auffällt → Gegenmaßnahme: automatisierter Test, der diese Form für jedes einzelne Thema prüft, nicht nur stichprobenartig, fester Bestandteil jedes künftigen Regressionslaufs.
+- 💀 Ein neuer Auswahlbildschirm für den Team-Modus verändert den Klick-Ablauf direkt nach „Work as a Team" — die neun bestehenden, aufbewahrten Testdateien zum Team-Modus gehen bisher davon aus, dass direkt danach die Besetzungsliste erscheint, und würden ohne Anpassung fehlschlagen → Gegenmaßnahme: siehe Optionenvergleich; eine Anpassung dieser Testdateien erfolgt nur rein additiv (ein zusätzlicher Auswahl-Klick-Schritt, keine bestehende Prüfung wird entfernt oder abgeschwächt) und nur mit Stephans ausdrücklicher Freigabe.
+- 💀 Der neue Team-Auswahlbildschirm übernimmt versehentlich Agenten-Wortlaut oder die lila Agenten-Farbe statt der Team-Sprache/-Farbe → Gegenmaßnahme: eigener Fundstellen-Sweep auf „Agent"/🤖 im neuen Bildschirm, eigenes Akzeptanzkriterium, durchgängig die bestehende Team-Akzentfarbe.
+- 💀 Beim Entfernen der festen Themen-Festlegung bleibt eine Restabhängigkeit stehen und der Agenten-Modus verliert versehentlich eines der 21 Themen oder verändert sein Verhalten → Gegenmaßnahme: vollständiger Regressionslauf inklusive aller bestehenden Agenten-Modus-Prüfungen vor jeder Auslieferung, wie bei jedem bisherigen Team-Modus-Ticket.
+- 💀 Die Versionsanzeige wird bei dieser sichtbaren Änderung vergessen zu erhöhen → Gegenmaßnahme: fester Bestandteil der Implementierungsnotizen, wie bei jedem bisherigen Ticket.
+
+**Optionenvergleich:**
+
+*Option A – Eigener Team-Auswahlbildschirm vor der Besetzung (empfohlen):* Ein neuer, team-typisch gestalteter Bildschirm (eigene Render-Funktion, gleiche Karten-Mechanik wie der bestehende Themen-Bildschirm des Agenten-Modus, aber eigener Wortlaut/eigene Farbe, kein Agentenbezug) erscheint nach Klick auf „Work as a Team" und vor der Besetzungsliste; dort wird eines der 21 Themen bewusst gewählt oder ausgewürfelt. Vorteil: echte Wahlfreiheit, genau gleichwertig zum Agenten-Modus — entspricht auch am genauesten Deiner ursprünglichen Formulierung „die anderen 20 Szenarien … auch verfügbar". Kosten: verändert den Klick-Ablauf direkt nach „Work as a Team" — die neun bestehenden Team-Modus-Testdateien brauchen dafür je einen zusätzlichen, rein mechanischen Klick-Schritt, was nur mit Deiner ausdrücklichen Freigabe umgesetzt wird (siehe Pre-Mortem).
+
+*Option B – Zufällige Auswahl aus allen 21, kein neuer Bildschirm:* „Work as a Team" verhält sich exakt wie heute (sofortiger Start direkt in die Besetzungsliste), zieht dabei aber zufällig eines von 21 Themen statt immer dasselbe. Vorteil: keine der bestehenden Testdateien muss angefasst werden, der Klick-Ablauf bleibt unverändert. Nachteil: Moderator:innen können sich im Team-Modus — anders als im Agenten-Modus — nicht gezielt für ein zum Raum passendes Thema entscheiden, nur der Zufall entscheidet.
+
+*Option C – Team-Modus zieht weiterhin nur „four-eyes", die übrigen 20 bleiben ungenutzt:* Kein Aufwand, aber löst die eigentliche Anforderung nicht — wird hier nur der Vollständigkeit halber als Nicht-Option benannt.
+
+✅ **Empfehlung:** Option A — sie ist die einzige, die Deine ursprüngliche Anforderung (die 20 übrigen Themen tatsächlich verfügbar machen, mit echter Wahl statt nur Zufall) vollständig erfüllt. Der Preis dafür (neun bestehende Testdateien brauchen einen zusätzlichen Klick-Schritt) ist real und wird hier bewusst nicht kleingeredet — das ist der zentrale Punkt, den ich Dir zur Entscheidung vorlege, bevor implementiert wird. Falls Dir der Eingriff in die bestehenden Tests zu groß ist, ist Option B ein risikoärmerer Rückfall ohne Testaufwand, nur eben ohne gezielte Themenwahl im Team-Modus.
+
+**Analyse & Planung:**
+- [x] Repo-Stand vor Beginn geprüft: HEAD `2b86fc6`, `GAME_VERSION` „1.18.0", `git status` sauber, keine ausstehenden Änderungen.
+- [x] Kernbefund am echten Code: die Funktion, die aus einem Thema die Team-Modus-Schritte baut, sowie alle zugehörigen Anzeige-Funktionen (Besetzung, Meeting-Board, Formulierungsübung, beide Weggabelungen, Vorausschau/Abgrenzung, Checkliste, Übergabe, Abschluss) verarbeiten ausschließlich generische, pro Thema vorhandene Datenfelder (Meeting-Board-Karten, Verhaltens-Beispiele, Vorausschau, Abgrenzung) — identisch zu den Feldern, die der Agenten-Modus für alle 21 Themen nutzt. Programmatisch geprüft: alle 21 Themen haben exakt dieselbe Feldform (siehe Fundstellen-Sweep). Einzige tatsächliche Festlegung auf ein Thema: eine einzelne Konstante plus eine kleine Nachschlage-Funktion beim Start des Team-Modus.
+- [ ] Geplante Änderung (bei Freigabe): der Team-Modus-Start erhält das gewählte Thema übergeben, statt es fest nachzuschlagen; die feste Themen-Konstante und ihre Nachschlage-Funktion entfallen.
+- [ ] Bei Option A: neue Anzeige-Funktion für den Team-Auswahlbildschirm, die dieselbe Themen-Karten-Liste wie der bestehende Agenten-Auswahlbildschirm zeigt (Titel/Kurztext je Thema, „Surprise us"-Zufallsknopf), aber mit team-typischem Wortlaut und der bestehenden Team-Akzentfarbe statt Agenten-Wortlaut/-Farbe.
+- [x] Die Grundpreis-/Schätz-Berechnung für die „Fast Start"-Vergleichszeile bleibt unverändert (bereits bei ihrer eigenen Einführung bewusst themenunabhängig gestaltet).
+
+**Testplan (Plan, noch nicht ausgeführt):**
+- [ ] Neue dauerhafte Testdatei: prüft programmatisch für ALLE 21 Themen (nicht nur stichprobenartig) die bestätigte Datenform (2 offene Fragen, 6 Vorausschau-Punkte, 7 Abgrenzungspunkte, vollständige Verhaltens-Beispiele) sowie einen echten, per Klick durchgespielten Team-Durchlauf für mehrere unterschiedliche Themen (nicht nur das bisherige eine), um zu bestätigen, dass der Ablauf tatsächlich — nicht nur der Theorie nach — für andere Themen funktioniert.
+- [ ] Pflicht-Regressionslauf gegen alle bestehenden Testdateien vor jeder Auslieferung, einschließlich aller bisherigen Team- und Agenten-Modus-Prüfungen.
+- [ ] Syntax-Check der Skriptdatei.
+- **Begründung Testabdeckung:** Diese Änderung berührt eine geteilte, bereits für alle 21 Themen genutzte Ablauflogik sowie den bisher auf ein Thema festgelegten Auswahlmechanismus — ein Testdurchlauf über mehrere, unterschiedliche Themen ist deshalb nötig, um „funktioniert für alle 21" tatsächlich zu belegen, nicht nur ein Durchlauf mit dem bisherigen einen Thema.
+- [ ] Bei Option A: die neun bestehenden Testdateien mit dem Klick auf „Work as a Team" benötigen je einen zusätzlichen, rein additiven Auswahl-Schritt direkt danach — wird nur mit Stephans ausdrücklicher Freigabe umgesetzt, keine bestehende Prüfung wird dabei entfernt oder abgeschwächt.
+- [ ] Echter Blick im Browser (Desktop, nach Möglichkeit auch Handy-Breite) für den neuen Auswahlbildschirm sowie für mehrere der neu spielbaren Themen bleibt offener Punkt bis Stephan selbst nach dem Release bestätigt.
+
+**Bezug:** Chat-Anfrage 23.07.2026 („Feature 12: Jetzt benötigen wir die anderen 20 Szenarien aus dem Agent Modus auch im Team Modus.").
+
 ### FEATURE-009 Die 21 Szenarien themenbezogen gruppieren
 
 *(Hinweis 2026-07-23: ursprünglich unter der Nummer FEATURE-008 angelegt. Diese Nummer gehörte eigentlich schon dem Team-Modus-Vertical-Slice — der aber nie als Ticket in diese Datei geschrieben wurde und deshalb bei der Anlage dieses Tickets frei aussah. Beim nachträglichen sauberen Dokumentieren des Team-Modus als FEATURE-008 wurde dieses Ticket auf FEATURE-009 hochgezählt, damit beide Nummern eindeutig bleiben.)*
