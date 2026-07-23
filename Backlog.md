@@ -6,15 +6,45 @@
 
 ## 🔄 In Progress
 
+## 📋 ToDo
+
+### FEATURE-009 Die 21 Szenarien themenbezogen gruppieren
+
+*(Hinweis 2026-07-23: ursprünglich unter der Nummer FEATURE-008 angelegt. Diese Nummer gehörte eigentlich schon dem Team-Modus-Vertical-Slice — der aber nie als Ticket in diese Datei geschrieben wurde und deshalb bei der Anlage dieses Tickets frei aussah. Beim nachträglichen sauberen Dokumentieren des Team-Modus als FEATURE-008 wurde dieses Ticket auf FEATURE-009 hochgezählt, damit beide Nummern eindeutig bleiben.)*
+
+| Feld | Wert |
+|------|------|
+| **Typ** | Feature |
+| **Priorität** | Mittel |
+| **Status** | ToDo |
+| **Erstellt** | 2026-07-22 |
+
+**Beschreibung:** Stephan möchte, dass Spielende auf dem Startbildschirm schneller ein für sie passendes Szenario finden, statt sich durch 21 gleichrangige Karten zu klicken oder auf „Surprise us" auszuweichen. Vorschlag, abgeleitet aus den tatsächlichen Titeln/Kurztexten aller 21 Szenarien (`public/index.html`, `SCENARIOS`-Liste), sechs Themengruppen:
+
+1. **Geld rausschicken** (6): Bulk supplier payments, Run payroll, Pay a supplier abroad, Schedule a future tax payment, Send a one-off payment, Move spare cash automatically
+2. **Geld reinholen** (3): Collect from many customers, Request money from a customer, Decline a payment request
+3. **Firmenkarten** (3): Company cards with limits, Single-use virtual card, Freeze a lost company card
+4. **Freigaben & Limits** (4): Second approver for large payments, Daily payment cap for the company, Add and approve a new payee, Check the payee's details
+5. **Zugriff & Sicherheit** (3): Give the right access, Log in to the company portal, Report a transaction we don't recognise
+6. **Überblick behalten** (2): One live view of all balances, Alerts on account movement
+
+Summe 6+3+3+4+3+2 = 21, jedes Szenario genau einer Gruppe zugeordnet, keins doppelt oder vergessen.
+
+**Offene Punkte für die Analysephase (bewusst noch nicht entschieden):** Wie die Gruppen auf dem Startbildschirm erscheinen (z. B. Themen-Reiter/Filter-Chips oberhalb der Karten vs. sechs beschriftete Abschnitte untereinander); ob „Surprise us" weiterhin über alle 21 zieht oder optional auf eine gewählte Gruppe eingeschränkt werden kann; endgültige deutsche oder englische Beschriftung der sechs Gruppennamen (Spiel ist aktuell komplett englischsprachig, Vorschlag oben zur besseren Lesbarkeit für Stephan auf Deutsch benannt).
+
+**Bezug:** Chat-Idee 2026-07-22.
+
+## ✅ Done
+
 ### FEATURE-006 Einladungs-Overlay vor dem Startbildschirm
 
 | Feld | Wert |
 |------|------|
 | **Typ** | Feature |
 | **Priorität** | Mittel |
-| **Status** | In Progress |
+| **Status** | Done |
 | **Erstellt** | 2026-07-22 |
-| **In Progress seit** | 2026-07-22 |
+| **Done seit** | 2026-07-23 |
 
 **Beschreibung:** Vor dem bisherigen Startbildschirm soll ein kurzes, einladendes Overlay erscheinen (Headline, kurze Erklärung, Spielstart-Button), das man wegklicken kann. Solange das Overlay sichtbar ist, soll der dahinterliegende Startbildschirm-Text nicht sichtbar sein, um nicht abzulenken. Die Anzahl unnötiger Klicks bis zum Spielstart soll dabei möglichst gering bleiben – das Overlay soll den Weg zum Spielstart nicht um einen zusätzlichen Klick-Umweg verlängern.
 
@@ -30,7 +60,7 @@ Ausgeschlossen: Der Rückweg zur Szenario-Auswahl über „Pick another scenario
 - [x] Nach dem Wegklicken sieht die Szenario-Auswahl genauso aus wie bisher vor dieser Änderung (die anzeigende Funktion selbst wurde nicht verändert).
 - [x] Nach einer fertig gespielten Runde führt „Pick another scenario“ weiterhin direkt zur Szenario-Auswahl, ohne die Einladung erneut zu zeigen (automatisiert über denselben Code-Pfad geprüft; siehe Testplan-Einschränkung).
 - [x] Live per Chrome-Browser-Subagent auf `https://agent-contract-game.web.app/` bestätigt (Desktop, 1498×812): Einladung erscheint sofort, Startbildschirm dahinter nicht sichtbar (nur der abgedunkelte, verschwommene Hintergrund erkennbar), Klick auf „Let's begin" schließt die Einladung und zeigt die Szenario-Auswahl korrekt, `GAME_VERSION` zeigt „v1.7.0", keine Konsolenfehler beim frischen Laden.
-- [ ] Auf einem schmalen Bildschirm (Handy-Breite) bleibt die Einladung vollständig lesbar und der Haupt-Button erreichbar, auch wenn der Text dafür gescrollt werden muss. **– noch offen:** Der Chrome-Browser-Subagent konnte die Fensterbreite in dieser Sitzung technisch nicht zuverlässig auf Handy-Breite verkleinern (das Werkzeug meldete Erfolg, der Screenshot blieb aber durchgehend in Desktop-Breite) – Stephan bitten, kurz selbst auf dem Handy draufzuschauen.
+- [x] Auf einem schmalen Bildschirm (Handy-Breite) bleibt die Einladung vollständig lesbar und der Haupt-Button erreichbar, auch wenn der Text dafür gescrollt werden muss. Von Stephan selbst auf dem Handy bestätigt (23.07.2026) — der Chrome-Browser-Subagent konnte die Fensterbreite in der ursprünglichen Sitzung technisch nicht zuverlässig auf Handy-Breite verkleinern, Stephans eigener Blick war der zuverlässige Weg.
 - [x] Keine Konsolenfehler beim Öffnen, beim Wegklicken auf jede der drei Arten, und beim anschließenden normalen Spielstart (bis auf die bekannte, unabhängige jsdom-Canvas-Einschränkung, siehe Testplan).
 
 **Fundstellen-Sweep:** Gesucht nach allen Aufrufen der Funktion, die den Startbildschirm aufbaut (`renderPicker(`): 3 Treffer – die Definition selbst, der ursprüngliche Aufruf beim ersten Laden der Seite (ganz am Ende des Skripts), und der Aufruf hinter dem Button „Pick another scenario“ auf der Abschlussseite. Nur der erste (initiale Seitenaufbau) soll die neue Einladung zeigen; der zweite (Rückweg nach einer fertig gespielten Runde) bleibt bewusst unverändert – sonst würde die Einladung bei jedem neuen Durchlauf in derselben Sitzung erneut erscheinen, was der Anforderung „möglichst wenige unnötige Klicks“ widerspricht. Keine weiteren Fundstellen.
@@ -75,36 +105,6 @@ Ausgeschlossen: Der Rückweg zur Szenario-Auswahl über „Pick another scenario
 Umgesetzt in `public/index.html` (Basis: v1.6.1 / Commit `900dc1f`, vor dem Schreiben per `git status`/Datei-Zeitstempel geprüft – kein zwischenzeitlicher Fremdstand). Neues, statisches Overlay `#ovIntro` nach dem bestehenden Muster der drei vorhandenen Overlays (`ovBadges`/`ovRework`/`ovReview`) direkt im HTML ergänzt, mit `class="overlay show"` von Anfang an sichtbar. Der ursprüngliche, einzelne Aufruf der startbildschirm-aufbauenden Funktion beim ersten Laden der Seite wurde entfernt; `#stageHost` bleibt dadurch leer, bis die Einladung geschlossen wird. Eine neue Funktion `startGame()` entfernt die „show“-Klasse und baut danach den Startbildschirm auf; sie ist an drei Stellen verdrahtet: den Haupt-Button, das ×-Element (bewusst ohne das generische `data-close`-Attribut, damit es eigenständig sowohl schließt als auch den Startbildschirm aufbaut) und – nach den bereits bestehenden generischen Overlay-Handlern platziert, damit die eigene Zuweisung die generische überschreibt – einen Klick auf den Hintergrund des neuen Overlays selbst. Der zweite, bestehende Aufruf derselben Aufbau-Funktion (hinter „Pick another scenario“ auf der Abschlussseite) wurde nicht angefasst. `GAME_VERSION` von „1.6.1“ auf „1.7.0“ angehoben (Minor, da eine echte neue sichtbare Funktion, analog FEATURE-004/005). Einladungstext exakt wie mit Stephan abgestimmt (inkl. des ergänzten Absatzes zu Analysis/Cycle/Lead Time).
 
 **Release:** Als v1.7.0 released (Commit `385029b`). Erster `git push`-Versuch von Stephan scheiterte zweimal an einem lokalen DNS-Problem auf seinem Mac („Could not resolve host: github.com“), unabhängig von diesem Projekt – nach einem DNS-Cache-Reset (`dscacheutil -flushcache`/`killall -HUP mDNSResponder`) erfolgreich gepusht. Vor dem `git add -A` lag eine verwaiste `.git/index.lock` von mehreren `git status`-Aufrufen während der Analyse im Weg (kein laufender Git-Prozess mehr, gefahrlos entfernt). GitHub Action `firebase-hosting-merge.yml` lief grün durch (36s). Live-Verifikation per eigenständigem Chrome-Browser-Subagenten gegen `agent-contract-game.web.app` (Desktop) erfolgreich – siehe Akzeptanzkriterien/Testplan oben. Handy-Breite konnte der Chrome-Subagent in dieser Sitzung nicht zuverlässig erzwingen (Fenster blieb trotz gemeldetem Erfolg in Desktop-Breite) – Stephans eigener Blick auf dem Handy steht noch aus, bevor das Ticket auf Done gesetzt wird.
-
-## 📋 ToDo
-
-### FEATURE-009 Die 21 Szenarien themenbezogen gruppieren
-
-*(Hinweis 2026-07-23: ursprünglich unter der Nummer FEATURE-008 angelegt. Diese Nummer gehörte eigentlich schon dem Team-Modus-Vertical-Slice — der aber nie als Ticket in diese Datei geschrieben wurde und deshalb bei der Anlage dieses Tickets frei aussah. Beim nachträglichen sauberen Dokumentieren des Team-Modus als FEATURE-008 wurde dieses Ticket auf FEATURE-009 hochgezählt, damit beide Nummern eindeutig bleiben.)*
-
-| Feld | Wert |
-|------|------|
-| **Typ** | Feature |
-| **Priorität** | Mittel |
-| **Status** | ToDo |
-| **Erstellt** | 2026-07-22 |
-
-**Beschreibung:** Stephan möchte, dass Spielende auf dem Startbildschirm schneller ein für sie passendes Szenario finden, statt sich durch 21 gleichrangige Karten zu klicken oder auf „Surprise us" auszuweichen. Vorschlag, abgeleitet aus den tatsächlichen Titeln/Kurztexten aller 21 Szenarien (`public/index.html`, `SCENARIOS`-Liste), sechs Themengruppen:
-
-1. **Geld rausschicken** (6): Bulk supplier payments, Run payroll, Pay a supplier abroad, Schedule a future tax payment, Send a one-off payment, Move spare cash automatically
-2. **Geld reinholen** (3): Collect from many customers, Request money from a customer, Decline a payment request
-3. **Firmenkarten** (3): Company cards with limits, Single-use virtual card, Freeze a lost company card
-4. **Freigaben & Limits** (4): Second approver for large payments, Daily payment cap for the company, Add and approve a new payee, Check the payee's details
-5. **Zugriff & Sicherheit** (3): Give the right access, Log in to the company portal, Report a transaction we don't recognise
-6. **Überblick behalten** (2): One live view of all balances, Alerts on account movement
-
-Summe 6+3+3+4+3+2 = 21, jedes Szenario genau einer Gruppe zugeordnet, keins doppelt oder vergessen.
-
-**Offene Punkte für die Analysephase (bewusst noch nicht entschieden):** Wie die Gruppen auf dem Startbildschirm erscheinen (z. B. Themen-Reiter/Filter-Chips oberhalb der Karten vs. sechs beschriftete Abschnitte untereinander); ob „Surprise us" weiterhin über alle 21 zieht oder optional auf eine gewählte Gruppe eingeschränkt werden kann; endgültige deutsche oder englische Beschriftung der sechs Gruppennamen (Spiel ist aktuell komplett englischsprachig, Vorschlag oben zur besseren Lesbarkeit für Stephan auf Deutsch benannt).
-
-**Bezug:** Chat-Idee 2026-07-22.
-
-## ✅ Done
 
 ### FEATURE-011 Lead-Time-Retrospektive: Analyse-/Cycle-Time-Aufschlüsselung im Finale
 
