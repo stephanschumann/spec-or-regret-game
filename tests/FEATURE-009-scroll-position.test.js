@@ -103,6 +103,8 @@ async function testTeamHandoverDoesNotJumpToEnd() {
     window.pickMissingRoleId = function () { return "dev"; };
     click(doc, "introCta");
     click(doc, "pickTeamMode");
+    click(doc, "teamRndBtn");
+    click(doc, "teamStartBtn");
     click(doc, "teamNext"); // roster -> map
     // Finish the map instantly (timeout) to reach teamimpl the fast way.
     const tick = window.__intervalFns[window.__intervalFns.length - 1];
@@ -145,6 +147,8 @@ async function testOrdinaryStepsStillAutoScroll() {
     window.pickMissingRoleId = function () { return "dev"; };
     click(doc, "introCta");
     click(doc, "pickTeamMode");
+    click(doc, "teamRndBtn");
+    click(doc, "teamStartBtn");
     click(doc, "teamNext"); // roster -> map
     const st = window.STAGES[window.S.i];
     Array.from(doc.querySelectorAll(".item")).forEach((el) => {

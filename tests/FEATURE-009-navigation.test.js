@@ -68,6 +68,8 @@ async function testReassignmentWhileActive() {
     window.pickMissingRoleId = function () { return "dev"; };
     click(doc, "introCta");
     click(doc, "pickTeamMode");
+    click(doc, "teamRndBtn");
+    click(doc, "teamStartBtn");
     click(doc, "teamNext"); // -> map
 
     const st = window.STAGES[window.S.i];
@@ -121,6 +123,8 @@ async function testLockAfterTimeout() {
     window.pickMissingRoleId = function () { return "dev"; };
     click(doc, "introCta");
     click(doc, "pickTeamMode");
+    click(doc, "teamRndBtn");
+    click(doc, "teamStartBtn");
     click(doc, "teamNext"); // -> map
 
     const tick = window.__intervalFns[window.__intervalFns.length - 1];
@@ -151,6 +155,8 @@ async function testLookBackAndFinaleGrid() {
     window.pickMissingRoleId = function () { return "dev"; };
     click(doc, "introCta");
     click(doc, "pickTeamMode");
+    click(doc, "teamRndBtn");
+    click(doc, "teamStartBtn");
 
     assert.strictEqual(doc.getElementById("navFoot").style.display, "none",
       "Ganz am Anfang (S.i === 0) gibt es noch nichts zum Zurückblicken");

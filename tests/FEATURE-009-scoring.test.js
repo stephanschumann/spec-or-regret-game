@@ -78,6 +78,8 @@ async function main() {
 
     click(doc, "introCta");
     click(doc, "pickTeamMode");
+    click(doc, "teamRndBtn");
+    click(doc, "teamStartBtn");
     assert.strictEqual(window.TeamState.roleMissing, "dev", "Test-Stub für die fehlende Rolle sollte gegriffen haben");
 
     // --- Stage 1: roster -> map, let the timer run out with an EMPTY board (no

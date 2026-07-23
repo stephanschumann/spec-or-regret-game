@@ -115,6 +115,8 @@ async function scenarioCleanPoRun() {
     window.pickMissingRoleId = function () { return "po"; };
     click(doc, "introCta");
     click(doc, "pickTeamMode");
+    click(doc, "teamRndBtn");
+    click(doc, "teamStartBtn");
     assert.strictEqual(window.TeamState.roleMissing, "po");
 
     click(doc, "teamNext"); // -> map
@@ -183,6 +185,8 @@ async function scenarioEverythingBad() {
     window.pickMissingRoleId = function () { return "po"; };
     click(doc, "introCta");
     click(doc, "pickTeamMode");
+    click(doc, "teamRndBtn");
+    click(doc, "teamStartBtn");
 
     click(doc, "teamNext"); // -> map
     // Sort exactly ONE item, then let the timer run out — leaves the rest unsorted.
@@ -275,6 +279,8 @@ async function scenarioDevMissingRoleThread() {
     window.pickMissingRoleId = function () { return "dev"; };
     click(doc, "introCta");
     click(doc, "pickTeamMode");
+    click(doc, "teamRndBtn");
+    click(doc, "teamStartBtn");
     assert.strictEqual(window.TeamState.roleMissing, "dev");
 
     click(doc, "teamNext"); // -> map (no bizvalue fork on this branch)

@@ -89,6 +89,8 @@ function main() {
 
     // Test 4: "Work as a Team" zeigt die Besetzungsliste mit genau einer fehlenden Rolle.
     click(doc, "pickTeamMode");
+    click(doc, "teamRndBtn");
+    click(doc, "teamStartBtn");
     const missing = doc.querySelectorAll(".rolechip.missing");
     assert.strictEqual(missing.length, 1, "Genau eine Rolle sollte als fehlend markiert sein");
     assert(["Developer", "QA", "Tech Lead", "Product Owner"].some((label) => missing[0].textContent.indexOf(label) !== -1),

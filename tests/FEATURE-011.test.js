@@ -110,6 +110,8 @@ async function playPoEverythingBadRun() {
   window.pickMissingRoleId = function () { return "po"; };
   click(doc, "introCta");
   click(doc, "pickTeamMode");
+  click(doc, "teamRndBtn");
+  click(doc, "teamStartBtn");
 
   click(doc, "teamNext"); // -> map
   const firstItem = doc.querySelector(".item");
@@ -200,6 +202,8 @@ async function testCleanRunBreakdownsMatch() {
     window.pickMissingRoleId = function () { return "dev"; };
     click(doc, "introCta");
     click(doc, "pickTeamMode");
+    click(doc, "teamRndBtn");
+    click(doc, "teamStartBtn");
     click(doc, "teamNext"); // -> map
     const st = window.STAGES[window.S.i];
     Array.from(doc.querySelectorAll(".item")).forEach((el) => {

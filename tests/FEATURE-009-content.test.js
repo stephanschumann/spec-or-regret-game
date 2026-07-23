@@ -69,6 +69,8 @@ async function playThrough(window, doc, roleMissing) {
   window.pickMissingRoleId = function () { return roleMissing; };
   click(doc, "introCta");
   click(doc, "pickTeamMode");
+  click(doc, "teamRndBtn");
+  click(doc, "teamStartBtn");
   snap("roster");
 
   click(doc, "teamNext"); // -> map
