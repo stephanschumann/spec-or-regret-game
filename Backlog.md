@@ -6,15 +6,45 @@
 
 ## 🔄 In Progress
 
+
+## 📋 ToDo
+
+### FEATURE-009 Die 21 Szenarien themenbezogen gruppieren
+
+*(Hinweis 2026-07-23: ursprünglich unter der Nummer FEATURE-008 angelegt. Diese Nummer gehörte eigentlich schon dem Team-Modus-Vertical-Slice — der aber nie als Ticket in diese Datei geschrieben wurde und deshalb bei der Anlage dieses Tickets frei aussah. Beim nachträglichen sauberen Dokumentieren des Team-Modus als FEATURE-008 wurde dieses Ticket auf FEATURE-009 hochgezählt, damit beide Nummern eindeutig bleiben.)*
+
+| Feld | Wert |
+|------|------|
+| **Typ** | Feature |
+| **Priorität** | Mittel |
+| **Status** | ToDo |
+| **Erstellt** | 2026-07-22 |
+
+**Beschreibung:** Stephan möchte, dass Spielende auf dem Startbildschirm schneller ein für sie passendes Szenario finden, statt sich durch 21 gleichrangige Karten zu klicken oder auf „Surprise us" auszuweichen. Vorschlag, abgeleitet aus den tatsächlichen Titeln/Kurztexten aller 21 Szenarien (`public/index.html`, `SCENARIOS`-Liste), sechs Themengruppen:
+
+1. **Geld rausschicken** (6): Bulk supplier payments, Run payroll, Pay a supplier abroad, Schedule a future tax payment, Send a one-off payment, Move spare cash automatically
+2. **Geld reinholen** (3): Collect from many customers, Request money from a customer, Decline a payment request
+3. **Firmenkarten** (3): Company cards with limits, Single-use virtual card, Freeze a lost company card
+4. **Freigaben & Limits** (4): Second approver for large payments, Daily payment cap for the company, Add and approve a new payee, Check the payee's details
+5. **Zugriff & Sicherheit** (3): Give the right access, Log in to the company portal, Report a transaction we don't recognise
+6. **Überblick behalten** (2): One live view of all balances, Alerts on account movement
+
+Summe 6+3+3+4+3+2 = 21, jedes Szenario genau einer Gruppe zugeordnet, keins doppelt oder vergessen.
+
+**Offene Punkte für die Analysephase (bewusst noch nicht entschieden):** Wie die Gruppen auf dem Startbildschirm erscheinen (z. B. Themen-Reiter/Filter-Chips oberhalb der Karten vs. sechs beschriftete Abschnitte untereinander); ob „Surprise us" weiterhin über alle 21 zieht oder optional auf eine gewählte Gruppe eingeschränkt werden kann; endgültige deutsche oder englische Beschriftung der sechs Gruppennamen (Spiel ist aktuell komplett englischsprachig, Vorschlag oben zur besseren Lesbarkeit für Stephan auf Deutsch benannt).
+
+**Bezug:** Chat-Idee 2026-07-22.
+
+## ✅ Done
 ### FEATURE-012 Die übrigen 20 Bank-Themen auch im Team-Modus spielbar machen
 
 | Feld | Wert |
 |------|------|
 | **Typ** | Feature |
 | **Priorität** | Mittel |
-| **Status** | In Progress |
+| **Status** | Done |
 | **Erstellt** | 2026-07-23 |
-| **In Progress seit** | 2026-07-23 |
+| **Done seit** | 2026-07-23 |
 
 **Beschreibung:** Der Team-Modus (FEATURE-008) läuft heute technisch fest auf genau einem der 21 Bank-Themen („Second approver for large payments", intern `four-eyes`) — das war beim ursprünglichen Vertical-Slice-Ticket bewusst so begrenzt und ausdrücklich als eigenes Folgeticket vorgemerkt („die übrigen 20 Szenarien im Team-Modus"). Am echten Code nachgeprüft (nicht angenommen): Der komplette Team-Modus-Ablauf selbst — Besetzung, Meeting mit Kategorien-Sortierung, Formulierungsübung, zwei Weggabelungen, Vorausschau, Abgrenzung, Checkliste, Übergabe, Abschluss — verarbeitet die Inhalte eines Themas bereits durchgängig generisch, genau wie es der Agenten-Modus für alle 21 Themen tut. Es fehlt im Kern nur eine Stelle, an der für den Team-Modus überhaupt eines der 21 Themen ausgewählt wird, statt immer dasselbe zu verwenden.
 
@@ -68,7 +98,7 @@ Ausgeschlossen: die geplante thematische Gruppierung der 21 Themen auf dem Start
 - [x] Syntax-Check (`node --check`) fehlerfrei.
 - **Begründung Testabdeckung:** Diese Änderung berührt eine geteilte, bereits für alle 21 Themen genutzte Ablauflogik sowie den bisher auf ein Thema festgelegten Auswahlmechanismus — der Testdurchlauf über 3 unterschiedliche Themen plus die strukturelle Formprüfung aller 21 belegt „funktioniert für alle 21", ohne jedes einzeln bis zum Finale spielen zu müssen.
 - [x] Die tatsächlich betroffenen Testdateien mit dem Klick auf „Work as a Team" (11 Dateien, nicht 9 wie in der ursprünglichen Schätzung — echter `grep`-Befund, siehe Scope-Änderungen unten) bekamen je einen zusätzlichen, rein additiven Auswahl-Schritt direkt danach ergänzt — von mir per `git diff --numstat` gegengeprüft: ausschließlich Zeilen hinzugefügt (0 gelöscht) in allen 11 Dateien, keine bestehende Prüfung entfernt oder abgeschwächt.
-- [ ] Echter Blick im Browser (Desktop, nach Möglichkeit auch Handy-Breite) für den neuen Auswahlbildschirm sowie für mehrere der neu spielbaren Themen bleibt offener Punkt bis Stephan selbst bestätigt — wie immer nicht durch jsdom abgedeckt.
+- [x] Echter Blick im Browser durch Stephan durchgeführt und bestanden (neuer Team-Auswahlbildschirm und mehrere der neu spielbaren Themen) — Freigabe 23.07.2026.
 
 **Scope-Änderungen** *(chronologisches Log):*
 - Die ursprüngliche Spec ging von „neun bestehenden Testdateien" mit `pickTeamMode`-Klick aus; der tatsächliche `grep`-Befund bei der Umsetzung ergab 11 Dateien (21 Einzel-Vorkommen) — die beiden zusätzlichen (`FEATURE-009-visual.test.js` zählt nicht, aber zwei in der ursprünglichen Schätzung übersehene Dateien taten es) wurden identisch behandelt, keine Ausnahme.
@@ -79,36 +109,6 @@ Ausgeschlossen: die geplante thematische Gruppierung der 21 Themen auf dem Start
 Umgesetzt in `public/index.html` (Basis: HEAD `2b86fc6`, `GAME_VERSION` „1.18.0", vor Beginn per `git log`/`git status` geprüft). `TEAM_SCENARIO_ID` und `findTeamScenario()` entfernt. `startTeamMode()` → `startTeamMode(sc)`, nutzt den übergebenen Parameter statt der entfernten Nachschlage-Funktion; der restliche Funktionskörper ist unverändert. Neue Funktion `renderTeamPicker()` (gleiche Karten-Mechanik wie `renderPicker()`, eigene IDs `teamScenlist`/`teamStartBtn`/`teamRndBtn`, Team-Wortlaut ohne Agentenbezug, `.btn.team`-Akzentfarbe, bewusst ohne Facilitator-Aufklapper) zwischen Moduswahl und Besetzungsliste eingefügt; `renderModePicker()`s `pickTeamMode`-Klick ruft jetzt `renderTeamPicker()` statt direkt `startTeamMode()`. `GAME_VERSION` von „1.18.0" auf „1.19.0" angehoben (Minor, sichtbare neue Funktion, analog FEATURE-004/005/006/007/010/011). Fundstellen-Sweep nach der Änderung wiederholt: „four-eyes" kommt im Code jetzt nur noch als Szenario-eigenes `id`-Feld in `SCENARIOS` vor, keine weitere Bindung an dieses eine Thema. Neue dauerhafte Testdatei `tests/FEATURE-012.test.js`; 11 bestehende Testdateien um je zwei additive Klick-Zeilen ergänzt (siehe Scope-Änderungen). Implementiert über einen Subagenten (volle Kontrolle über Code und Tests), Ergebnis von mir eigenständig gegengelesen (Diff Zeile für Zeile, `git diff --numstat` für die additive Eigenschaft der Testdatei-Änderungen, kompletter Regressionslauf selbst nochmal ausgeführt statt nur der Agenten-Meldung vertraut).
 
 **Bezug:** Chat-Anfrage 23.07.2026 („Feature 12: Jetzt benötigen wir die anderen 20 Szenarien aus dem Agent Modus auch im Team Modus."); Entscheidung für Option A 23.07.2026.
-
-## 📋 ToDo
-
-### FEATURE-009 Die 21 Szenarien themenbezogen gruppieren
-
-*(Hinweis 2026-07-23: ursprünglich unter der Nummer FEATURE-008 angelegt. Diese Nummer gehörte eigentlich schon dem Team-Modus-Vertical-Slice — der aber nie als Ticket in diese Datei geschrieben wurde und deshalb bei der Anlage dieses Tickets frei aussah. Beim nachträglichen sauberen Dokumentieren des Team-Modus als FEATURE-008 wurde dieses Ticket auf FEATURE-009 hochgezählt, damit beide Nummern eindeutig bleiben.)*
-
-| Feld | Wert |
-|------|------|
-| **Typ** | Feature |
-| **Priorität** | Mittel |
-| **Status** | ToDo |
-| **Erstellt** | 2026-07-22 |
-
-**Beschreibung:** Stephan möchte, dass Spielende auf dem Startbildschirm schneller ein für sie passendes Szenario finden, statt sich durch 21 gleichrangige Karten zu klicken oder auf „Surprise us" auszuweichen. Vorschlag, abgeleitet aus den tatsächlichen Titeln/Kurztexten aller 21 Szenarien (`public/index.html`, `SCENARIOS`-Liste), sechs Themengruppen:
-
-1. **Geld rausschicken** (6): Bulk supplier payments, Run payroll, Pay a supplier abroad, Schedule a future tax payment, Send a one-off payment, Move spare cash automatically
-2. **Geld reinholen** (3): Collect from many customers, Request money from a customer, Decline a payment request
-3. **Firmenkarten** (3): Company cards with limits, Single-use virtual card, Freeze a lost company card
-4. **Freigaben & Limits** (4): Second approver for large payments, Daily payment cap for the company, Add and approve a new payee, Check the payee's details
-5. **Zugriff & Sicherheit** (3): Give the right access, Log in to the company portal, Report a transaction we don't recognise
-6. **Überblick behalten** (2): One live view of all balances, Alerts on account movement
-
-Summe 6+3+3+4+3+2 = 21, jedes Szenario genau einer Gruppe zugeordnet, keins doppelt oder vergessen.
-
-**Offene Punkte für die Analysephase (bewusst noch nicht entschieden):** Wie die Gruppen auf dem Startbildschirm erscheinen (z. B. Themen-Reiter/Filter-Chips oberhalb der Karten vs. sechs beschriftete Abschnitte untereinander); ob „Surprise us" weiterhin über alle 21 zieht oder optional auf eine gewählte Gruppe eingeschränkt werden kann; endgültige deutsche oder englische Beschriftung der sechs Gruppennamen (Spiel ist aktuell komplett englischsprachig, Vorschlag oben zur besseren Lesbarkeit für Stephan auf Deutsch benannt).
-
-**Bezug:** Chat-Idee 2026-07-22.
-
-## ✅ Done
 
 ### FEATURE-006 Einladungs-Overlay vor dem Startbildschirm
 
