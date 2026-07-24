@@ -7,6 +7,20 @@
 ## 🔄 In Progress
 ## 📋 ToDo
 
+### FEATURE-014 Verlockende Skip-Option beim Pre-Mortem im Team-Modus mit verzögerter Konsequenz
+
+| Feld | Wert |
+|------|------|
+| **Typ** | Feature |
+| **Priorität** | Mittel |
+| **Status** | ToDo |
+| **Erstellt** | 2026-07-24 |
+
+**Beschreibung:** Vor dem Pre-Mortem-Schritt im Team-Modus ("Team · 6") bekommt das Team eine verlockende Zusatzoption: den Pre-Mortem ganz überspringen, gerahmt als "wir sind agil, meistens läuft's gut, man kann sowieso nicht alles vorhersehen — einfach anfangen und lernen". Wählt das Team diese Abkürzung, zeigt sich die Konsequenz nicht sofort, sondern erst, sobald die Entwicklung startet: +3 Tage Rework im laufenden Zähler, plus eine konkrete Liste genau der echten Risiken aus diesem Szenario, die jetzt nachträglich aufgeräumt werden müssen, weil sie beim übersprungenen Pre-Mortem nie benannt wurden.
+
+**User Story:** Als Spielerin/Spieler im Team-Modus möchte ich die Möglichkeit haben, den Pre-Mortem-Schritt zu überspringen, wenn mir das "wir sind doch agil"-Argument im Moment einleuchtend erscheint, sodass ich am eigenen Spielverlauf erlebe, was ein übersprungener Pre-Mortem später tatsächlich kostet — statt nur behauptet zu bekommen, dass das eine schlechte Idee wäre.
+
+
 ## ✅ Done
 
 ### BUG-004 Layout-Sprung beim Aufklappen der zweiten „What's different here?"-Infobox auf der Startseite
