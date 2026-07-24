@@ -219,8 +219,35 @@
   .timerwrap{margin:0 0 18px} .timerbar{height:10px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;overflow:hidden}
   .timerfill{height:100%;background:linear-gradient(90deg,var(--teal),#1fae9d);transition:width 1s linear}
   .timerlabel{font-size:12px;color:var(--dim);margin-top:6px;display:flex;justify-content:space-between}
-  .chatwrap{margin-top:16px} .bubble{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:12px 16px;max-width:min(520px,100%)}
-  .bubble .who{font-size:11px;color:var(--dim);margin-bottom:4px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+  /* FEATURE-015: Team-mode-only consequence cards. New, dedicated classes —
+     deliberately NOT reusing .rework/.rticket/.rh (those stay amber and are
+     shared with the Agent-mode reveal via detonate()/renderReveal(); reusing
+     them here would have unintentionally recolored the Agent-mode screens
+     too). Replaces the old .chatwrap/.bubble pair, which was used only here. */
+  .threadwrap{margin-top:16px;display:flex;flex-direction:column;gap:12px}
+  .tthread{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--teal);border-radius:14px;padding:13px 16px 15px;animation:rise .3s}
+  .tthread.compliance{border-left-color:var(--red)}
+  .thead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:9px}
+  .ttitle{font-size:12.5px;color:var(--muted);font-weight:700;line-height:1.4}
+  .tcost{font-weight:800;color:var(--amber);background:rgba(240,165,49,.12);border:1px solid rgba(240,165,49,.35);border-radius:999px;padding:3px 11px;font-size:13px;white-space:nowrap;flex-shrink:0}
+  .tmsg{display:flex;flex-direction:column;gap:3px;margin-bottom:9px}
+  .tmsg:last-child{margin-bottom:0}
+  .tmsgtop{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .rolebadge{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;padding:2.5px 9px;border-radius:999px;font-weight:800}
+  .role-po{background:rgba(45,212,191,.16);color:#8fe9dd}
+  .role-dev{background:rgba(76,141,255,.16);color:#a9c6ff}
+  .role-qa{background:rgba(185,139,255,.16);color:#cbb0ff}
+  .role-tech{background:rgba(76,141,255,.16);color:#a9c6ff}
+  .role-compliance{background:rgba(248,81,73,.16);color:#ff9c95}
+  .role-customer{background:rgba(154,167,180,.18);color:var(--muted)}
+  .tmsgtime{font-size:11px;color:var(--dim)}
+  .tmsgtext{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:9px 13px;font-size:14px;color:var(--text);max-width:min(480px,100%)}
+  .twait{display:flex;align-items:center;gap:8px;color:var(--dim);font-size:11.5px;font-style:italic;margin:2px 0 8px 4px}
+  .tledger{margin-top:16px;border:1px solid #16332f;background:linear-gradient(180deg,#0f2622,#161b22);border-radius:14px;padding:16px 18px}
+  .tledger .rh{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--teal);font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+  .tlrow{display:flex;justify-content:space-between;gap:12px;font-size:13px;padding:5px 0;border-bottom:1px dashed var(--line);color:var(--muted)}
+  .tlrow:last-of-type{border-bottom:none}
+  .tlrow .d{font-weight:800;color:var(--teal);white-space:nowrap}
 </style>
 </head>
 <body>
@@ -245,7 +272,7 @@
 
 <script>
 "use strict";
-var GAME_VERSION = "1.23.1";
+var GAME_VERSION = "1.24.0";
 var SCENARIOS = [
 {"id":"bulk-suppliers","title":"Bulk supplier payments","short":"paying all your suppliers at once from one uploaded file","ticket":"“Let companies pay all their suppliers at once by uploading a file.”","hookBuild":["An “upload a file” box that pays every line the moment the file lands.","If one line is broken, I skip the check and just pay the lines I can read — some suppliers get paid, some don’t, and nobody is told which.","I left out the “approve before sending” step — you said upload, not approve.","The same file can be uploaded again and again; each time it pays everyone all over. You didn’t say to stop that.","I ignored any per-line and total limit and switched it on for every company. Bonus: I auto-added any new names in the file as brand-new suppliers. You’re welcome."],"mapSuccess":"The map holds. The goal, the rules that stop double-pays and blind sends, the everyday case and the broken-line case — and the open questions about limits and partial batches.","map":[{"t":"As a finance team I want to pay all our suppliers from one uploaded file so I don’t enter each payment by hand.","c":"goal"},{"t":"Nothing is sent until a person reviews the whole file and approves the batch.","c":"rule"},{"t":"The same file uploaded twice is spotted, so no one is paid a second time.","c":"rule"},{"t":"The whole file is checked first; a broken line is flagged before any payment goes out.","c":"rule"},{"t":"A file of 200 clean supplier lines, approved by the finance lead → all 200 paid, and a receipt lists every one.","c":"ex"},{"t":"One line has no account number → that line is held and shown as an error, and the batch waits for a decision.","c":"ex"},{"t":"Does the limit apply to each single line, to the file’s total, or to both?","c":"q"},{"t":"If some lines are fine and one is broken, do we pay the good ones now or hold the whole file until it’s fixed?","c":"q"}],"behaviour":{"happy":{"label":"When it works","lines":[{"kw":"Given","segs":["a file of 200 supplier lines that all read correctly","a file with some suppliers in it"]},{"kw":"And","segs":["the finance lead has reviewed the whole batch and approved it","someone has had a look at it"]},{"kw":"When","segs":["the approved batch is sent","the file gets processed"]},{"kw":"Then","segs":["all 200 are paid exactly once and a receipt lists every payment","the suppliers get their money"]}]},"negative":{"label":"When it’s refused / fails","lines":[{"kw":"Given","segs":["a file where one line has no account number","a file that isn’t quite right"]},{"kw":"When","segs":["the team uploads it and asks to send","the file gets processed"]},{"kw":"Then","segs":["the broken line is held and flagged, and nothing is sent until the team decides","it sorts itself out"]}]},"edge":{"label":"An edge case — the same account twice in one file","lines":[{"kw":"Given","segs":["an approved file where two separate lines pay the very same account number","a file with a couple of similar lines"]},{"kw":"When","segs":["the batch is sent","the file goes through"]},{"kw":"Then","segs":["both lines are paid as two separate payments, neither merged into one nor silently dropped","the duplicate is handled"]},{"kw":"And","segs":["the receipt shows both payments to that account clearly","the receipt looks fine"]}]},"fail":"The clean batch is clear. But the moment one line is broken, or the same account turns up twice in one file, you’ve left it vague. The agent will guess — dropping a supplier or quietly merging two payments into one. Spell the “goes wrong” case and the awkward case out as clearly as the normal one.","success":"All three are spelled out — a clean batch paid once with a receipt, a broken line held and flagged, and two lines to the same account each paid in full instead of merged or dropped. The agent has no room to improvise."},"noguess":[{"t":"Does the same file uploaded twice pay everyone again? — Payments team answered: we detect the repeat and block it.","c":"done"},{"t":"Can the total sent ever be more than the file adds up to? — Finance confirmed: never.","c":"done"},{"t":"Which file formats do we accept at launch? — We deliberately start with one standard format; more later.","c":"limit"},{"t":"Do we support scheduling a batch for a future date? — Out of scope for now; send-on-approval only, revisit later.","c":"limit"},{"t":"If some lines are good and one is broken, do we pay the good ones or hold the whole file? — Not decided yet; blocked until finance sets the rule.","c":"block"}],"overreach":[{"t":"An upload box that shows the whole batch for review before anything is sent.","bad":false},{"t":"Pays every line the instant the file is uploaded, before anyone approves it.","bad":true,"why":"You agreed nothing is sent until a person approves — this pays out with no review at all."},{"t":"Spots the same file uploaded twice and refuses to pay everyone again.","bad":false},{"t":"Silently skips any broken line and pays the rest, without telling the team.","bad":true,"why":"A dropped supplier no one is told about — the exact silent failure the rules were meant to prevent."},{"t":"Ignores the per-line and total limits and sends whatever the file says.","bad":true,"why":"Removing the limits means one bad file can drain the account — a control nobody approved dropping."},{"t":"Holds a broken line, flags it, and waits for the team to decide.","bad":false},{"t":"Auto-creates a brand-new supplier for any name in the file it doesn’t recognise.","bad":true,"why":"Invented behaviour — a typo becomes a payment to an account nobody checked."}],"overreachSuccess":"Four traps caught: paying before approval, the silently dropped line, the ignored limits, and the auto-created suppliers. The draft is safe now.","slices":[{"t":"Get one clean file uploaded, reviewed, approved and paid, end to end.","bad":false},{"t":"Handle the broken-line and file-error cases so nothing is silently dropped.","bad":false},{"t":"Add the duplicate-file check so no one is paid twice.","bad":false},{"t":"Build the file-reader first, the review screen next week, the paying part the week after.","bad":true,"why":"Cut by technical layer — no piece pays a real supplier on its own."},{"t":"Ship the paying now; add the approval step and the limits later if there’s time.","bad":true,"why":"Leaving out the approval and limits — the parts that stop a bad file draining the account."},{"t":"Split it into one tiny piece per column in the file.","bad":true,"why":"So small that stitching the columns back together costs more than it delivers."}],"slicesSuccess":"Three pieces, each one a finance team could actually use, each small enough to check on its own.","premortem":[{"t":"The same file is uploaded twice and every supplier is paid a second time.","bad":false},{"t":"One broken line is silently dropped and a supplier goes unpaid for weeks.","bad":false},{"t":"A file’s total quietly exceeds the account balance and half the batch bounces.","bad":false},{"t":"The receipt doesn’t match what was actually sent, and no one can tell who got paid.","bad":false},{"t":"The upload button is a slightly different shade of blue than the rest of the page.","bad":true,"why":"A polish detail, not a reason the change would fail."},{"t":"The company’s internet drops for an afternoon across the whole office.","bad":true,"why":"Not something this change can control — pure noise for this exercise."}],"premortemSuccess":"Four real failure modes named — the double-paid batch, the dropped supplier, the overdrawn account, the receipt that doesn’t match. Each becomes a safeguard before a single thing is built."},
 {"id":"payroll","title":"Run payroll","short":"paying everyone’s salary in one go","ticket":"“Let a company pay everyone’s salary in one go.”","hookBuild":["A “run payroll” button that pays every employee the moment it’s pressed.","If payday lands on a Saturday, it pays whenever — could be a day late, could be never. You didn’t say to move it to a working day.","If one person’s bank details are wrong, I stop the entire run so nobody gets paid. Seemed safest.","I emailed everyone’s full salary to the whole company in one list, to be transparent. You said pay everyone.","I ignored whether there’s enough in the account and fired off every payment anyway; the ones that bounce, bounce. Bonus: I paid the gross amount, before tax. You’re welcome."],"mapSuccess":"The map holds. The goal, the rules on net pay, privacy and moving payday, the everyday run and the wrong-details case — and the open questions about short funds and retries.","map":[{"t":"As a company I want to pay every employee’s salary in one run so I don’t pay each person by hand each month.","c":"goal"},{"t":"Each person is paid their net amount — what’s left after tax — not the gross.","c":"rule"},{"t":"Salary figures are kept private; no one sees another person’s pay.","c":"rule"},{"t":"If payday falls on a weekend or holiday, the run moves to the nearest working day so no one is paid late.","c":"rule"},{"t":"50 employees, enough money in the account, payday on a Wednesday → everyone paid their net salary that day.","c":"ex"},{"t":"One person’s account number is wrong → that one payment is held and flagged, and the other 49 still go out.","c":"ex"},{"t":"If there isn’t enough for the whole run, do we pay no one, or pay in an order the company sets?","c":"q"},{"t":"When a held payment is fixed, do we retry it automatically or wait for the team to release it?","c":"q"}],"behaviour":{"happy":{"label":"When it works","lines":[{"kw":"Given","segs":["50 employees and enough money in the account for the whole run","a company with staff to pay"]},{"kw":"And","segs":["payday is a normal working Wednesday","it’s just an ordinary day"]},{"kw":"When","segs":["the run is approved","payroll happens"]},{"kw":"Then","segs":["everyone is paid their net salary that day, and no one can see anyone else’s pay","the staff get paid"]}]},"negative":{"label":"When it’s refused / fails","lines":[{"kw":"Given","segs":["one employee’s account number is wrong","something is off with an employee"]},{"kw":"When","segs":["the run is sent","the run goes ahead"]},{"kw":"Then","segs":["that one payment is held and flagged while the other 49 still go out","it gets handled"]}]},"edge":{"label":"An edge case — payday lands on a weekend","lines":[{"kw":"Given","segs":["a run whose payday falls on a Saturday","a run around the weekend"]},{"kw":"And","segs":["the nearest working day before it is the Friday","there’s a day close by"]},{"kw":"When","segs":["the run is due","the date comes up"]},{"kw":"Then","segs":["everyone is paid on the Friday so no one is paid late","it works out timing-wise"]}]},"fail":"The normal run is clear. But when one person’s details are wrong, or payday lands on a Saturday, you’ve left it vague. The agent will guess — stalling the whole run over one typo, or paying a day late. Spell the “goes wrong” case and the weekend case out as clearly as the normal one.","success":"All three are spelled out — a clean run where everyone is paid their net salary privately, one wrong account held while the other 49 go out, and a weekend payday moved to the Friday so no one is late. The agent has no room to improvise."},"noguess":[{"t":"Do we pay the net amount or the gross? — Finance answered: net, always.","c":"done"},{"t":"Can one person see another’s salary? — Confirmed: never; each person only sees their own.","c":"done"},{"t":"Do we support paying staff in other countries at launch? — We deliberately start with home-country accounts; others later.","c":"limit"},{"t":"Do we handle mid-month bonuses in the same run? — Out of scope for now; monthly salary only, revisit later.","c":"limit"},{"t":"If there isn’t enough for the whole run, do we pay no one or pay in a set order? — Not decided; blocked until finance sets the rule.","c":"block"}],"overreach":[{"t":"A payroll run that pays each person their net salary, privately.","bad":false},{"t":"Pays the gross amount, before tax is taken off.","bad":true,"why":"Everyone is overpaid and the tax is wrong — a mess to claw back and report."},{"t":"Moves the run to the nearest working day when payday is a weekend or holiday.","bad":false},{"t":"Emails a list of everyone’s salary to the whole company “for transparency”.","bad":true,"why":"Leaks the most sensitive data there is — a serious privacy breach that must never ship."},{"t":"Fires off every payment even when the account can’t cover the run, letting some bounce.","bad":true,"why":"You agreed to settle the short-funds rule first — this pays some and bounces others at random."},{"t":"Holds a payment with wrong bank details and flags it, paying everyone else.","bad":false},{"t":"Retries a held payment on its own, over and over, once details look changed.","bad":true,"why":"Invented behaviour — an automatic retry nobody approved could double-pay someone."}],"overreachSuccess":"Four traps caught: paying gross, the salary leak, paying past the balance, and the silent auto-retry. The draft is safe now.","slices":[{"t":"Get one clean run paying everyone their net salary, end to end.","bad":false},{"t":"Handle the wrong-details case so one bad account doesn’t stop the rest.","bad":false},{"t":"Add moving payday to a working day when it lands on a weekend or holiday.","bad":false},{"t":"Build the salary calculator first, the payment screen next week, the sending the week after.","bad":true,"why":"Cut by technical layer — no piece pays a single employee on its own."},{"t":"Ship the paying now; add the privacy protection and the funds check later.","bad":true,"why":"Leaving out the parts that keep salaries private and stop the account overdrawing."},{"t":"Split it into one tiny piece per employee.","bad":true,"why":"So small that coordinating the pieces costs more than running them together ever would."}],"slicesSuccess":"Three pieces, each one a company could actually run, each small enough to check on its own.","premortem":[{"t":"There isn’t enough in the account and the run pays some staff but not others.","bad":false},{"t":"One person’s wrong account number stops the whole run and nobody is paid.","bad":false},{"t":"A salary list is seen by someone who shouldn’t see it.","bad":false},{"t":"Payday lands on a holiday and everyone is paid a day late.","bad":false},{"t":"The payslip uses a font the finance team finds a bit dull.","bad":true,"why":"A cosmetic nit, not a reason the run would fail."},{"t":"The tax office changes the rules in three years’ time.","bad":true,"why":"Outside this change’s control and far in the future — noise for this exercise."}],"premortemSuccess":"Four real failure modes named — the half-paid run, the whole run stalled by one typo, the leaked salaries, the late payday. Each becomes a safeguard before a single thing is built."},
@@ -1243,11 +1270,28 @@ function renderTeamImpl(st) {
       // deferred question, a meeting-map board the clock cut off, or behaviour
       // left deliberately vague — resurfaces here as real, paid-for rework
       // instead of vanishing. Whichever of these actually happened, each gets
-      // its own chat message and its own rework ticket (not just the first one).
+      // its own thread card and its own rework ticket (not just the first one).
+      //
+      // FEATURE-015: each thread is now a self-contained card (title + one or
+      // more timestamped, role-badged messages + its own day-cost badge)
+      // instead of a single flat "bubble" followed by a separate cost list.
+      // Two threads (the deferred question, and the missing-PO role gap) get
+      // a real multi-message back-and-forth — deliberately using only generic,
+      // scenario-agnostic wording for anything beyond the deferred question's
+      // own text (TeamState.deferredQuestion is the only per-scenario string
+      // available here; there is no stored per-scenario "answer", so the
+      // PO's reply re-quotes the real question but doesn't invent a resolution
+      // that would only make sense for one of the 21 scenarios).
       var threads = [];
       if (TeamState.deferredQuestion) {
         threads.push({
-          bubble: '<div class="bubble them"><div class="who">PO · Teams chat · replies after 4 hours</div>“' + TeamState.deferredQuestion + '” Sorry — missed this in the meeting, catching up now.</div>',
+          title: "Open question, deferred in the meeting",
+          msgs: [
+            { role: "dev", label: "Dev", time: "Day 1 · morning", text: "Quick one carried over from refinement — " + TeamState.deferredQuestion },
+            { role: "dev", label: "Dev", time: "Day 1 · afternoon", text: "Following up on this — still blocked without an answer." },
+            { gap: "PO picks up the thread the next day" },
+            { role: "po", label: "PO", time: "Day 2 · morning", text: "“" + TeamState.deferredQuestion + "” Sorry — missed this in the meeting, catching up now." }
+          ],
           item: "Chasing down the answer that was put off in the meeting", days: 2
         });
       }
@@ -1258,13 +1302,20 @@ function renderTeamImpl(st) {
         var mapDays = Math.min(TeamState.mapUnsortedCount, 3);
         var mapPlural = TeamState.mapUnsortedCount === 1 ? "part" : "parts";
         threads.push({
-          bubble: '<div class="bubble them"><div class="who">QA · Teams chat</div>Wait — ' + TeamState.mapUnsortedCount + ' ' + mapPlural + ' of this were never on the board. Are they actually in scope?</div>',
+          title: "Meeting timer ran out with cards unsorted",
+          msgs: [
+            { role: "qa", label: "QA", time: "Day 1 · morning", text: "Wait — " + TeamState.mapUnsortedCount + " " + mapPlural + " of this were never on the board. Are they actually in scope?" },
+            { role: "dev", label: "Dev", time: "Day 1 · afternoon", text: "Good catch, pulling them in now — going through them before we ship." }
+          ],
           item: "Re-mapping the " + TeamState.mapUnsortedCount + " " + mapPlural + " the meeting ran out of time for", days: mapDays
         });
       }
       if (!TeamState.acPrecise) {
         threads.push({
-          bubble: '<div class="bubble them"><div class="who">Dev · Teams chat</div>What does “reasonable” actually mean here — can you give me Given/When/Then?</div>',
+          title: "Given/When/Then left vague",
+          msgs: [
+            { role: "dev", label: "Dev", time: "Day 1 · morning", text: "What does “reasonable” actually mean here — can you give me Given/When/Then?" }
+          ],
           item: "Clarifying the vague behaviour spec mid-build instead of in the meeting", days: 2
         });
       }
@@ -1273,7 +1324,10 @@ function renderTeamImpl(st) {
       // consequence as the other shortcuts — it was free at the fork, not free here.
       if (TeamState.businessValueHonest === false) {
         threads.push({
-          bubble: '<div class="bubble them"><div class="who">Customer · support ticket</div>The number your team assumed for this doesn’t match what we actually agreed — can someone check?</div>',
+          title: "Business value guessed, not confirmed",
+          msgs: [
+            { role: "customer", label: "Customer", time: "Day 1 · morning", text: "The number your team assumed for this doesn’t match what we actually agreed — can someone check?" }
+          ],
           item: "Chasing down the business-value number that was guessed instead of confirmed", days: 2
         });
       }
@@ -1285,21 +1339,39 @@ function renderTeamImpl(st) {
       if (TeamState.premortemSkipped) {
         var missedRisks = SC.premortem.filter(function (o) { return !o.bad; }).map(function (o) { return o.t; });
         threads.push({
-          bubble: '<div class="bubble them"><div class="who">QA · Teams chat</div>We just ran into something nobody flagged going in — did the team actually think through what could go wrong here before we started?</div>',
+          title: "Pre-mortem skipped",
+          msgs: [
+            { role: "qa", label: "QA", time: "Day 1 · afternoon", text: "We just ran into something nobody flagged going in — did the team actually think through what could go wrong here before we started?" }
+          ],
           item: "Cleaning up after skipping the pre-mortem — never discussed: " + missedRisks.join("; "), days: 3
         });
       }
       // FEATURE-009 Runde 3 (23.07.2026, Stephan-Feedback): every run starts with
       // one role missing from the room (see teamroster) — that gap has its own
       // guaranteed, role-specific consequence, same idea as the other threads.
+      // FEATURE-015: the "po" branch gets the second requested multi-message
+      // back-and-forth (an incomplete first answer that needs a follow-up) —
+      // kept deliberately generic ("the obvious case" / "more nuance than
+      // that") rather than inventing scenario-specific facts about what
+      // "done" means, since that isn't stored data this function has access to.
       var ROLE_GAP_THREAD = {
-        po: { bubble: '<div class="bubble them"><div class="who">Dev · Teams chat</div>Nobody actually confirmed what “done” means for this — the Product Owner never got to weigh in.</div>',
+        po: { title: "Product Owner missing from the meeting",
+          msgs: [
+            { role: "dev", label: "Dev", time: "Day 1 · morning", text: "Nobody actually confirmed what “done” means for this — the Product Owner never got to weigh in. Can you take a look when you get a chance?" },
+            { gap: "PO buried in other meetings most of the day" },
+            { role: "po", label: "PO", time: "Day 1 · afternoon", text: "Sorry, non-stop calls today — quick take, I think it covers the obvious case. That enough?" },
+            { role: "dev", label: "Dev", time: "Day 2 · morning", text: "That covers the obvious case, but there’s more nuance than that — can we actually pin it down properly?" },
+            { role: "po", label: "PO", time: "Day 2 · afternoon", text: "Fair enough — let’s stop guessing and spell it out properly." }
+          ],
           item: "Clearing up what “done” actually means, since the Product Owner wasn’t in the meeting", days: 2 },
-        dev: { bubble: '<div class="bubble them"><div class="who">Dev · Teams chat</div>Just found a technical wrinkle nobody flagged — no developer was in the room to catch it earlier.</div>',
+        dev: { title: "Dev missing from the meeting",
+          msgs: [{ role: "qa", label: "QA", time: "Day 1 · morning", text: "Just found a technical wrinkle nobody flagged — no developer was in the room to catch it earlier." }],
           item: "Working around a technical wrinkle nobody flagged, since no developer was in the meeting", days: 2 },
-        qa: { bubble: '<div class="bubble them"><div class="who">QA · Teams chat</div>Found an edge case that never made it into the meeting notes — no QA voice was there to raise it.</div>',
+        qa: { title: "QA missing from the meeting",
+          msgs: [{ role: "dev", label: "Dev", time: "Day 1 · morning", text: "Found an edge case that never made it into the meeting notes — no QA voice was there to raise it." }],
           item: "Chasing an edge case that slipped through, since no QA was in the meeting", days: 2 },
-        tech: { bubble: '<div class="bubble them"><div class="who">Tech Lead · Teams chat</div>This touches a dependency nobody flagged — I wasn’t in that meeting to catch it.</div>',
+        tech: { title: "Tech Lead missing from the meeting",
+          msgs: [{ role: "dev", label: "Dev", time: "Day 1 · morning", text: "This touches a dependency nobody flagged — I wasn’t in that meeting to catch it." }],
           item: "Untangling a dependency risk nobody flagged, since no Tech Lead was in the meeting", days: 2 }
       };
       if (ROLE_GAP_THREAD[TeamState.roleMissing]) threads.push(ROLE_GAP_THREAD[TeamState.roleMissing]);
@@ -1310,23 +1382,41 @@ function renderTeamImpl(st) {
       if (S.dorPaperwork > 0) {
         var dorPlural = S.dorPaperwork === 1 ? "checkbox" : "checkboxes";
         threads.push({
-          bubble: '<div class="bubble them"><div class="who">⚠️ Compliance · internal audit</div>The Definition of Ready check that should have caught this got skipped — this now needs to go through an audit review before it can ship.</div>',
+          title: "Definition of Ready checked off, not actually true",
+          compliance: true,
+          msgs: [
+            { role: "compliance", label: "⚠️ Compliance", time: "Day 2 · morning", text: "The Definition of Ready check that should have caught this got skipped — this now needs to go through an audit review before it can ship." }
+          ],
           item: "Audit review triggered by " + S.dorPaperwork + " Definition of Ready " + dorPlural + " that wasn’t actually true", days: S.dorPaperwork
         });
       }
+      // FEATURE-015: renders a thread's messages (role badge + timestamp +
+      // text per message, or a muted "waiting" line for a {gap} marker).
+      function threadMsgHTML(m) {
+        if (m.gap) return '<div class="twait">' + m.gap + '</div>';
+        return '<div class="tmsg"><div class="tmsgtop"><span class="rolebadge role-' + m.role + '">' + m.label + '</span>' +
+          '<span class="tmsgtime">' + m.time + '</span></div><div class="tmsgtext">' + m.text + '</div></div>';
+      }
+      function threadCardHTML(t) {
+        var cls = t.compliance ? "tthread compliance" : "tthread";
+        return '<div class="' + cls + '"><div class="thead"><div class="ttitle">' + t.title + '</div><div class="tcost">+' + t.days + 'd</div></div>' +
+          t.msgs.map(threadMsgHTML).join("") + '</div>';
+      }
       var chatHTML = threads.length
-        ? ('<div class="chatwrap">' + threads.map(function (t) { return t.bubble; }).join("") + '</div>' +
+        ? ('<div class="threadwrap">' + threads.map(threadCardHTML).join("") + '</div>' +
            '<div class="sum">What the meeting skipped didn’t disappear — it just waited for the build to trip over it.</div>')
-        : ('<div class="chatwrap"><div class="bubble them"><div class="who">PO · Teams chat</div>Quick check on the open point — looks like you already nailed it down. 👍</div></div>' +
+        : ('<div class="threadwrap"><div class="tthread"><div class="thead"><div class="ttitle">PO · Teams chat</div></div>' +
+           '<div class="tmsg"><div class="tmsgtop"><span class="rolebadge role-po">PO</span><span class="tmsgtime">Day 1 · morning</span></div>' +
+           '<div class="tmsgtext">Quick check on the open point — looks like you already nailed it down. 👍</div></div></div></div>' +
            '<div class="sum">Already settled in the meeting — no surprise, no extra cost.</div>');
       r.innerHTML = '<div class="agent"><div class="who">🚧 Build in progress</div><div class="body">The team starts on the ticket.</div></div>' + chatHTML;
       if (threads.length) {
-        var wrap = document.createElement("div"); wrap.className = "rework"; wrap.innerHTML = '<div class="rh">⏱️ Cycle time starts running — what got skipped in the meeting comes due</div>';
+        var wrap = document.createElement("div"); wrap.className = "tledger"; wrap.innerHTML = '<div class="rh">⏱️ Cycle time starts running — what got skipped in the meeting comes due</div>';
         r.appendChild(wrap);
         threads.forEach(function (t) {
           var p = { item: t.item, days: t.days };
           S.rework.push(p); bumpCycle(p.days);
-          wrap.insertAdjacentHTML("beforeend", '<div class="rticket"><span>' + p.item + '</span><span class="d">+' + p.days + 'd</span></div>');
+          wrap.insertAdjacentHTML("beforeend", '<div class="tlrow"><span>' + p.item + '</span><span class="d">+' + p.days + 'd</span></div>');
         });
         var rwVal = document.getElementById("rwVal"); if (rwVal) rwVal.textContent = S.rework.reduce(function (s, x) { return s + x.days; }, 0) + "d";
       }

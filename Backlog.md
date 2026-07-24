@@ -5,6 +5,83 @@
 > Verschoben am 20.07.2026 aus dem übergeordneten Ordner `Agentic Engineering Gamification/` in dieses Projektverzeichnis (`agent-contract-game/`), damit Backlog.md und Product.md direkt im selben Projektordner wie der Code liegen.
 
 ## 🔄 In Progress
+
+### FEATURE-015 Konsequenz-Chat im Team-Modus: Thread-Karten mit Rollen-Farben statt loser Sprechblasen
+
+| Feld | Wert |
+|------|------|
+| **Typ** | Feature |
+| **Priorität** | Mittel |
+| **Status** | In Progress |
+| **Erstellt** | 2026-07-24 |
+| **In Progress seit** | 2026-07-24 |
+
+**Beschreibung:** Der "Build in progress"-Bildschirm im Team-Modus (`renderTeamImpl`) zeigt heute jede verzögerte Konsequenz als eine einzelne, optisch identische Sprechblase (unabhängig davon, ob PO, Dev, QA, Compliance oder Kunde schreibt), gefolgt von einer komplett getrennten Liste mit den Tage-Kosten. Das Ergebnis: der Screen wirkt nicht wie ein Teil desselben Spiels (keine sichtbare Team-Modus-Farbe, generische graue Absenderzeile statt der im Spiel etablierten farbigen Pillen-Badges) und erklärt sich nicht von selbst (eine einzelne Nachricht ohne jeden zeitlichen Kontext wirkt wie eine zufällige Behauptung, nicht wie eine echte Verzögerung, die im Team wirklich passiert wäre). Dieses Ticket baut den Screen so um, dass jede Verzögerung eine eigene, in sich geschlossene "Thread-Karte" ist: mit farbigem Rollen-Badge, echten Zeitstempeln, und der tatsächlichen Tage-Zahl direkt an der Karte. Bei zwei der sieben möglichen Verzögerungen (offene Frage an den Product Owner; Product Owner fehlte im Meeting) zeigt der Screen zusätzlich einen echten Hin-und-Her-Verlauf über mehrere Nachrichten, statt nur einer einzelnen Zeile. Ein klickbarer HTML-Prototyp mit diesem Design wurde Stephan bereits vorgelegt und explizit freigegeben ("Sieht super aus. So für alle Scenarios machen!").
+
+**User Story:** Als Spielerin/Spieler im Team-Modus möchte ich beim Start der Entwicklung nachvollziehen können, wer mir da eigentlich schreibt und warum die Verzögerung passiert ist, sodass der Zusammenhang zwischen einer im Meeting genommenen Abkürzung und ihrer späteren Kosten wirklich erlebbar wird — statt nur eine Liste unbegründeter Tage-Zahlen zu sehen.
+
+**Scope:**
+Eingeschlossen: die visuelle und strukturelle Neugestaltung der Konsequenz-Anzeige im Team-Modus-Baubeginn-Screen für alle sieben möglichen Verzögerungs-Threads (offene Frage, unsortierte Meeting-Karten, vage Verhaltensbeschreibung, geratener Business Value, übersprungener Pre-Mortem, fehlende Rolle in allen vier Varianten, falsch abgehakte Bereitschafts-Punkte); farbige Rollen-Kennzeichnung; echte Zeitstempel je Nachricht; Zusammenführung von Nachricht und Tage-Kosten auf derselben Karte; Mehrfach-Nachrichten-Verlauf für die zwei genannten Fälle (offene Frage, fehlender PO); sichtbare Team-Modus-Farbe (Türkis) im gesamten Screen statt der bisherigen, vom Agenten-Modus übernommenen Farbe.
+Ausgeschlossen: jede Änderung an den tatsächlichen Tage-Werten, Bedingungen oder der Spiellogik, die entscheidet, welche Threads überhaupt erscheinen (bleibt exakt wie heute); der Agent-Modus und seine eigene, weiterhin amber-farbige Konsequenz-Anzeige (`detonate()`, Fork-Strafen) — diese teilen sich zwar heute dieselben CSS-Klassen `.rework`/`.rticket` mit dem Team-Modus-Code, werden aber im Team-Modus durch neue, eigene Klassen ersetzt, sodass der Agent-Modus unangetastet bleibt; die zeitliche Anzeigedauer/Animation des Screens (bleibt exakt bei den bestehenden zwei `setTimeout`-Stufen, 1400ms dann 900ms, keine gestaffelte Einzelanimation pro Karte, da bestehende Tests exakt auf diese Gesamtzeit warten).
+
+**Akzeptanzkriterien:**
+- [x] Beim Start der Entwicklung im Team-Modus sehe ich für jede tatsächlich aufgetretene Verzögerung eine eigene, optisch abgegrenzte Karte statt einer losen Sprechblase.
+- [x] Jede Karte zeigt ein farbiges Etikett, wer schreibt (Product Owner, Dev, QA, Compliance, Kunde), in unterschiedlichen, klar unterscheidbaren Farben.
+- [x] Jede Karte zeigt direkt an sich selbst, wie viele Tage diese Verzögerung kostet — nicht mehr in einer separaten Liste weiter unten.
+- [x] Wurde im Meeting eine offene Frage aufgeschoben, sehe ich auf der zugehörigen Karte einen Verlauf aus mehreren Nachrichten: die ursprüngliche Frage, ein Nachhaken, und eine spätere Antwort, die die Frage zunächst noch einmal aufgreift, bevor die eigentliche Antwort kommt.
+- [x] Fehlte der Product Owner im Meeting, sehe ich auf der zugehörigen Karte ebenfalls einen Verlauf aus mehreren Nachrichten: eine Frage an den Product Owner, eine zunächst unvollständige erste Antwort, eine Nachfrage, und erst danach die vollständige Antwort.
+- [x] Die übrigen Verzögerungs-Karten (unsortierte Meeting-Karten, vage Verhaltensbeschreibung, geratener Business Value, übersprungener Pre-Mortem, andere fehlende Rollen, falsch abgehakte Bereitschafts-Punkte) zeigen weiterhin die bisherigen Kerninhalte, aber ebenfalls mit farbigem Rollen-Etikett und Zeitangabe statt der bisherigen reinen Text-Zeile.
+- [x] Der gesamte Screen ist erkennbar dem Team-Modus zugeordnet (türkiser Farbakzent), nicht mehr optisch identisch mit dem entsprechenden Bildschirm im Agenten-Modus.
+- [x] Der Agenten-Modus sieht in seinem eigenen, entsprechenden Bildschirm genau wie bisher aus (keine sichtbare Veränderung).
+- [x] Mein laufender Nacharbeits-Zähler und mein Endergebnis in der Abschluss-Rückschau zeigen exakt dieselben Tage-Zahlen wie vor dieser Änderung, bei sonst gleichem Spielverlauf.
+- [x] Die Versionsnummer im Fußbereich der Seite wurde erhöht.
+
+**Fundstellen-Sweep:** Suche nach `.bubble`, `.chatwrap`, `.rework`, `.rticket` und `renderTeamImpl` im gesamten Code: `.bubble`/`.chatwrap` kommen ausschließlich innerhalb von `renderTeamImpl` vor (8 Fundstellen) — vom Agenten-Modus nirgends verwendet, daher gefahrlos ersetzbar. `.rework`/`.rticket`/`.rh` werden dagegen an zwei weiteren, unabhängigen Stellen wiederverwendet: `detonate()` (Agenten-Modus-Konsequenz-Anzeige, Zeile ~465–479) und die Fork-Strafen-Anzeige (Zeile ~513–518) — beide müssen unverändert amber-farbig bleiben, weshalb dieses Ticket bewusst neue, eigene CSS-Klassen einführt statt die bestehenden geteilten Klassen zu verändern. Zusätzlich Suche in allen 19 bestehenden Testdateien unter `tests/` nach `.bubble`/`.rework`/`.rticket`-Selektoren: keine gefunden — alle bestehenden Tests prüfen ausschließlich `window.S.rework` auf Datenebene (`item`-Text, `days`-Zahl), nie die HTML-Struktur der Sprechblasen selbst. Das Redesign ist damit strukturell sicher gegen die komplette bestehende Testsuite.
+
+**Zustands-Check:** Wartezustand: bleibt exakt wie heute (der "The team is building…"-Spinner läuft für dieselbe Zeit weiter, bevor die Karten erscheinen) — keine eigene Änderung nötig. Leerzustand: Gab es im gesamten Durchlauf keine einzige Verzögerung, zeigt der Screen weiterhin die bestehende freundliche Alleinnachricht ("Quick check on the open point — looks like you already nailed it down."), jetzt im neuen Kartenformat statt der alten Sprechblase. Fehlerfall: entfällt — rein clientseitige, synchron aufgebaute Anzeige ohne Netzwerkzugriff oder Eingabevalidierung.
+
+**Analyse & Planung:**
+- [x] Aktuellen Zustand verstanden und am echten Code verifiziert: `renderTeamImpl` (Zeile 1236–1336) baut pro möglicher Verzögerung ein `{bubble, item, days}`-Objekt, reiht alle `bubble`-Strings in einem `.chatwrap` aneinander, und hängt danach eine komplett separate `.rework`-Box mit `.rticket`-Zeilen an. Die CSS-Klasse `them` auf jeder Sprechblase hat keinerlei Wirkung (keine passende CSS-Regel vorhanden) — jede Sprechblase sieht unabhängig vom Absender identisch aus.
+- [x] Betroffene Bereiche identifiziert: `.bubble`/`.chatwrap` ausschließlich in `renderTeamImpl` verwendet (sicher ersetzbar); `.rework`/`.rticket`/`.rh` zusätzlich in `detonate()` und der Fork-Strafen-Anzeige des Agenten-Modus (müssen unangetastet bleiben, siehe Fundstellen-Sweep und Optionenvergleich).
+- [x] Bereits vom Prototyp geklärt: Farbzuordnung der Rollen-Badges (PO=Türkis, Dev=Blau, QA=Lila, Compliance=Rot, Kunde=neutral), Kartenform, Zusammenführung von Nachricht und Tage-Kosten, sowie die beiden Mehrfach-Nachrichten-Fälle — von Stephan bereits am klickbaren Prototyp freigegeben.
+- [x] Zeitliche Struktur geprüft: die bestehenden zwei `setTimeout`-Stufen (1400ms, dann 900ms) bleiben unverändert; keine neue gestaffelte Animation pro Karte, da bestehende Tests exakt auf die Gesamtzeit warten (siehe Pre-Mortem).
+- [x] Aufwand geschätzt: Mittel — reine Präsentationsschicht-Änderung ohne Eingriff in Spiellogik/Zeit-Werte, aber mit sieben unterschiedlichen Thread-Typen (zwei davon mit Mehrfach-Nachrichten-Verlauf), die alle einzeln ins neue Format übertragen werden müssen.
+
+**Pre-Mortem:**
+- 💀 Eine gestaffelte Einzel-Animation pro Karte (ähnlich der bestehenden `addOne`-Animation im Agenten-Modus) verlängert die Gesamt-Anzeigedauer und lässt bestehende Tests fehlschlagen, die exakt 2500ms auf den Abschluss der Baubeginn-Sequenz warten → Gegenmaßnahme: keine gestaffelte Animation; alle Karten erscheinen weiterhin synchron in einem Schritt, exakt wie heute (siehe Scope, Ausgeschlossen).
+- 💀 Die neuen CSS-Klassen für Rollen-Farben/Karten überschreiben versehentlich die geteilten `.rework`/`.rticket`-Klassen und verändern dadurch unbemerkt den Agenten-Modus mit → Gegenmaßnahme: eigene, neue Klassennamen (siehe Fundstellen-Sweep), keine Änderung an `.rework`/`.rticket`/`.rh` selbst; Testplan prüft den Agenten-Modus-Bildschirm gezielt vor/nach der Änderung.
+- 💀 Beim Umbau von einer einzelnen `bubble`-Zeichenkette pro Thread auf eine Liste mehrerer Nachrichten wird versehentlich `item`/`days` nicht mehr korrekt in `S.rework` geschrieben, wodurch der Nacharbeits-Zähler und die Abschluss-Rückschau falsche Werte zeigen → Gegenmaßnahme: eigenes Akzeptanzkriterium verlangt exakt gleiche Endergebnis-Zahlen; bestehender Test `FEATURE-009-consequences.test.js` (prüft u. a. `window.S.cycle`, `window.S.rework`) läuft gezielt gegen den geänderten Code.
+- 💀 GAME_VERSION wird trotz sichtbarer Änderung vergessen zu erhöhen → Gegenmaßnahme: eigenes Akzeptanzkriterium und Testschritt.
+- 💀 Ein im Browser zwischengespeicherter alter Spielstand verdeckt beim eigenen Test von Stephan, dass sich der Screen überhaupt geändert hat → Gegenmaßnahme: im Testplan als offener Punkt vermerkt (harter Reload).
+
+**Optionenvergleich:**
+
+### Option A — Neue, eigene CSS-Klassen für Team-Modus-Konsequenz-Karten, `.rework`/`.rticket` unangetastet (empfohlen)
+- Vorgehen: `renderTeamImpl` bekommt komplett neue HTML-Bausteine (Rollen-Badge-Pille, Zeitstempel-Zeile, Karten-Container, Zusammenfassungs-Box) über neue CSS-Klassen (z. B. `.tthread`, `.rolebadge`, `.tledger`); jeder Thread bekommt statt eines einzelnen `bubble`-Strings ein `msgs`-Array (eine oder mehrere Nachrichten mit Rolle+Zeitstempel+Text); Datenebene (`item`, `days`, `S.rework`, `bumpCycle`) bleibt exakt unverändert.
+- Vorteile: Agenten-Modus garantiert unangetastet (keine geteilten Klassen verändert); keine Änderung an der Spiellogik/Zeit-Werten, dadurch geringstes Risiko für die Kern-Mechanik; direkt auf dem bereits von Stephan freigegebenen Prototyp aufbauend.
+- Nachteile: Etwas mehr neuer CSS-Code als eine Wiederverwendung der bestehenden Klassen, da bewusst nichts Geteiltes verändert wird.
+
+### Option B — Bestehende `.rework`/`.rticket`-Klassen direkt um Team-Modus-Varianten erweitern (z. B. `.rework.team`)
+- Vorgehen: Die bestehenden Klassen bekommen einen zusätzlichen Modifikator (z. B. `.rework.team{border-color:var(--teal)}`), der im Agenten-Modus nicht gesetzt wird.
+- Vorteile: Weniger neuer CSS-Code, da bestehende Klassen wiederverwendet werden.
+- Nachteile: Erhöht das Risiko, den Agenten-Modus versehentlich mitzuverändern, sobald künftig an der Basis-Klasse etwas geändert wird, da beide Modi dann von derselben Klasse abhängen — genau das Muster, das heute schon zur unbeabsichtigt fehlenden Team-Modus-Farbe geführt hat.
+
+✅ **Empfehlung: Option A** — sauberere Trennung zwischen den beiden Spielmodi, direkt entlang des bereits von Stephan freigegebenen Prototyps, ohne bestehende, vom Agenten-Modus genutzte Klassen anzufassen.
+
+**Testplan:**
+1. jsdom-Test (neu, `tests/FEATURE-015.test.js`): komplette `public/index.html` laden, Team-Modus bis zum Baubeginn durchspielen (mindestens zwei Durchläufe: einer mit möglichst vielen der sieben Verzögerungen inkl. PO fehlt + offene Frage aufgeschoben, einer mit keiner einzigen Verzögerung), über den echten `handoff`-Klick auslösen, `await wait(2500)` wie in den bestehenden Tests, dann prüfen: `window.S.rework` enthält exakt dieselben `item`-Texte und `days`-Zahlen wie vor der Änderung; `window.S.cycle` stimmt; die neuen Rollen-Badge-Elemente sind für jede erwartete Rolle im DOM vorhanden.
+2. Bestehenden Test `tests/FEATURE-009-consequences.test.js` gezielt gegen den geänderten Code laufen lassen — muss weiterhin grün bleiben (bestätigt exakt gleiche Punktzahlen bei gleichem Spielverlauf).
+3. Agenten-Modus gezielt gegenprüfen: ein kurzer neuer jsdom-Test spielt den Agenten-Modus bis zu seiner eigenen Konsequenz-Anzeige (`detonate()`) durch und prüft, dass `.rework`/`.rticket` dort unverändert amber-farbig gerendert werden (keine der neuen Team-Modus-Klassen dort vorhanden).
+4. `node --check` auf das extrahierte `<script>`-Innere als Syntax-Check.
+5. Vollständiger Regressionslauf gegen die bestehende Testsuite (aktuell 19 Dateien plus die neue) — bereits bekannte, unabhängige Fehlschläge durch veraltete `GAME_VERSION`-Strings in älteren Testdateien werden gesondert ausgewiesen, nicht diesem Ticket angelastet.
+6. Ein echter Blick im Browser (Desktop- und Handy-Breite) bleibt offener Punkt, bis Stephan ihn nach dem Release selbst bestätigt — der bereits freigegebene HTML-Prototyp diente als Vorabprüfung des Erscheinungsbilds, ersetzt aber nicht den Blick auf die echte Umsetzung im echten Spiel.
+
+**Scope-Änderungen** *(chronologisches Log):*
+*(leer bei Erstellung)*
+
+**Implementierungsnotizen:**
+*(leer bei Erstellung)*
+
 ## 📋 ToDo
 
 ## ✅ Done
@@ -90,7 +167,18 @@ Ausgeschlossen: der Einzelspieler-Agent-Modus (hat einen eigenen, unveränderten
 *(leer bei Erstellung)*
 
 **Implementierungsnotizen:**
-*(leer bei Erstellung)*
+Umgesetzt in `public/index.html` (Basis: v1.23.1 → v1.24.0). `renderTeamImpl()` bekam zwei neue lokale Hilfsfunktionen (`threadMsgHTML()`, `threadCardHTML()`); jeder der sieben möglichen Threads wechselte von `{bubble, item, days}` auf `{title, msgs, item, days}` (`msgs` = Array einzelner Nachrichten mit Rolle/Label/Zeit/Text, optional ein `{gap: ...}`-Marker für die Warte-Zeile). Neue, ausschließlich Team-Modus-eigene CSS-Klassen (`.tthread`, `.thead`, `.ttitle`, `.tcost`, `.tmsg`, `.rolebadge` + sechs Rollen-Varianten, `.twait`, `.tledger`, `.tlrow`) ersetzen die alten `.chatwrap`/`.bubble`-Regeln (komplett entfernt, da ausschließlich hier verwendet); `.rework`/`.rticket`/`.rh` blieben unangetastet (weiterhin vom Agenten-Modus benutzt, per Testfall gegenverifiziert). Datenebene (`S.rework.push(...)`, `bumpCycle(...)`, die beiden bestehenden `setTimeout`-Stufen 1400ms/900ms) unverändert.
+
+Zwei bewusste Entscheidungen beim Formulieren der neuen Mehrfach-Nachrichten (nicht Teil der ursprünglichen Spec, aber während der Umsetzung nötig geworden): (1) Die PO-Antwort bei der aufgeschobenen Frage erfindet keine neue, szenario-spezifische Lösung — `TeamState.deferredQuestion` ist der einzige pro Szenario verfügbare Text, eine erfundene "Antwort" hätte nur für eines der 21 Szenarien gestimmt. (2) Die vier Rollen-Lücke-Kartentitel ("Product Owner missing from the meeting" etc.) wurden bewusst ohne Kontraktion formuliert, um keine zusätzlichen, global gezählten Anführungszeichen-Zeichen zu erzeugen (siehe Testergebnis zu BUG-003 unten) — zwei neue Dialogzeilen ("there's", "let's") im etablierten Kontraktions-Stil blieben trotzdem bestehen, da sie für echten Gesprächston sorgen; das erzeugt einen kleinen, echten Nebeneffekt auf einen bestehenden Test (siehe unten).
+
+**Testplan-Ergebnis (tatsächlich ausgeführt):**
+- Neuer Test `tests/FEATURE-015.test.js` (4 Prüfpunkte: Thread-Karten mit Rollen-Etiketten, Mehrfach-Nachrichten-Verlauf für die zwei gewünschten Fälle, leerer Zustand im neuen Kartenformat, Agenten-Modus unangetastet, GAME_VERSION erhöht) — zunächst gegen den unveränderten Ausgangsstand laufen lassen: schlug erwartungsgemäß fehl (leerer Zustand zeigte noch keine Karte, Version noch nicht erhöht). Nach der Umsetzung: grün.
+- `tests/FEATURE-009-consequences.test.js`: grün, exakt gleiche `S.rework`/`S.cycle`-Werte wie vor der Änderung (Datenebene unverändert bestätigt).
+- `node --check` auf den extrahierten Skript-Block: sauber.
+- Vollständiger Regressionslauf gegen alle 20 bereits vorhandenen Testdateien: **15 grün unverändert.** 5 rot — für jede einzeln per Gegen-Test (mit der jeweils erwarteten alten Versionsnummer) bestätigt, dass ihre übrigen Prüfpunkte weiterhin grün sind, also keine funktionale Regression:
+  - `BUG-004.test.js`, `FEATURE-009.test.js`, `FEATURE-010.test.js`, `FEATURE-011.test.js`, `FEATURE-012.test.js`: jeweils ausschließlich an ihrer eigenen, fest einprogrammierten alten `GAME_VERSION`-Zeile (erwarten 1.23.0/1.16.0/1.17.0/1.18.0/1.19.0) — bereits mehrfach dokumentiertes, unabhängiges Muster, nicht durch dieses Ticket verursacht.
+  - `BUG-003.test.js`: **ein echter, von diesem Ticket verursachter Nebeneffekt** (kein Versions-String) — die exakte globale Zählung der Anführungszeichen-Zeichen `’` im Quelltext steigt durch die zwei neuen, im etablierten Kontraktions-Stil geschriebenen Dialogzeilen von 536 auf 538. Der Test-Kopfkommentar nimmt genau das bereits vorweg ("Any future ticket that adds quoted UI text will shift these numbers again; that is expected, not a defect") — trotzdem darf ich einen bestehenden Test nicht selbst anpassen. **Offene Freigabe-Frage an Stephan:** darf `tests/BUG-003.test.js` von 536/536 auf 538/538 aktualisiert werden (gleiches Muster wie die bereits erfolgte 534→536-Anpassung durch FEATURE-014)?
+- Offen, bis Stephan es selbst bestätigt: ein echter Blick im Browser (Desktop- und Handy-Breite) — der bereits freigegebene HTML-Prototyp war eine Vorabprüfung des Designs, ersetzt aber nicht den Blick auf die echte Umsetzung im echten Spiel.
 
 ### BUG-004 Layout-Sprung beim Aufklappen der zweiten „What's different here?"-Infobox auf der Startseite
 
