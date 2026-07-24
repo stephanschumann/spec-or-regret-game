@@ -201,7 +201,8 @@ async function testLookBackAndFinaleGrid() {
     }));
     doc.getElementById("check").dispatchEvent(new window.Event("click", { bubbles: true }));
     click(doc, "nextBtn"); // -> question fork
-    click(doc, "tSolid"); await wait(700); click(doc, "nextBtn"); // -> premortem
+    click(doc, "tSolid"); await wait(700); click(doc, "nextBtn"); // -> premortemSkip fork (FEATURE-014)
+    click(doc, "tSolid"); await wait(700); click(doc, "nextBtn"); // FEATURE-014: solid path -> premortem
     function answerSelect(mode) {
       const s = window.STAGES[window.S.i];
       s.options.forEach((o, idx) => { if ((mode === "catch") ? o.bad : !o.bad) doc.querySelector('.opt[data-idx="' + idx + '"]').dispatchEvent(new window.Event("click", { bubbles: true })); });
@@ -214,8 +215,13 @@ async function testLookBackAndFinaleGrid() {
 
     const finaleHTML = doc.getElementById("stageHost").innerHTML;
     const tileCount = (finaleHTML.match(/class="fbadge"/g) || []).length;
-    assert.strictEqual(tileCount, 8, "Der Dev-fehlt-Durchlauf hat 8 gespielte Schritte vor dem Finale — alle sollten als Kachel erscheinen, nicht nur die 4 mit Badge");
-    assert.strictEqual(window.S.badges.length, 4, "Nur 4 dieser 8 Schritte vergeben tatsächlich ein Badge (Map, Gherkin, Pre-mortem, Scope guardian)");
+    // FEATURE-014 (Scope-Änderung, dokumentiert): der neue premortemSkip-Fork
+    // vor der Risikoauswahl-Aufgabe ist bei solider Wahl ein regulär
+    // gespielter, historisierter Schritt wie jeder andere Fork auch (bizvalue/
+    // question) — die Kachelzahl steigt dadurch bewusst von 8 auf 9. Kein
+    // eigenes Badge, daher bleibt die Badge-Zahl unverändert bei 4.
+    assert.strictEqual(tileCount, 9, "Der Dev-fehlt-Durchlauf hat seit FEATURE-014 9 gespielte Schritte vor dem Finale (der neue premortemSkip-Fork zählt mit) — alle sollten als Kachel erscheinen, nicht nur die 4 mit Badge");
+    assert.strictEqual(window.S.badges.length, 4, "Nur 4 dieser 9 Schritte vergeben tatsächlich ein Badge (Map, Gherkin, Pre-mortem, Scope guardian)");
 
     dom.window.close();
     return null;

@@ -111,7 +111,8 @@ async function testTeamHandoverDoesNotJumpToEnd() {
     for (let i = 0; i < 70; i++) tick();
     click(doc, "nextBtn"); // -> gherkin
     click(doc, "vagueChoice"); await wait(700); click(doc, "nextBtn"); // -> question fork
-    click(doc, "tTempt"); await wait(700); click(doc, "nextBtn"); // -> premortem
+    click(doc, "tTempt"); await wait(700); click(doc, "nextBtn"); // -> premortemSkip fork (FEATURE-014)
+    click(doc, "tSolid"); await wait(700); click(doc, "nextBtn"); // FEATURE-014: solid path -> premortem
     window.STAGES[window.S.i].options.forEach(function (o, idx) {
       if (!o.bad) doc.querySelector('.opt[data-idx="' + idx + '"]').dispatchEvent(new window.Event("click", { bubbles: true }));
     });

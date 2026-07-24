@@ -117,6 +117,12 @@ async function main() {
     await wait(700); // renderTeamFork's resolve() calls completeStep after a 500ms setTimeout
     assert(doc.querySelector(".debrief"), "Nach der ehrlichen Fork-Wahl sollte der Debrief erscheinen");
     assert.strictEqual(window.TeamState.deferredQuestion, null, "Die ehrliche Wahl darf keine offene Frage aufschieben");
+    click(doc, "nextBtn"); // -> premortemSkip fork (FEATURE-014)
+
+    // FEATURE-014: new fork right before the pre-mortem — solid path here too,
+    // keeps this pre-existing scoring test isolated to the two shortcuts it's about.
+    click(doc, "tSolid");
+    await wait(700);
     click(doc, "nextBtn"); // -> teamselect premortem
 
     // --- Stage 4/5: pre-mortem + overreach — answer correctly using the real

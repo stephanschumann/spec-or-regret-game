@@ -128,6 +128,7 @@ async function playPoEverythingBadRun() {
   click(doc, "tTempt"); await wait(700); click(doc, "nextBtn"); // guessed -> skipped
   click(doc, "vagueChoice"); await wait(600); click(doc, "nextBtn"); // vague -> skipped
   click(doc, "tTempt"); await wait(700); click(doc, "nextBtn"); // deferred -> skipped
+  click(doc, "tSolid"); await wait(700); click(doc, "nextBtn"); // FEATURE-014 premortemSkip fork: solid -> premortem stays credited below
 
   answerSelectCorrectly(window, doc, "pick"); click(doc, "nextBtn"); // premortem, credited
   answerSelectCorrectly(window, doc, "catch"); click(doc, "nextBtn"); // overreach, credited
@@ -224,7 +225,8 @@ async function testCleanRunBreakdownsMatch() {
     });
     doc.getElementById("check").dispatchEvent(new window.Event("click", { bubbles: true }));
     click(doc, "nextBtn"); // -> question fork
-    click(doc, "tSolid"); await wait(700); click(doc, "nextBtn"); // -> premortem
+    click(doc, "tSolid"); await wait(700); click(doc, "nextBtn"); // -> premortemSkip fork (FEATURE-014)
+    click(doc, "tSolid"); await wait(700); click(doc, "nextBtn"); // FEATURE-014: solid -> premortem
     answerSelectCorrectly(window, doc, "pick"); click(doc, "nextBtn"); // -> overreach
     answerSelectCorrectly(window, doc, "catch"); click(doc, "nextBtn"); // -> DoR
     click(doc, "markAll"); click(doc, "dorContinue"); click(doc, "nextBtn"); // -> teamimpl

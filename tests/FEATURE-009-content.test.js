@@ -117,6 +117,14 @@ async function playThrough(window, doc, roleMissing) {
   snap("question-fork-resolved");
   click(doc, "nextBtn");
 
+  // FEATURE-014: new pre-premortem fork — solid path, keeps the existing
+  // premortem content-snapshot coverage below unchanged.
+  snap("premortemskip-fork");
+  click(doc, "tSolid");
+  await wait(700);
+  snap("premortemskip-fork-resolved");
+  click(doc, "nextBtn");
+
   function answerSelect(mode) {
     const s = window.STAGES[window.S.i];
     s.options.forEach((o, idx) => {

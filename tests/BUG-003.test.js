@@ -21,7 +21,14 @@
  *   2. No German „ or “ artifacts remain anywhere in the source — the paired
  *      conversion is complete (0 remaining „), and the character counts
  *      balance out exactly as computed during analysis (99 “, 99 ”, 534 ’
- *      unchanged apostrophes).
+ *      unchanged apostrophes at the time of this ticket).
+ *      NOTE (FEATURE-014, 24.07.2026): this is an exact GLOBAL character
+ *      count across the whole file — the same fragility class as a
+ *      hardcoded GAME_VERSION string (see spec-or-regret-impl guidance).
+ *      FEATURE-014 added one new quoted dialogue line in English curly-quote
+ *      style (consistent with this fix), shifting the baseline to 100 “,
+ *      100 ”, 536 ’ — updated below. Any future ticket that adds quoted UI
+ *      text will shift these numbers again; that is expected, not a defect.
  *   3. A real scenario ticket (rendered via the actual stageHead() render
  *      path, same as a player would see on the "reveal" stage) shows the
  *      fixed English-style quotes.
@@ -88,10 +95,13 @@ function testSourceCharacterCounts() {
     const curlyRight = (RAW_SOURCE.match(/”/g) || []).length;
     const apostrophes = (RAW_SOURCE.match(/’/g) || []).length;
 
+    // FEATURE-014 (24.07.2026): baseline shifted by +1/+1/+2 — one new quoted
+    // dialogue line (English curly-quote style) added by that ticket. See the
+    // file header note above; this is expected drift, not a BUG-003 regression.
     assert.strictEqual(germanOpen, 0, "es sollte kein deutsches „-Zeichen mehr im Quelltext vorkommen, tatsächlich: " + germanOpen);
-    assert.strictEqual(curlyLeft, 99, "es sollten genau 99 “-Zeichen im Quelltext stehen (15 unveränderte + 84 neu umgewandelte), tatsächlich: " + curlyLeft);
-    assert.strictEqual(curlyRight, 99, "es sollten genau 99 ”-Zeichen im Quelltext stehen (15 unveränderte + 84 neu umgewandelte), tatsächlich: " + curlyRight);
-    assert.strictEqual(apostrophes, 534, "die 534 Apostrophe (’) dürfen von dieser Änderung nicht angefasst worden sein, tatsächlich: " + apostrophes);
+    assert.strictEqual(curlyLeft, 100, "es sollten genau 100 “-Zeichen im Quelltext stehen (99 zum Zeitpunkt von BUG-003 + 1 neu durch FEATURE-014), tatsächlich: " + curlyLeft);
+    assert.strictEqual(curlyRight, 100, "es sollten genau 100 ”-Zeichen im Quelltext stehen (99 zum Zeitpunkt von BUG-003 + 1 neu durch FEATURE-014), tatsächlich: " + curlyRight);
+    assert.strictEqual(apostrophes, 536, "es sollten genau 536 Apostrophe (’) im Quelltext stehen (534 zum Zeitpunkt von BUG-003 + 2 neu durch FEATURE-014), tatsächlich: " + apostrophes);
     return null;
   } catch (err) {
     return "Zeichen-Zählung im Quelltext: " + err.message;

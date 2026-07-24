@@ -120,6 +120,9 @@ async function playDevMissingRun(clean) {
     click(doc, "nextBtn"); // -> question fork
     click(doc, "tSolid");
     await wait(700);
+    click(doc, "nextBtn"); // -> premortemSkip fork (FEATURE-014)
+    click(doc, "tSolid");
+    await wait(700);
     click(doc, "nextBtn"); // -> premortem
     answerSelectCorrectly(window, doc, "pick");
     click(doc, "nextBtn"); // -> overreach
@@ -138,6 +141,9 @@ async function playDevMissingRun(clean) {
     await wait(600);
     click(doc, "nextBtn"); // -> question fork
     click(doc, "tTempt"); // dishonest — defer
+    await wait(700);
+    click(doc, "nextBtn"); // -> premortemSkip fork (FEATURE-014)
+    click(doc, "tSolid"); // FEATURE-014: keep pre-mortem itself played, isolate the pre-existing shortcuts
     await wait(700);
     click(doc, "nextBtn"); // -> premortem
     answerSelectCorrectly(window, doc, "pick");

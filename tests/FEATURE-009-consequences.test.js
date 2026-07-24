@@ -134,6 +134,10 @@ async function scenarioCleanPoRun() {
     click(doc, "tSolid"); // honest
     await wait(700);
     assert.strictEqual(window.TeamState.deferredQuestion, null);
+    click(doc, "nextBtn"); // -> premortemSkip fork (FEATURE-014)
+
+    click(doc, "tSolid"); // FEATURE-014: keep the solid/honest path here too
+    await wait(700);
     click(doc, "nextBtn"); // -> premortem
 
     answerSelectCorrectly(window, doc, "pick");
@@ -214,6 +218,10 @@ async function scenarioEverythingBad() {
     click(doc, "tTempt"); // dishonest — defer the question
     await wait(700);
     assert(window.TeamState.deferredQuestion, "Die aufgeschobene Frage sollte vermerkt sein");
+    click(doc, "nextBtn"); // -> premortemSkip fork (FEATURE-014)
+
+    click(doc, "tSolid"); // FEATURE-014: keep the pre-mortem itself played honestly here —
+    await wait(700);       // this test isolates the pre-existing shortcuts, not the new one
     click(doc, "nextBtn"); // -> premortem
 
     answerSelectCorrectly(window, doc, "pick");
@@ -291,6 +299,10 @@ async function scenarioDevMissingRoleThread() {
     click(doc, "nextBtn"); // -> question fork
 
     click(doc, "tSolid");
+    await wait(700);
+    click(doc, "nextBtn"); // -> premortemSkip fork (FEATURE-014)
+
+    click(doc, "tSolid"); // FEATURE-014: solid path — keep the pre-mortem itself unchanged
     await wait(700);
     click(doc, "nextBtn"); // -> premortem
 
