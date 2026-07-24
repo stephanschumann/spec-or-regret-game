@@ -5,7 +5,6 @@
 > Verschoben am 20.07.2026 aus dem übergeordneten Ordner `Agentic Engineering Gamification/` in dieses Projektverzeichnis (`agent-contract-game/`), damit Backlog.md und Product.md direkt im selben Projektordner wie der Code liegen.
 
 ## 🔄 In Progress
-## 📋 ToDo
 
 ### FEATURE-014 Verlockende Skip-Option beim Pre-Mortem im Team-Modus mit verzögerter Konsequenz
 
@@ -13,13 +12,84 @@
 |------|------|
 | **Typ** | Feature |
 | **Priorität** | Mittel |
-| **Status** | ToDo |
+| **Status** | In Progress |
 | **Erstellt** | 2026-07-24 |
+| **In Progress seit** | 2026-07-24 12:21 |
 
 **Beschreibung:** Vor dem Pre-Mortem-Schritt im Team-Modus ("Team · 6") bekommt das Team eine verlockende Zusatzoption: den Pre-Mortem ganz überspringen, gerahmt als "wir sind agil, meistens läuft's gut, man kann sowieso nicht alles vorhersehen — einfach anfangen und lernen". Wählt das Team diese Abkürzung, zeigt sich die Konsequenz nicht sofort, sondern erst, sobald die Entwicklung startet: +3 Tage Rework im laufenden Zähler, plus eine konkrete Liste genau der echten Risiken aus diesem Szenario, die jetzt nachträglich aufgeräumt werden müssen, weil sie beim übersprungenen Pre-Mortem nie benannt wurden.
 
 **User Story:** Als Spielerin/Spieler im Team-Modus möchte ich die Möglichkeit haben, den Pre-Mortem-Schritt zu überspringen, wenn mir das "wir sind doch agil"-Argument im Moment einleuchtend erscheint, sodass ich am eigenen Spielverlauf erlebe, was ein übersprungener Pre-Mortem später tatsächlich kostet — statt nur behauptet zu bekommen, dass das eine schlechte Idee wäre.
 
+**Scope:**
+Eingeschlossen: eine neue, vorgeschaltete Entscheidung unmittelbar vor dem bestehenden Pre-Mortem-Schritt im Team-Modus ("Team · 6"), mit einer verlockenden Option ("wir sind doch agil, das klappt schon, man kann sowieso nicht alles vorhersehen") und einer soliden Option (Risikoprüfung wie gewohnt). Wählt das Team die verlockende Option, entfällt die heutige Risikoauswahl-Aufgabe komplett für diesen Durchlauf; beim späteren Start der Entwicklung erscheint zusätzlich zu den bereits bestehenden verzögerten Konsequenz-Meldungen eine neue Meldung mit +3 Tagen Nacharbeit und der namentlichen Auflistung der tatsächlichen Risiken dieses Szenarios, die dadurch nie besprochen wurden.
+Ausgeschlossen: der Einzelspieler-Agent-Modus (hat einen eigenen, unveränderten Pflicht-Pre-Mortem-Schritt mit denselben Szenario-Risikodaten); Änderungen an den Risikolisten der 21 Szenarien selbst; die beiden allgemeinen Beschreibungstexte auf dem Startbildschirm, die den Pre-Mortem erwähnen (bleiben weiterhin grundsätzlich zutreffend, da die meisten Teams den Schritt weiterhin normal durchlaufen werden).
+
+**Akzeptanzkriterien:**
+- [ ] Kurz bevor ich im Team-Modus die Aufgabe bekomme, mögliche Risiken auszuwählen, sehe ich stattdessen zunächst eine Entscheidung mit zwei Möglichkeiten: die Risikoprüfung wie gewohnt durchführen, oder sie mit der Begründung "wir sind doch agil, das klappt schon, man kann sowieso nicht alles vorhersehen" überspringen.
+- [ ] Entscheide ich mich dafür, die Risikoprüfung wie gewohnt durchzuführen, läuft sie genau wie bisher weiter ab — ohne sichtbaren Unterschied zu heute.
+- [ ] Entscheide ich mich fürs Überspringen, sehe ich direkt danach keine Risikoauswahl-Aufgabe mehr, sondern gehe direkt zum nächsten Schritt weiter.
+- [ ] Entscheide ich mich fürs Überspringen, merke ich in diesem Moment noch nichts von einer Konsequenz — die Verlockung wirkt im Moment tatsächlich kostenlos.
+- [ ] Sobald ich danach im Spiel die Entwicklung starte, sehe ich zusätzlich zu den bereits bestehenden Nachrichten eine neue Nachricht, die genau die realen Risiken dieses Szenarios beim Namen nennt, die durch das Überspringen nie besprochen wurden.
+- [ ] Bei derselben Gelegenheit steigt mein laufender Nacharbeits-Zähler um genau 3 Tage.
+- [ ] Habe ich die Risikoprüfung stattdessen normal durchgeführt, taucht diese neue Nachricht gar nicht erst auf, und mein Nacharbeits-Zähler bleibt davon unberührt.
+- [ ] Am Ende der Runde, in der Rückschau auf "was wäre im besten Fall möglich gewesen", wird sichtbar, dass ein Team, das den Pre-Mortem nicht übersprungen hätte, diese 3 Tage nicht gebraucht hätte.
+- [ ] Die Versionsnummer im Fußbereich der Seite wurde erhöht.
+
+**Fundstellen-Sweep:** Suche nach "premortem"/"pre-mortem" (Groß-/Kleinschreibung ignoriert) im gesamten Code: 53 Treffer. 42 davon stecken in den Risikodaten der 21 Szenarien selbst (je ein Datenpaar pro Szenario) — unverändert, liefern weiterhin die Risikoliste für beide Modi. Von den restlichen 11 Treffern in der eigentlichen Spiellogik betrifft genau einer den Team-Modus-Schritt "Team · 6", an dem dieses Ticket ansetzt. Ein weiterer, davon unabhängiger Treffer ist ein eigener, unveränderter Pflicht-Pre-Mortem-Schritt im Einzelspieler-Agent-Modus (nutzt dieselben Szenario-Risikodaten, aber eine andere Bildschirm-Art) — ausdrücklich außerhalb des Scopes. Zwei weitere Treffer sind Beschreibungstexte in der "What's different here?"-Infobox auf dem Startbildschirm — bleiben unverändert, da weiterhin grundsätzlich zutreffend.
+
+**Zustands-Check:** Wartezustand: entfällt für die neue Entscheidung selbst (reine Klick-Auswahl, wie bei den bereits bestehenden Team-Modus-Weichen). Die verzögerte Enthüllung beim Entwicklungsstart läuft in der bereits bestehenden, mehrere Sekunden dauernden Nachrichtenkette ab — kein neues Wartemuster nötig. Leerzustand: Wird die Risikoprüfung normal durchgeführt, erscheint schlicht keine zusätzliche Nachricht beim Entwicklungsstart — entspricht dem bestehenden Verhalten, wenn nichts vertagt wurde. Fehlerfall: entfällt — rein clientseitige Auswahl ohne Netzwerkzugriff oder Eingabevalidierung.
+
+**Analyse & Planung:**
+- [x] Aktuellen Zustand verstehen: Der Team-Modus-Schritt "Team · 6" ist heute eine Pflichtaufgabe (Risiken aus einer festen Liste pro Szenario auswählen), ohne jede Überspring-Möglichkeit. Der Team-Modus hat bereits ein etabliertes, mehrfach genutztes Muster für genau diese Art von Verlockungs-Entscheidung (z. B. der bestehende Schritt "Eine offene Frage noch"): eine Weiche mit einer verlockenden und einer soliden Option, deren Wahl in einem Merker festgehalten wird — ohne dass sofort eine sichtbare Konsequenz erscheint.
+- [x] Betroffene Bereiche identifiziert: Die Konsequenz selbst muss NICHT neu erfunden werden — der Team-Modus hat bereits eine gemeinsame "Baubeginn"-Nachrichtenkette, in der schon heute mehrere Arten von vertagten/unehrlichen Entscheidungen (u. a. eine vertagte offene Frage, eine unehrlich abgehakte Bereitschafts-Checkliste) als benannte Nachrichten samt Tage-Zuschlag auftauchen und in denselben laufenden Nacharbeits-Zähler einzahlen, der auch in der Abschluss-Rückschau ausgewertet wird. Die neue "Pre-Mortem übersprungen"-Konsequenz reiht sich in genau diese bestehende Kette ein, statt einen eigenen neuen Mechanismus zu bauen.
+- [x] Implementierungsansatz definiert: siehe Optionenvergleich unten — empfohlen wird, eine neue Weiche nach dem bestehenden Muster einzufügen, die bestehende Risikoauswahl-Aufgabe selbst unangetastet zu lassen, und die neue Konsequenz-Nachricht als weiteren Eintrag in die bereits bestehende Baubeginn-Nachrichtenkette einzuhängen.
+- [x] Risiken benannt: siehe Pre-Mortem unten.
+- [x] Aufwand geschätzt: Klein bis mittel — der komplette Mechanismus (Weiche, verzögerte Konsequenz, Zähler, Rückschau-Auswertung) existiert bereits als wiederverwendbares Muster; der Aufwand liegt vor allem im sauberen Einreihen an der richtigen Stelle, nicht im Neubau.
+
+**Wichtiger Befund (verhindert einen stillen Testbruch):** Ein bereits bestehender, fest verankerter Test (FEATURE-011) legt die bestmögliche Team-Modus-Runde auf exakt 7 angerechnete Analyse-Tage fest. Bekäme die neue Weiche zusätzlich zur bereits bestehenden Risikoauswahl-Aufgabe eine eigene Zeitgutschrift, stiege dieser Bestwert unbeabsichtigt auf 8 und der bestehende Test würde fehlschlagen. Empfehlung (siehe Optionenvergleich, Option A): die neue Weiche bekommt bewusst KEINE eigene Zeitgutschrift — nur die bereits bestehende Risikoauswahl-Aufgabe behält ihre schon heute vorhandene Gutschrift, und zwar nur, wenn sie tatsächlich durchgeführt wird.
+
+**Pre-Mortem:**
+- 💀 Die neue Weiche bekommt versehentlich ihre eigene Zeitgutschrift zusätzlich zur bereits bestehenden Gutschrift der Risikoauswahl-Aufgabe selbst, und der bestehende 7-Tage-Bestwert-Test bricht unbemerkt → Gegenmaßnahme: in Analyse & Planung ausdrücklich festgehalten, dass die neue Weiche keine eigene Gutschrift bekommt; Testplan lässt den bestehenden Test gezielt vor und nach der Änderung laufen.
+- 💀 Die "wie gewohnt durchführen"-Option verändert unbemerkt das bisherige Verhalten der Risikoauswahl-Aufgabe selbst (z. B. andere Wertung, anderer Text) → Gegenmaßnahme: eigenes Akzeptanzkriterium verlangt ausdrücklich "ohne sichtbaren Unterschied zu heute"; Testplan vergleicht das Verhalten vor/nach der Änderung.
+- 💀 Die neue Konsequenz-Nachricht erscheint an der falschen Stelle im Ablauf (z. B. sofort statt erst beim Entwicklungsstart) und verrät die Konsequenz zu früh, wodurch die eigentliche Lern-Pointe verloren geht → Gegenmaßnahme: eigenes Akzeptanzkriterium verlangt ausdrücklich, dass beim Überspringen selbst noch keine Konsequenz sichtbar wird; Testplan prüft gezielt den zeitlichen Ablauf.
+- 💀 GAME_VERSION wird trotz sichtbarer neuer Spielmechanik vergessen zu erhöhen → Gegenmaßnahme: eigenes Akzeptanzkriterium und eigener Testschritt, wie bei jedem bisherigen Ticket.
+- 💀 Ein im Browser zwischengespeicherter alter Spielstand verdeckt beim eigenen Test, ob die neue Weiche überhaupt erscheint → Gegenmaßnahme: im Testplan als offener Punkt vermerkt (harter Reload vor dem eigenen Test).
+
+**Optionenvergleich:**
+
+### Option A — Neue Team-Modus-Weiche vor "Team · 6", Konsequenz über die bereits bestehende Baubeginn-Nachrichtenkette (empfohlen)
+- Vorgehen: Direkt vor der heutigen Risikoauswahl-Aufgabe wird eine neue Entscheidung eingefügt, die genauso aussieht und sich genauso bedient wie die bereits vorhandene Weiche "Eine offene Frage noch". Wird die solide Option gewählt, folgt die heutige Risikoauswahl-Aufgabe unverändert. Wird die verlockende Option gewählt, wird diese Aufgabe übersprungen; beim späteren Start der Entwicklung erscheint — genau wie bei den bereits bestehenden vertagten Themen — eine zusätzliche Nachricht mit den namentlich genannten Risiken und +3 Tagen Nacharbeit. Die neue Weiche selbst bekommt bewusst keine eigene Zeitgutschrift.
+- Vorteile: Nutzt ausschließlich bereits vorhandene, bewährte Bausteine (dieselbe Weichen-Optik, derselbe Nachrichten-Mechanismus für verzögerte Konsequenzen, derselbe laufende Nacharbeits-Zähler, dieselbe Rückschau-Auswertung) — dadurch am wenigsten riskant und am besten mit dem restlichen Team-Modus im Einklang. Verändert die bestehende Risikoauswahl-Aufgabe selbst nicht, dadurch bleibt ihr heutiges Verhalten unangetastet. Bricht keinen bestehenden Test.
+- Nachteile: Die neue Weiche erscheint als zusätzlicher, separater Klick-Schritt statt in die bestehende Aufgabe eingebaut zu sein — technisch sauberer, spielerisch aber ein Schritt mehr im Ablauf.
+
+### Option B — Risikoauswahl-Aufgabe selbst um die Verlockung erweitern
+- Vorgehen: Statt einer eigenen vorgeschalteten Weiche bekommt die bestehende Risikoauswahl-Aufgabe selbst zusätzlich einen "Überspringen"-Knopf.
+- Vorteile: Ein Klick-Schritt weniger im Ablauf.
+- Nachteile: Vermischt zwei unterschiedliche, bisher getrennte Bedienmuster (Auswahlaufgabe und Verlockungs-Weiche) in einer einzigen Aufgabe — ein Muster, das es im Team-Modus bisher an keiner Stelle gibt. Höheres Risiko, das bestehende Verhalten der Risikoauswahl-Aufgabe versehentlich mitzuverändern.
+
+### Option C — Eigene Zeitgutschrift für die neue Weiche
+- Vorgehen: Wie Option A, aber die neue Weiche bekommt zusätzlich zur Risikoauswahl-Aufgabe ihre eigene Zeitgutschrift, konsistent mit dem generellen Muster, dass jede Weiche ihre eigene Gutschrift trägt.
+- Vorteile: Konsistent mit dem allgemeinen Weichen-Muster im Team-Modus.
+- Nachteile: Erhöht den bestmöglichen Team-Lauf von bislang 7 auf 8 Analyse-Tage und bricht damit den bereits bestehenden Test FEATURE-011 — nur mit Stephans ausdrücklicher Freigabe zur Anpassung dieses Tests vertretbar, ohne erkennbaren spielerischen Mehrwert gegenüber Option A.
+
+✅ **Empfehlung: Option A** — nutzt ausschließlich bereits bewährte Bausteine, verändert die bestehende Risikoauswahl-Aufgabe nicht und bricht keinen bestehenden Test.
+
+**Testplan:**
+1. jsdom-Test (neu): komplette public/index.html laden und über echte Klick-Handler den Team-Modus bis zur neuen Weiche durchspielen. Zweig 1 (solide Option): Risikoauswahl-Aufgabe erscheint unverändert wie bisher, kein neuer Eintrag im Nacharbeits-Zähler. Zweig 2 (verlockende Option): Risikoauswahl-Aufgabe erscheint NICHT, keine sichtbare Konsequenz direkt nach der Wahl.
+2. Im verlockenden Testpfad bis zum Entwicklungsstart weiterklicken und prüfen: neue Nachricht mit den namentlich genannten realen Risiken erscheint, Nacharbeits-Zähler steigt um genau 3 Tage, in der Abschluss-Rückschau ("was wäre im besten Fall möglich gewesen") wird diese Zeit als vermeidbar ausgewiesen.
+3. Bestehenden Test `tests/FEATURE-011.test.js` gezielt gegen den geänderten Code laufen lassen — muss weiterhin grün bleiben (bestätigt, dass die neue Weiche wie in Analyse & Planung festgelegt keine eigene Zeitgutschrift erhält und die 7-Tage-Bestmarke unverändert bleibt).
+4. Vollständiger Regressionslauf gegen die bestehende Testsuite unter `tests/` (aktuell 19 Dateien) — bereits bekannte, von diesem Ticket unabhängige Fehlschläge (fest einprogrammierte GAME_VERSION-Strings in vier älteren Testdateien, siehe BUG-003/BUG-004-Dokumentation) werden gesondert ausgewiesen, nicht diesem Ticket angelastet.
+5. `node --check` auf das extrahierte `<script>`-Innere als reinen Syntax-Check.
+6. Ein echter Blick im Browser (Desktop- und Handy-Breite) bleibt offener Punkt, bis Stephan ihn nach dem Release selbst bestätigt — insbesondere weil die neue Weiche optisch wie eine bestehende Komponente wirken soll, was sich aus dieser Sitzung heraus nicht visuell prüfen lässt.
+
+**Scope-Änderungen** *(chronologisches Log):*
+*(leer bei Erstellung)*
+
+**Implementierungsnotizen:**
+*(leer bei Erstellung)*
+
+
+## 📋 ToDo
 
 ## ✅ Done
 
