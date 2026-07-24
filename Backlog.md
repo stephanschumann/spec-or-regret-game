@@ -5,6 +5,9 @@
 > Verschoben am 20.07.2026 aus dem übergeordneten Ordner `Agentic Engineering Gamification/` in dieses Projektverzeichnis (`agent-contract-game/`), damit Backlog.md und Product.md direkt im selben Projektordner wie der Code liegen.
 
 ## 🔄 In Progress
+## 📋 ToDo
+
+## ✅ Done
 
 ### FEATURE-014 Verlockende Skip-Option beim Pre-Mortem im Team-Modus mit verzögerter Konsequenz
 
@@ -12,9 +15,10 @@
 |------|------|
 | **Typ** | Feature |
 | **Priorität** | Mittel |
-| **Status** | In Progress |
+| **Status** | Done |
 | **Erstellt** | 2026-07-24 |
 | **In Progress seit** | 2026-07-24 12:21 |
+| **Done seit** | 2026-07-24 |
 
 **Beschreibung:** Vor dem Pre-Mortem-Schritt im Team-Modus ("Team · 6") bekommt das Team eine verlockende Zusatzoption: den Pre-Mortem ganz überspringen, gerahmt als "wir sind agil, meistens läuft's gut, man kann sowieso nicht alles vorhersehen — einfach anfangen und lernen". Wählt das Team diese Abkürzung, zeigt sich die Konsequenz nicht sofort, sondern erst, sobald die Entwicklung startet: +3 Tage Rework im laufenden Zähler, plus eine konkrete Liste genau der echten Risiken aus diesem Szenario, die jetzt nachträglich aufgeräumt werden müssen, weil sie beim übersprungenen Pre-Mortem nie benannt wurden.
 
@@ -25,15 +29,15 @@ Eingeschlossen: eine neue, vorgeschaltete Entscheidung unmittelbar vor dem beste
 Ausgeschlossen: der Einzelspieler-Agent-Modus (hat einen eigenen, unveränderten Pflicht-Pre-Mortem-Schritt mit denselben Szenario-Risikodaten); Änderungen an den Risikolisten der 21 Szenarien selbst; die beiden allgemeinen Beschreibungstexte auf dem Startbildschirm, die den Pre-Mortem erwähnen (bleiben weiterhin grundsätzlich zutreffend, da die meisten Teams den Schritt weiterhin normal durchlaufen werden).
 
 **Akzeptanzkriterien:**
-- [ ] Kurz bevor ich im Team-Modus die Aufgabe bekomme, mögliche Risiken auszuwählen, sehe ich stattdessen zunächst eine Entscheidung mit zwei Möglichkeiten: die Risikoprüfung wie gewohnt durchführen, oder sie mit der Begründung "wir sind doch agil, das klappt schon, man kann sowieso nicht alles vorhersehen" überspringen.
-- [ ] Entscheide ich mich dafür, die Risikoprüfung wie gewohnt durchzuführen, läuft sie genau wie bisher weiter ab — ohne sichtbaren Unterschied zu heute.
-- [ ] Entscheide ich mich fürs Überspringen, sehe ich direkt danach keine Risikoauswahl-Aufgabe mehr, sondern gehe direkt zum nächsten Schritt weiter.
-- [ ] Entscheide ich mich fürs Überspringen, merke ich in diesem Moment noch nichts von einer Konsequenz — die Verlockung wirkt im Moment tatsächlich kostenlos.
-- [ ] Sobald ich danach im Spiel die Entwicklung starte, sehe ich zusätzlich zu den bereits bestehenden Nachrichten eine neue Nachricht, die genau die realen Risiken dieses Szenarios beim Namen nennt, die durch das Überspringen nie besprochen wurden.
-- [ ] Bei derselben Gelegenheit steigt mein laufender Nacharbeits-Zähler um genau 3 Tage.
-- [ ] Habe ich die Risikoprüfung stattdessen normal durchgeführt, taucht diese neue Nachricht gar nicht erst auf, und mein Nacharbeits-Zähler bleibt davon unberührt.
-- [ ] Am Ende der Runde, in der Rückschau auf "was wäre im besten Fall möglich gewesen", wird sichtbar, dass ein Team, das den Pre-Mortem nicht übersprungen hätte, diese 3 Tage nicht gebraucht hätte.
-- [ ] Die Versionsnummer im Fußbereich der Seite wurde erhöht.
+- [x] Kurz bevor ich im Team-Modus die Aufgabe bekomme, mögliche Risiken auszuwählen, sehe ich stattdessen zunächst eine Entscheidung mit zwei Möglichkeiten: die Risikoprüfung wie gewohnt durchführen, oder sie mit der Begründung "wir sind doch agil, das klappt schon, man kann sowieso nicht alles vorhersehen" überspringen.
+- [x] Entscheide ich mich dafür, die Risikoprüfung wie gewohnt durchzuführen, läuft sie genau wie bisher weiter ab — ohne sichtbaren Unterschied zu heute.
+- [x] Entscheide ich mich fürs Überspringen, sehe ich direkt danach keine Risikoauswahl-Aufgabe mehr, sondern gehe direkt zum nächsten Schritt weiter.
+- [x] Entscheide ich mich fürs Überspringen, merke ich in diesem Moment noch nichts von einer Konsequenz — die Verlockung wirkt im Moment tatsächlich kostenlos.
+- [x] Sobald ich danach im Spiel die Entwicklung starte, sehe ich zusätzlich zu den bereits bestehenden Nachrichten eine neue Nachricht, die genau die realen Risiken dieses Szenarios beim Namen nennt, die durch das Überspringen nie besprochen wurden.
+- [x] Bei derselben Gelegenheit steigt mein laufender Nacharbeits-Zähler um genau 3 Tage.
+- [x] Habe ich die Risikoprüfung stattdessen normal durchgeführt, taucht diese neue Nachricht gar nicht erst auf, und mein Nacharbeits-Zähler bleibt davon unberührt.
+- [x] Am Ende der Runde, in der Rückschau auf "was wäre im besten Fall möglich gewesen", wird sichtbar, dass ein Team, das den Pre-Mortem nicht übersprungen hätte, diese 3 Tage nicht gebraucht hätte.
+- [x] Die Versionsnummer im Fußbereich der Seite wurde erhöht.
 
 **Fundstellen-Sweep:** Suche nach "premortem"/"pre-mortem" (Groß-/Kleinschreibung ignoriert) im gesamten Code: 53 Treffer. 42 davon stecken in den Risikodaten der 21 Szenarien selbst (je ein Datenpaar pro Szenario) — unverändert, liefern weiterhin die Risikoliste für beide Modi. Von den restlichen 11 Treffern in der eigentlichen Spiellogik betrifft genau einer den Team-Modus-Schritt "Team · 6", an dem dieses Ticket ansetzt. Ein weiterer, davon unabhängiger Treffer ist ein eigener, unveränderter Pflicht-Pre-Mortem-Schritt im Einzelspieler-Agent-Modus (nutzt dieselben Szenario-Risikodaten, aber eine andere Bildschirm-Art) — ausdrücklich außerhalb des Scopes. Zwei weitere Treffer sind Beschreibungstexte in der "What's different here?"-Infobox auf dem Startbildschirm — bleiben unverändert, da weiterhin grundsätzlich zutreffend.
 
@@ -87,11 +91,6 @@ Ausgeschlossen: der Einzelspieler-Agent-Modus (hat einen eigenen, unveränderten
 
 **Implementierungsnotizen:**
 *(leer bei Erstellung)*
-
-
-## 📋 ToDo
-
-## ✅ Done
 
 ### BUG-004 Layout-Sprung beim Aufklappen der zweiten „What's different here?"-Infobox auf der Startseite
 
