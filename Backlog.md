@@ -6,15 +6,21 @@
 
 ## 🔄 In Progress
 
+## 📋 ToDo
+
+## ✅ Done
+
+
 ### FEATURE-015 Konsequenz-Chat im Team-Modus: Thread-Karten mit Rollen-Farben statt loser Sprechblasen
 
 | Feld | Wert |
 |------|------|
 | **Typ** | Feature |
 | **Priorität** | Mittel |
-| **Status** | In Progress |
+| **Status** | Done |
 | **Erstellt** | 2026-07-24 |
 | **In Progress seit** | 2026-07-24 |
+| **Done seit** | 2026-07-24 |
 
 **Beschreibung:** Der "Build in progress"-Bildschirm im Team-Modus (`renderTeamImpl`) zeigt heute jede verzögerte Konsequenz als eine einzelne, optisch identische Sprechblase (unabhängig davon, ob PO, Dev, QA, Compliance oder Kunde schreibt), gefolgt von einer komplett getrennten Liste mit den Tage-Kosten. Das Ergebnis: der Screen wirkt nicht wie ein Teil desselben Spiels (keine sichtbare Team-Modus-Farbe, generische graue Absenderzeile statt der im Spiel etablierten farbigen Pillen-Badges) und erklärt sich nicht von selbst (eine einzelne Nachricht ohne jeden zeitlichen Kontext wirkt wie eine zufällige Behauptung, nicht wie eine echte Verzögerung, die im Team wirklich passiert wäre). Dieses Ticket baut den Screen so um, dass jede Verzögerung eine eigene, in sich geschlossene "Thread-Karte" ist: mit farbigem Rollen-Badge, echten Zeitstempeln, und der tatsächlichen Tage-Zahl direkt an der Karte. Bei zwei der sieben möglichen Verzögerungen (offene Frage an den Product Owner; Product Owner fehlte im Meeting) zeigt der Screen zusätzlich einen echten Hin-und-Her-Verlauf über mehrere Nachrichten, statt nur einer einzelnen Zeile. Ein klickbarer HTML-Prototyp mit diesem Design wurde Stephan bereits vorgelegt und explizit freigegeben ("Sieht super aus. So für alle Scenarios machen!").
 
@@ -80,11 +86,11 @@ Ausgeschlossen: jede Änderung an den tatsächlichen Tage-Werten, Bedingungen od
 *(leer bei Erstellung)*
 
 **Implementierungsnotizen:**
-*(leer bei Erstellung)*
+Umgesetzt wie in Option A geplant: `renderTeamImpl` liefert jetzt pro Verzoegerung eine `.tthread`-Karte (farbiges Rollen-Etikett, Zeitstempel, Text, Tage-Kosten direkt an der Karte) statt der alten `.bubble`/`.chatwrap`-Sprechblasen; die zwei Mehrfach-Nachrichten-Faelle (offene Frage vertagt, PO fehlte im Meeting) zeigen einen echten Hin-und-Her-Verlauf ueber mehrere Nachrichten mit Warte-Zeile dazwischen. Neue, komplett eigene CSS-Klassen (`.threadwrap`, `.tthread`, `.rolebadge`, `.tledger` usw.) — `.rework`/`.rticket`/`.rh` (Agenten-Modus) unangetastet. `S.rework`/`bumpCycle`-Aufrufe und die zwei bestehenden `setTimeout`-Stufen (1400ms/900ms) unveraendert. `GAME_VERSION` 1.23.1 -> 1.24.0.
 
-## 📋 ToDo
+**Testplan-Ergebnis:** Neuer Test `tests/FEATURE-015.test.js` (4/4 gruen): alle Thread-Karten inkl. Rollen-Etiketten + Mehrfach-Nachrichten-Verlauf fuer die zwei genannten Faelle, leerer Zustand im neuen Kartenformat, Agenten-Modus nachweislich unveraendert (keine der neuen Klassen dort vorhanden, `.rework`/`.rticket` weiterhin amber), `GAME_VERSION` erhoeht. Vollstaendiger Regressionslauf gegen alle 21 vorhandenen Testdateien: 17/21 gruen; die verbleibenden 4 (BUG-004, FEATURE-009/010/011/012) scheitern ausschliesslich an bereits laenger bekannten, hartcodierten `GAME_VERSION`-Alt-Werten (Fragilitaetsklasse aus Retro BUG-003/BUG-004) — durch gezieltes Zuruecksetzen von `GAME_VERSION` auf den jeweils erwarteten Alt-Wert verifiziert, dass in diesen Dateien sonst 100% der Pruefungen gruen bleiben; keine neue, durch FEATURE-015 verursachte Regression. `tests/BUG-003.test.js` mit Stephans ausdruecklicher Freigabe von 536 auf 538 erwartete Apostrophe angehoben (2 neue durch natuerliche Dialogzeilen "there's"/"let's"), lokal 5/5 gruen verifiziert.
 
-## ✅ Done
+**Release:** v1.24.0 released ueber zwei Commits (`f4e36b0` FEATURE-015 + BUG-003-Test-Anhebung, `02da289` unabhaengiger Beifang-Commit fuer die bereits gelebte Kanban-Sync-Konvention). GitHub Actions (Deploy to Firebase Hosting on merge) fuer beide Commits gruen (Run 27, Run 28). Live-Verifikation per eigenstaendigem Chrome-Browser-Subagenten auf https://learning.stephanschumann.com: Versionsanzeige zeigt "v1.24.0", Quelltext enthaelt die neuen Klassen (`threadwrap`, `tthread`), UND ein echter Durchlauf im Team-Modus (Szenario "Bulk supplier payments", PO fehlte im Meeting, Meeting-Timer unsortiert ausgelaufen, Business Value geraten, AC vage gelassen, Pre-Mortem uebersprungen) zeigte beim echten Baubeginn alle erwarteten Karten live: Thread "Open question, deferred in the meeting" mit echtem Chase-und-verspaetete-Antwort-Verlauf (DEV frueh -> DEV Nachhaken -> PO Tag 2 verspaetet mit "Sorry - missed this in the meeting, catching up now."), Thread "Product Owner missing from the meeting" mit echter unvollstaendiger-Antwort-Nachfrage-Verlauf, sowie die uebrigen Karten (unsortierte Map-Karten, Pre-Mortem uebersprungen, Business Value geraten) alle mit farbigem Rollen-Etikett, Zeitstempel und Tage-Kosten direkt an der Karte; die Kosten-Ledger-Box am Ende (tuerkis) zeigt die Gesamt-Aufschluesselung. Agenten-Modus separat nicht erneut live durchgespielt (bereits durch den automatisierten Regressionstest `scenarioAgentModeUnaffected` abgedeckt), keine Konsolenfehler aus dem Spielcode selbst (eine einzelne, unabhaengige Browser-Erweiterungs-Meldung ignoriert). Alle Akzeptanzkriterien erfuellt, Release bestaetigt live -> Status gemaess der neuen Release-vor-Done-Regel auf Done gesetzt.
 
 ### FEATURE-014 Verlockende Skip-Option beim Pre-Mortem im Team-Modus mit verzögerter Konsequenz
 
