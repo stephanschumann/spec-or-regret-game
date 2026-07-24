@@ -5,8 +5,85 @@
 > Verschoben am 20.07.2026 aus dem übergeordneten Ordner `Agentic Engineering Gamification/` in dieses Projektverzeichnis (`agent-contract-game/`), damit Backlog.md und Product.md direkt im selben Projektordner wie der Code liegen.
 
 ## 🔄 In Progress
+### BUG-004 Layout-Sprung beim Aufklappen der zweiten „What's different here?"-Infobox auf der Startseite
 
-## 📋 ToDo
+| Feld | Wert |
+|------|------|
+| **Typ** | BugFix |
+| **Priorität** | Niedrig |
+| **Status** | In Progress |
+| **Erstellt** | 2026-07-23 |
+
+**Beschreibung:** Laut Ersteindruck-Testlauf lief ein erster Klick auf "What's different here?" bei der zweiten Modus-Karte (Team-Modus) ins Leere, weil sich durch das Aufklappen der ersten Karte das Layout kurz vorher verschoben hatte. Am echten Code verifiziert: Beide Infoboxen sind native `<details><summary>What's different here?</summary>…</details>`-Elemente; das native Aufklappverhalten verschiebt den nachfolgenden Inhalt sofort ohne Übergang — ein Klick, der auf die alte Position der zweiten Box zielt, trifft daher ins Leere.
+
+**User Story:** Als Spielerin/Spieler möchte ich beide Modus-Infoboxen zuverlässig mit einem einzigen Klick aufklappen können, auch direkt nacheinander, sodass ich nicht zweimal klicken muss.
+
+**Bezug:** Ersteindruck-Testlauf 23.07.2026 (Finding 4).
+
+**Scope:** Eingeschlossen: die beiden „What's different here?"-Infoboxen auf dem Moduswahl-Startbildschirm (Agent-Karte „Collaborate with Agents" und Team-Karte „Work as a Team") — das Auf- und Zuklappen bekommt einen sanften Übergang statt eines harten Sprungs, auf allen Bildschirmbreiten (breiter Bildschirm mit den Karten nebeneinander und schmaler Handy-Bildschirm mit den Karten untereinander). Ausgeschlossen: der Textinhalt der beiden Infoboxen selbst (bleibt unverändert); alle anderen Bildschirme des Spiels (dort gibt es keine vergleichbaren aufklappbaren Boxen); ein automatisches gegenseitiges Schließen der beiden Boxen (bleiben bewusst unabhängig voneinander wie bisher).
+
+**Akzeptanzkriterien:**
+- [x] Wenn ich die erste Infobox ("What's different here?" bei "Collaborate with Agents") anklicke, öffnet sie sich mit einer sanften, sichtbaren Bewegung statt eines plötzlichen Sprungs. Per echtem Chromium-Test bestätigt (nicht nur jsdom, siehe Testplan) — jsdom kann Layout-Bewegung grundsätzlich nicht sehen.
+- [x] Dasselbe gilt für die zweite Infobox (bei "Work as a Team"). Per echtem Chromium-Test bestätigt.
+- [x] Wenn ich direkt nach dem Öffnen der ersten Infobox auf die (durch das Öffnen leicht verschobene) zweite Infobox klicke, lande ich zuverlässig auf ihr — ich muss nicht ein zweites Mal klicken, weil der erste Klick daneben ging. Per echtem Chromium-Test bestätigt: ein Klick exakt auf die alte Koordinate der zweiten Infobox, unmittelbar nach dem Öffnen der ersten (kein Warten), trifft und öffnet sie zuverlässig — auf beiden Bildschirmbreiten.
+- [x] Das gilt sowohl auf einem breiten Bildschirm (Karten stehen nebeneinander) als auch auf einem schmalen Handy-Bildschirm (Karten stehen untereinander). Beide Breiten einzeln per echtem Chromium-Test bestätigt.
+- [x] Auch das Zuklappen einer bereits geöffneten Infobox verläuft sanft statt abrupt. Per echtem Chromium-Test bestätigt (Schließ-Übergang, ~280ms).
+- [x] Die Start-Buttons, Kartentexte und die Auswahl des Modus verhalten sich unverändert wie bisher. Automatisiert bestätigt (jsdom, echter Klickpfad bis zum Rundenstart).
+- [x] Die Versionsnummer im Fußbereich der Seite wurde erhöht. Automatisiert bestätigt („1.21.0" → „1.22.0").
+
+**Offener Punkt (wie bei jedem Layout-Ticket):** Ein kurzer eigener Blick von Stephan im echten Browser bleibt trotz der automatisierten Chromium-Tests empfohlen, bevor das Ticket endgültig als vollständig geprüft gilt.
+
+**Fundstellen-Sweep:** Gesucht nach `<details` (native Aufklapp-Elemente) im gesamten `public/index.html`: genau 2 Treffer, beide in `renderModePicker()` (Zeilen 752 und 761) — exakt die beiden im Ticket genannten Infoboxen. Ergänzend nach der Klasse `.moredet`/`.modecards` gesucht: kommt ausschließlich auf diesem einen Bildschirm vor, keine weitere Fundstelle im Spiel. Keine weiteren Fundstellen — Ticket deckt das Problem vollständig ab.
+
+**Zustands-Check:** Wartezustand: entfällt — rein clientseitiges, natives Auf-/Zuklappen ohne Laden oder Netzwerkzugriff. Leerzustand: entfällt — beide Infoboxen sind in jedem Spieldurchlauf gleichermaßen vorhanden. Fehlerfall: entfällt — kein Netzwerkzugriff, keine Eingabevalidierung; das native Aufklappen kann nicht fehlschlagen, es kann höchstens (das ist ja gerade der Bug) optisch abrupt wirken.
+
+**Analyse & Planung:** Am echten Code verifiziert (`public/index.html`, `renderModePicker()`): Beide Infoboxen sind native `<details class="moredet"><summary>…</summary>…</details>`-Elemente ohne jede CSS-Übergangsangabe. Die beiden Moduskarten liegen in einem CSS-Grid `.modecards{display:grid;grid-template-columns:1fr 1fr}` (Zeile 174) — auf breiten Bildschirmen nebeneinander in derselben Zeile. Da Grid-Elemente standardmäßig auf gleiche Höhe gestreckt werden und jede `.modecard{display:flex;flex-direction:column}` einen `.story{flex:1}`-Absatz enthält, der freien Platz auffüllt, wächst beim Öffnen der ersten Box automatisch auch die zweite Karte mit — ihr `.story`-Absatz dehnt sich, wodurch Button und zweite Infobox sichtbar nach unten rutschen, bevor der zweite Klick ankommt. Unter 640px Breite (`@media(max-width:640px){.modecards{grid-template-columns:1fr}}`, Zeile 175) stehen die Karten ohnehin untereinander — dort schiebt das Öffnen der ersten Box die zweite direkt und noch deutlicher nach unten. Beide Fälle haben dieselbe Grundursache: der native Sprung passiert ohne jeden Übergang, sodass ein schneller zweiter Klick die alte Position trifft statt der neuen.
+
+**Pre-Mortem:**
+- 💀 Der Fix wirkt nur auf breiten Bildschirmen, aber auf Handy-Breite (gestapeltes Layout) rutscht die zweite Box weiterhin abrupt weg → Gegenmaßnahme: eigenes Akzeptanzkriterium deckt ausdrücklich beide Breiten ab, Testplan prüft beide.
+- 💀 Die Übergangs-Animation wird nur von manchen Browsern unterstützt und fällt in anderen unbemerkt auf den alten harten Sprung zurück → Gegenmaßnahme: im Ticket dokumentieren, dass ein harter Fallback ohne Animation kein Fehler ist, solange die Grundfunktion (Klick trifft) erhalten bleibt; Testplan prüft primär im aktuellen Chrome.
+- 💀 Die Änderung an der gemeinsam genutzten `.modecard`/`.modecards`-Struktur wirkt sich unbemerkt auf einen anderen Bildschirm aus → Gegenmaßnahme: Fundstellen-Sweep hat vorab bestätigt, dass diese Klassen nur auf dem Start-/Moduswahlbildschirm vorkommen.
+- 💀 Der jsdom-Regressionstest kann die eigentliche visuelle Verschiebung nicht prüfen (keine echte Layout-Engine) und suggeriert fälschlich vollständige Testabdeckung → Gegenmaßnahme: Testplan hält offen fest, dass die visuelle Bestätigung nur per Chrome-Browser-Test bzw. Stephans eigenem Blick erfolgt, nicht per jsdom.
+- 💀 Die Versionsnummer wird trotz sichtbarer CSS-Änderung vergessen zu erhöhen → Gegenmaßnahme: eigenes Akzeptanzkriterium und eigener Testschritt dafür, wie bei jedem bisherigen Ticket.
+
+**Optionenvergleich:**
+
+### Option A — Sanfter CSS-Übergang beim Auf-/Zuklappen (empfohlen)
+- Vorgehen: Der Inhalt jeder Infobox (`.difflist`) bekommt einen animierten Höhenübergang beim Öffnen/Schließen, statt dass `<details>` sofort hart umschaltet — der Sprung wird dadurch für das Auge nachvollziehbar statt unangekündigt.
+- Vorteile: Behebt das Problem auf breiten UND schmalen Bildschirmen gleichermaßen, weil die eigentliche Ursache der harte, augenblickliche Sprung ist — nicht nur die Kopplung der Kartenhöhen; kein zusätzlicher JS-Klick-Schutz nötig; beide Boxen bleiben wie bisher unabhängig voneinander.
+- Nachteile: Mit jsdom nicht automatisiert prüfbar (reine Visualisierung); in sehr alten Browsern ggf. kein Effekt (dann bleibt der heutige harte Sprung als Fallback bestehen).
+
+### Option B — Kartenhöhen auf breiten Bildschirmen entkoppeln + Klick-Schutz per Timing
+- Vorgehen: Auf breiten Bildschirmen verhindern, dass die zweite Karte durch das Öffnen der ersten überhaupt mitwächst; zusätzlich einen kurzen Klick-Schutz nach einem Layoutwechsel einbauen.
+- Vorteile: Behebt die Desktop-Ursache strukturell.
+- Nachteile: Löst das Problem auf Handy-Breite (Karten zwingend untereinander) nicht — dort bräuchte es zusätzlich Option A; ein zeitbasierter Klick-Schutz ist eine unsaubere Krücke und schwer zuverlässig zu testen.
+
+### Option C — Boxen exklusiv/akkordionartig verhalten lassen (Öffnen der einen schließt automatisch die andere)
+- Vorgehen: Nur maximal eine Infobox gleichzeitig offen.
+- Vorteile: Begrenzt die maximale Sprunghöhe.
+- Nachteile: Löst das eigentliche Problem nicht, wenn beide Boxen schnell hintereinander angeklickt werden sollen; verändert das bisherige unabhängige Verhalten der beiden Boxen unnötig stark für ein Niedrig-Priorität-Ticket.
+
+✅ **Empfehlung: Option A** — behebt die Ursache (harter, unangekündigter Sprung) auf allen Bildschirmbreiten gleichermaßen, ohne das bestehende unabhängige Verhalten der beiden Boxen zu verändern oder zusätzliche, schwer testbare JS-Logik einzuführen.
+
+**Testplan:**
+1. jsdom-Test (echte Klick-Handler auf beide `<summary>`-Elemente): prüft, dass sich `open` korrekt umschaltet, dass keine der beiden Boxen die andere blockiert, und dass Start-Buttons/Moduswahl nach dem Auf-/Zuklappen weiterhin normal funktionieren. **Grenze:** jsdom hat keine echte Layout-Engine — ob sich die zweite Box wirklich weniger stark bzw. sanfter verschiebt, kann damit NICHT automatisiert geprüft werden.
+2. `node --check` auf das extrahierte `<script>`-Innere als reinen Syntax-Check.
+3. Diese Änderung betrifft keine der geteilten Szenario-Funktionen (`buildStages`, `MAP_BUCKETS` etc.) — reine CSS/Markup-Änderung auf einem einzelnen, szenario-unabhängigen Bildschirm. Trotzdem läuft die volle bestehende Testsuite (aktuell 16 Testdateien in `tests/`) als Regressionslauf mit.
+4. **Offener Kernpunkt (visuell, nicht per jsdom prüfbar):** Klick auf Box 1, danach sofort Klick auf die vorherige Position von Box 2 — prüfen, ob der Klick jetzt trifft. Das wird primär über einen eigenständigen Chrome-Browser-Test durchgeführt, auf breiter und auf schmaler (Handy-)Bildschirmbreite. Ein kurzer eigener Blick von Stephan bleibt zusätzlich offener Punkt, bevor das Ticket endgültig als vollständig getestet gilt.
+
+**Implementierungsnotizen:**
+- [x] Erster Ansatz (reines CSS, wie in Option A geplant): `.difflist` per CSS-Grid-Trick (`grid-template-rows: 0fr` → `1fr`) animiert, Listeninhalt dafür in einen zusätzlichen `.difflist-inner`-Wrapper verschoben. Sah in einer isolierten Testseite korrekt aus.
+- [x] **Wichtiger Fund beim echten Chromium-Test (nicht geraten, sondern gemessen):** Gegen die tatsächliche Seite geprüft, ob die ANDERE Karte sich beim Öffnen wirklich graduell mitbewegt (nicht nur die geöffnete Box selbst) — und sie tat es nicht. Sowohl auf breiten Bildschirmen (Karten nebeneinander, gekoppelt über den CSS-Grid-Zeilen-Stretch von `.modecards`) als auch auf Handy-Breite (Karten untereinander, einfache Blockreihenfolge) sprang die Position der jeweils anderen Box weiterhin sofort auf ihren Endwert — Chromium führt die CSS-Grid-Zeilenhöhen-Neuberechnung (und die davon abhängige Verschiebung eines gestreckten bzw. nachfolgenden Nachbarelements) offenbar nicht bei jedem Animations-Frame neu aus, sondern nur einmal am Ende des Übergangs. Nur die geöffnete Box selbst wuchs sichtbar graduell — genau das reicht nicht, weil der Bug die ANDERE Box betrifft.
+- [x] Per gezieltem Vergleichstest (mehrere isolierte Minimal-Seiten, `max-height`-Technik statt `grid-template-rows`) verifiziert, dass eine klassische `max-height`-Transition (Zielhöhe per JS aus `scrollHeight` gemessen, `overflow:hidden`) die andere Karte tatsächlich graduell mitbewegt — auf beiden Bildschirmbreiten bestätigt.
+- [x] Umgesetzt: `.difflist` nutzt jetzt `max-height`/`overflow:hidden`/`transition` statt des Grid-Tricks; der `.difflist-inner`-Wrapper war dafür nicht mehr nötig und wurde wieder entfernt (Markup bleibt so einfach wie vorher). Ein kleiner JS-Klick-Handler auf beiden `<summary>`-Elementen ersetzt das native, sofortige `<details>`-Aufklappen: `preventDefault()` plus manuelles Setzen/Entfernen von `open`, synchron zur `max-height`-Animation (280ms).
+- [x] `GAME_VERSION` von „1.21.0" auf „1.22.0" erhöht (sichtbare Verhaltensänderung, analog zu allen bisherigen Tickets).
+
+**Testplan (durchgeführt):**
+- [x] `tests/BUG-004.test.js` (neu, jsdom, tatsächlich ausgeführt, grün, 5/5 Checks): beide Infoboxen vorhanden, öffnen unabhängig voneinander per echtem Klick (Öffnen der ersten blockiert die zweite nicht), Schließen erst nach der echten ~280ms-Verzögerung (nicht sofort — extra geprüft, weil das der Kern der JS-Umstellung ist), Karteninhalt unverändert, Start-Button funktioniert nach dem Öffnen/Schließen weiterhin, `GAME_VERSION` erhöht.
+- [x] `tests/BUG-004-visual.test.js` (neu, echtes Chromium via Playwright, tatsächlich ausgeführt, grün, 2/2 Szenarien): reproduziert das gemeldete Verhalten direkt — Klick auf Box 1, danach SOFORT (ohne Warten) ein Klick exakt auf die alte Koordinate von Box 2 — auf einem breiten Bildschirm (1400px, Karten nebeneinander, Verschiebung ~26px) UND auf Handy-Breite (375px, Karten untereinander, Verschiebung ~318px) öffnet sich Box 2 jetzt trotzdem zuverlässig. Zusätzlich bestätigt: Box 2 verschiebt sich nach dem vollständigen Settle tatsächlich weiterhin sichtbar (der Bug wird geglättet, nicht nur zufällig vermieden), und reguläres Schließen per Klick funktioniert.
+- [x] `node --check` auf das extrahierte `<script>`-Innere: Syntax sauber.
+- [x] Vollständiger Regressionslauf gegen alle 16 bereits vorhandenen Testdateien unter `tests/` (tatsächlich einzeln ausgeführt, Ergebnis ehrlich, nicht nur behauptet): 12 grün unverändert (`BUG-002`, `FEATURE-009*` [7 Dateien], `FEATURE-013`, `example`). 4 Dateien (`FEATURE-009.test.js`, `FEATURE-010.test.js`, `FEATURE-011.test.js`, `FEATURE-012.test.js`) schlagen fehl — **bereits VOR dieser Änderung fehlgeschlagen** (verifiziert durch Testlauf gegen den unveränderten Ausgangsstand), Ursache ist eine bei jeder dieser vier Dateien fest einprogrammierte, exakte `GAME_VERSION`-Erwartung aus dem jeweiligen Ticket-Zeitpunkt (z. B. „1.16.0", „1.17.0"), die bei jeder späteren Versionserhöhung zwangsläufig veraltet. Kein Bezug zu BUG-004, kein Kollateralschaden dieses Tickets — aber ein bestehendes Test-Fragilitäts-Problem, das ich nicht selbst repariert habe (nicht Teil dieses Scopes). Vorschlag: eigenes kleines Ticket, das diese vier Assertions auf „Version wurde seit dem Vorgänger-Ticket erhöht" statt auf einen exakten String umstellt.
+- [ ] Echter Blick im Browser durch Stephan selbst — bleibt offener Punkt trotz der beiden automatisierten Chromium-Checks.
 
 ### BUG-003 Deutsche Anführungszeichen statt englische in Spieltexten
 
@@ -14,7 +91,7 @@
 |------|------|
 | **Typ** | BugFix |
 | **Priorität** | Niedrig |
-| **Status** | ToDo |
+| **Status** | In Progress |
 | **Erstellt** | 2026-07-23 |
 
 **Beschreibung:** Laut Ersteindruck-Testlauf tauchen im durchgehend englischsprachigen Spiel wiederholt deutsche Anführungszeichen ("…") statt englischer ("…"/'…') auf. Am echten Code verifiziert: 183 Fundstellen von „ bzw. “ in `public/index.html`.
@@ -23,20 +100,60 @@
 
 **Bezug:** Ersteindruck-Testlauf 23.07.2026 (Finding 2).
 
-### BUG-004 Layout-Sprung beim Aufklappen der zweiten „What's different here?"-Infobox auf der Startseite
+**Scope:** Eingeschlossen: alle Textstellen im gesamten Spiel, die deutsche Anführungszeichen verwenden, werden auf die im übrigen Spiel bereits verwendete korrekte englische Form umgestellt. Ausgeschlossen: die an vielen anderen Stellen im Spiel bereits korrekt englischen Anführungszeichen (bleiben unverändert); Apostrophe (sind bereits durchgängig korrekt, bleiben unverändert); jede inhaltliche Änderung an den Spieltexten selbst — reine Zeichenumstellung.
 
-| Feld | Wert |
-|------|------|
-| **Typ** | BugFix |
-| **Priorität** | Niedrig |
-| **Status** | ToDo |
-| **Erstellt** | 2026-07-23 |
+**Akzeptanzkriterien:**
+- [x] Überall im Spiel, wo bisher ein Zitat oder eine wörtliche Aussage in deutschen Anführungszeichen stand, erscheint jetzt stattdessen die englische Form. Automatisiert bestätigt: alle 84 Paare paarbewusst ersetzt, per echtem Render-Test an einer Bankszenario-Kundenanfrage und mehreren gemeinsam genutzten Spieltexten (u. a. einem Textblock mit vier Paaren) geprüft.
+- [x] Die an anderen Stellen im Spiel bereits korrekten englischen Anführungszeichen sehen weiterhin genauso aus wie bisher. Automatisiert bestätigt: die 15 bereits korrekten Paare sind unangetastet (Zeichen-Gesamtzahlen stimmen exakt mit der Vorab-Rechnung überein), zusätzlich per echtem Render-Test an der „don't do this"-Beispielstelle geprüft, inklusive des direkt danebenstehenden, unverändert gebliebenen Apostrophs.
+- [x] Kein Wort oder Satz wurde inhaltlich verändert — ausschließlich die Anführungszeichen selbst. Automatisiert bestätigt: reine Zeichen-Ersetzung per Skript (keine Wortänderung möglich), Apostroph-Gesamtzahl vor/nach identisch (534).
+- [x] Die Versionsnummer im Fußbereich der Seite wurde erhöht. Automatisiert bestätigt („1.22.0" → „1.23.0").
 
-**Beschreibung:** Laut Ersteindruck-Testlauf lief ein erster Klick auf "What's different here?" bei der zweiten Modus-Karte (Team-Modus) ins Leere, weil sich durch das Aufklappen der ersten Karte das Layout kurz vorher verschoben hatte. Am echten Code verifiziert: Beide Infoboxen sind native `<details><summary>What's different here?</summary>…</details>`-Elemente; das native Aufklappverhalten verschiebt den nachfolgenden Inhalt sofort ohne Übergang — ein Klick, der auf die alte Position der zweiten Box zielt, trifft daher ins Leere.
+**Fundstellen-Sweep:** Systematisch nach allen deutschen/untypischen Anführungszeichen-Varianten im gesamten `public/index.html` gesucht (nicht nur die im Ticket genannten zwei Zeichen): 84 öffnende deutsche Anführungszeichen, jeweils sauber gepaart mit einem eigenen schließenden Zeichen direkt danach (per Musterabgleich verifiziert: alle 84 Paare schließen unmittelbar mit dem nächsten Anführungszeichen, keine verschachtelten oder unvollständigen Paare). Wichtiger Fund, der über die reine Trefferzahl aus der Ticket-Beschreibung hinausgeht: von den insgesamt 99 Vorkommen des als Schluss-Zeichen genutzten Zeichens sind nur 84 tatsächlich die Schluss-Hälfte eines deutschen Paares — die übrigen 15 sind die öffnende Hälfte bereits korrekter, an anderer Stelle im Spiel längst vorhandener englischer Anführungszeichen-Paare (mit ebenfalls 15 zugehörigen, bereits korrekten Schluss-Zeichen) und dürfen NICHT verändert werden. Zusätzlich geprüft: keine deutschen einfachen Anführungszeichen und keine französischen Guillemets (« ») im gesamten Dokument — 0 Treffer. Alle 84 betroffenen Paare liegen ausschließlich innerhalb des einzigen `<script>`-Blocks (0 Treffer in HTML-Markup oder CSS außerhalb) — 69 davon in den Bankszenario-Texten (u. a. zitierte Kundenanfragen), 15 in den übrigen, von allen Szenarien gemeinsam genutzten Spieltexten (Fragen, Debrief-Texte). Keine weiteren Fundstellen — die Suche deckt jede in diesem Dokument vorkommende Anführungszeichen-Zeichenart ab, nicht nur die zwei aus der Ticket-Beschreibung.
 
-**User Story:** Als Spielerin/Spieler möchte ich beide Modus-Infoboxen zuverlässig mit einem einzigen Klick aufklappen können, auch direkt nacheinander, sodass ich nicht zweimal klicken muss.
+**Zustands-Check:** Wartezustand: entfällt — reine, synchrone Textänderung ohne Laden oder Netzwerkzugriff. Leerzustand: entfällt — die betroffenen Textstellen sind in jedem Spieldurchlauf und bei jedem betroffenen Szenario gleichermaßen vorhanden, es gibt keinen Fall „kein Text vorhanden". Fehlerfall: entfällt — rein clientseitige, statische Zeichenänderung, kein neues Fehlerverhalten nötig oder vorgesehen.
 
-**Bezug:** Ersteindruck-Testlauf 23.07.2026 (Finding 4).
+**Pre-Mortem:**
+- 💀 Eine der 84 Fundstellen wird beim Ersetzen übersehen (z. B. durch einen unerwarteten Zeilenumbruch mitten in einem Paar) → Gegenmaßnahme: nach der Ersetzung erneut automatisiert zählen, dass kein deutsches öffnendes Anführungszeichen mehr im Dokument vorkommt, statt der Ersetzung blind zu vertrauen.
+- 💀 Die 15 bereits korrekten englischen Anführungszeichen-Paare an anderer Stelle im Spiel werden versehentlich mit verändert, weil zeichenweise statt paarbewusst ersetzt wird → Gegenmaßnahme: nur die 84 deutschen öffnenden Zeichen und ihr jeweils direkt folgender Schluss-Partner werden ersetzt; im Testplan wird explizit gegengeprüft, dass exakt 15 bereits-korrekte Paare unverändert bleiben (weder mehr noch weniger).
+- 💀 Ein Apostroph wird versehentlich mit einem der beiden betroffenen Anführungszeichen verwechselt und ungewollt mitgeändert → Gegenmaßnahme: die paarbasierte Ersetzung rührt Apostrophe grundsätzlich nicht an; im Testplan wird die Gesamtzahl der Apostrophe vor und nach der Änderung verglichen (muss identisch bleiben).
+- 💀 `GAME_VERSION` wird trotz sichtbarer Textänderung vergessen zu erhöhen → Gegenmaßnahme: eigenes Akzeptanzkriterium und eigener Testschritt dafür, wie bei jedem bisherigen Ticket.
+
+**Optionenvergleich:**
+
+### Option A — Auf die im Spiel bereits etablierte englische Form umstellen (empfohlen)
+- Vorgehen: Jedes der 84 deutschen Anführungszeichen-Paare wird durch die Form ersetzt, die an den 15 bereits korrekten Stellen im selben Spiel schon verwendet wird.
+- Vorteile: Volle Konsistenz mit dem bereits vorhandenen, richtigen Vorbild im selben Dokument — kein neuer, dritter Stil wird eingeführt; die Änderung ist rein mechanisch und dadurch besonders risikoarm.
+- Nachteile: keine.
+
+### Option B — Auf einfache gerade Anführungszeichen umstellen
+- Vorgehen: Die 84 Paare werden stattdessen durch gerade Anführungszeichen ersetzt, wie sie im Dokument technisch (für Programmcode/Daten) ohnehin massenhaft vorkommen.
+- Vorteile: Ebenfalls unkompliziert umzusetzen.
+- Nachteile: Würde einen DRITTEN Anführungszeichen-Stil im selben Spieltext einführen (neben den 15 bereits korrekten typografischen Paaren) statt bestehende Inkonsistenz zu beseitigen — widerspricht dem Ziel des Tickets, für einen durchgängig polierten Eindruck zu sorgen.
+
+✅ **Empfehlung: Option A** — nutzt das im selben Spiel bereits vorhandene korrekte Vorbild, führt keinen neuen Stil ein und ist durch die klare Paar-Zuordnung praktisch risikofrei umzusetzen.
+
+**Testplan:**
+1. Automatisierte, paarbewusste Ersetzung aller 84 deutschen Anführungszeichen-Paare, direkt im Anschluss automatisiert gegengezählt: 0 deutsche öffnende Zeichen verbleiben; die Gesamtzahl korrekter englischer Paare steigt von 15 auf 99 (84 neu + 15 unverändert); Apostroph-Gesamtzahl vor/nach identisch.
+2. Neue dauerhafte Testdatei (jsdom, echter Klickpfad bis in die Spielszenarien hinein statt nur Rohtext-Suche): prüft stichprobenartig mehrere der vormals betroffenen Textstellen (darunter mindestens eine Bankszenario-Kundenanfrage und einer der gemeinsam genutzten Spieltexte) auf die jetzt korrekte Anführungszeichen-Form im tatsächlich gerenderten Text.
+3. Diese Änderung betrifft reinen Text innerhalb der Szenario-Daten und der gemeinsamen Spieltexte, keine geteilte Render-Logik oder Spielregel — ein stichprobenartiger Test an wenigen Stellen ist repräsentativ, weil es sich um eine mechanische Zeichenersetzung handelt, nicht um szenario-abhängiges Verhalten.
+4. `node --check` auf das extrahierte `<script>`-Innere als reinen Syntax-Check.
+5. Vollständiger Regressionslauf gegen alle bestehenden Testdateien unter `tests/` (inklusive der beiden neuen BUG-004-Testdateien).
+6. Ein echter Blick im Browser bleibt wie bei jedem Ticket ein offener Punkt, bis Stephan ihn selbst bestätigt — bei einer reinen Typografie-Änderung mit geringem Risiko, aber trotzdem empfohlen.
+
+**Implementierungsnotizen:**
+- [x] Zeichen-Zählung vor der Ersetzung erneut direkt am aktuellen Code verifiziert (nicht nur aus der Analyse übernommen): 84 öffnende „, 99 „-Schluss-Zeichen „, 15 bereits-korrekte englische Schluss-Zeichen ”, 534 Apostrophe ’ — deckungsgleich mit dem Fundstellen-Sweep.
+- [x] Paarbewusste Ersetzung per Skript umgesetzt: `„(.*?)“` → `“\1”` (nicht-gieriger, paarweiser Ersatz, kein zeichenweiser Ersatz), direkt im Anschluss automatisiert gegengezählt.
+- [x] Ergebnis der Gegenzählung: 0 „ verbleiben, 99 “ insgesamt (15 unverändert + 84 neu), 99 ” insgesamt (15 unverändert + 84 neu), 534 Apostrophe unverändert — exakt wie in der Vorab-Rechnung erwartet.
+- [x] `GAME_VERSION` von „1.22.0" auf „1.23.0" erhöht (sichtbare Textänderung, direkt im Anschluss an BUG-004, das bereits auf „1.22.0" stand).
+- [x] Beim vollständigen Regressionslauf zusätzlich bemerkt und korrigiert: `tests/BUG-004.test.js` (aus dem parallel laufenden BUG-004-Ticket) prüfte `GAME_VERSION` bisher auf den exakten String „1.22.0" — durch den BUG-003-Versionssprung auf „1.23.0" wäre das jetzt fälschlich rot geworden. Da beide Tickets gemeinsam released werden, wurde die Prüfung dort auf den finalen gemeinsamen Stand „1.23.0" aktualisiert (mit Kommentar, warum), nicht auf eine dauerhaft lockere Prüfung — der Test bleibt exakt, nur auf dem richtigen Zielwert.
+
+**Testplan (durchgeführt):**
+- [x] `tests/BUG-003.test.js` (neu, jsdom, tatsächlich ausgeführt): zunächst gegen den unveränderten Code ausgeführt und wie erwartet ROT (GAME_VERSION-Check, Zeichen-Zählung, Szenario-Ticket-Rendering, Shared-Engine-Debrief-Rendering, Boss-Optionsliste-Rendering — alle 5 Checks schlugen wie erwartet fehl, bevor der Fix angewendet wurde). Nach dem Fix erneut ausgeführt: GRÜN, 5/5 Checks. Geprüft wird über echte Render-Funktionen (`stageHead()`, `debriefHTML()`, `renderSelect()`), nicht nur Rohtext-Suche: eine Bankszenario-Kundenanfrage (Ticket-Text der ersten Szenario), ein Debrief-Text mit vier „...“-Paaren in einem einzigen Block, und die „don't do this"-Beispielstelle in der Definition-of-Ready-Optionsliste (inklusive Gegenprobe, dass der danebenstehende Apostroph unverändert bleibt).
+- [x] `node --check` auf das extrahierte `<script>`-Innere: Syntax sauber.
+- [x] Vollständiger Regressionslauf gegen alle 19 Testdateien unter `tests/` (tatsächlich einzeln ausgeführt, Ergebnis ehrlich, nicht nur behauptet): 15 grün (inkl. `BUG-002`, `BUG-003` [neu], `BUG-004`, `BUG-004-visual`, `FEATURE-009*` [7 Dateien], `FEATURE-013`, `example`). Dieselben 4 bereits vor diesem Ticket bekannten, unabhängigen Fehlschläge (`FEATURE-009.test.js`, `FEATURE-010.test.js`, `FEATURE-011.test.js`, `FEATURE-012.test.js` — fest einprogrammierte, veraltete `GAME_VERSION`-Strings, siehe bereits dokumentierter Befund bei BUG-004) — kein neuer Kollateralschaden durch dieses Ticket. Einmalig war `tests/BUG-004-visual.test.js` im ersten Gesamtlauf durch Ressourcen-Engpass beim gleichzeitigen Ausführen vieler Playwright-Tests mit einem Timeout fehlgeschlagen; im isolierten Einzellauf war es sofort wieder grün — kein inhaltlicher Zusammenhang mit der Anführungszeichen-Änderung.
+- [ ] Echter Blick im Browser durch Stephan selbst — bleibt offener Punkt trotz der automatisierten Tests.
+
+## 📋 ToDo
 
 ## ✅ Done
 
