@@ -5,14 +5,19 @@
 > Verschoben am 20.07.2026 aus dem übergeordneten Ordner `Agentic Engineering Gamification/` in dieses Projektverzeichnis (`agent-contract-game/`), damit Backlog.md und Product.md direkt im selben Projektordner wie der Code liegen.
 
 ## 🔄 In Progress
+## 📋 ToDo
+
+## ✅ Done
+
 ### BUG-004 Layout-Sprung beim Aufklappen der zweiten „What's different here?"-Infobox auf der Startseite
 
 | Feld | Wert |
 |------|------|
 | **Typ** | BugFix |
 | **Priorität** | Niedrig |
-| **Status** | In Progress |
+| **Status** | Done |
 | **Erstellt** | 2026-07-23 |
+| **Done seit** | 2026-07-24 |
 
 **Beschreibung:** Laut Ersteindruck-Testlauf lief ein erster Klick auf "What's different here?" bei der zweiten Modus-Karte (Team-Modus) ins Leere, weil sich durch das Aufklappen der ersten Karte das Layout kurz vorher verschoben hatte. Am echten Code verifiziert: Beide Infoboxen sind native `<details><summary>What's different here?</summary>…</details>`-Elemente; das native Aufklappverhalten verschiebt den nachfolgenden Inhalt sofort ohne Übergang — ein Klick, der auf die alte Position der zweiten Box zielt, trifft daher ins Leere.
 
@@ -91,8 +96,9 @@
 |------|------|
 | **Typ** | BugFix |
 | **Priorität** | Niedrig |
-| **Status** | In Progress |
+| **Status** | Done |
 | **Erstellt** | 2026-07-23 |
+| **Done seit** | 2026-07-24 |
 
 **Beschreibung:** Laut Ersteindruck-Testlauf tauchen im durchgehend englischsprachigen Spiel wiederholt deutsche Anführungszeichen ("…") statt englischer ("…"/'…') auf. Am echten Code verifiziert: 183 Fundstellen von „ bzw. “ in `public/index.html`.
 
@@ -152,10 +158,6 @@
 - [x] `node --check` auf das extrahierte `<script>`-Innere: Syntax sauber.
 - [x] Vollständiger Regressionslauf gegen alle 19 Testdateien unter `tests/` (tatsächlich einzeln ausgeführt, Ergebnis ehrlich, nicht nur behauptet): 15 grün (inkl. `BUG-002`, `BUG-003` [neu], `BUG-004`, `BUG-004-visual`, `FEATURE-009*` [7 Dateien], `FEATURE-013`, `example`). Dieselben 4 bereits vor diesem Ticket bekannten, unabhängigen Fehlschläge (`FEATURE-009.test.js`, `FEATURE-010.test.js`, `FEATURE-011.test.js`, `FEATURE-012.test.js` — fest einprogrammierte, veraltete `GAME_VERSION`-Strings, siehe bereits dokumentierter Befund bei BUG-004) — kein neuer Kollateralschaden durch dieses Ticket. Einmalig war `tests/BUG-004-visual.test.js` im ersten Gesamtlauf durch Ressourcen-Engpass beim gleichzeitigen Ausführen vieler Playwright-Tests mit einem Timeout fehlgeschlagen; im isolierten Einzellauf war es sofort wieder grün — kein inhaltlicher Zusammenhang mit der Anführungszeichen-Änderung.
 - [ ] Echter Blick im Browser durch Stephan selbst — bleibt offener Punkt trotz der automatisierten Tests.
-
-## 📋 ToDo
-
-## ✅ Done
 
 ### BUG-002 „Team debrief"/„facilitator" widerspricht der Einzelspieler-Rahmung im Agent-Modus
 
