@@ -6,6 +6,87 @@
 
 ## 🔄 In Progress
 
+### BUG-006 Start-Buttons nicht mehr oben ausgerichtet, wenn eine „What's different here?"-Infobox geöffnet ist
+
+| Feld | Wert |
+|------|------|
+| **Typ** | BugFix |
+| **Priorität** | Mittel |
+| **Status** | In Progress |
+| **Erstellt** | 2026-07-25 |
+| **In Progress seit** | 2026-07-25 |
+
+**Beschreibung:** Auf dem Moduswahl-Startbildschirm öffnet ein Klick auf „What's different here?" bei einer der beiden Karten die zugehörige Infobox. Weil die zweite Karte dadurch mitwächst (siehe BUG-004), verschieben sich die beiden „Start"-Schaltflächen der beiden Karten gegeneinander, sobald nur eine Infobox offen ist — sie stehen dann nicht mehr auf gleicher Höhe. Das wirkt unprofessionell. Gewünscht: Beide Start-Schaltflächen bleiben immer auf gleicher Höhe/Position und Größe ausgerichtet, unabhängig davon, ob eine, keine oder beide Infoboxen geöffnet sind. Die Erläuterungstexte schließen darunter an; ihr unterer Abschluss muss dabei nicht zwingend auf gleicher Höhe liegen.
+
+**User Story:** Als Spielerin/Spieler möchte ich, dass die beiden Start-Schaltflächen auf dem Startbildschirm immer gleich ausgerichtet bleiben, auch wenn ich mir eine oder beide Erläuterungen anschaue, sodass der Bildschirm professionell und ruhig wirkt statt zu „springen".
+
+**Bezug:** Direkt von Stephan gemeldet, 2026-07-25. Betrifft dieselbe Stelle wie BUG-004 (Moduswahl-Startbildschirm, `renderModePicker()`), aber einen anderen Aspekt: BUG-004 behob die Klick-Treffsicherheit durch eine sanfte Animation des Sprungs; BUG-006 verlangt, dass die Buttons durch das Aufklappen gar nicht erst gegeneinander verschoben werden.
+
+**Repo-Stand geprüft (2026-07-25):** HEAD `0156b3c` (v1.25.0, BUG-005), `git status` clean bis auf diese Backlog.md-Bearbeitung — kein zwischenzeitliches unabhängiges Arbeiten am Code.
+
+**Scope:** Eingeschlossen: Moduswahl-Startbildschirm, Darstellung der beiden Karten „Collaborate with Agents" und „Work as a Team" auf breiten Bildschirmen (Karten stehen nebeneinander) — dort bleiben Position und Größe beider Start-Buttons unverändert, egal ob keine, eine oder beide Erläuterungs-Boxen geöffnet sind. Ausgeschlossen: Verhalten auf schmalen Bildschirmen (Handy-Breite) — dort stehen die Karten bereits heute untereinander (gestapelt); dass das Öffnen der ersten Box die darunterliegende zweite Karte nach unten schiebt, ist dort normales Stapel-Verhalten (kein Nebeneinander zum Vergleichen vorhanden) und nicht Teil dieses Tickets. Inhalt der Erläuterungstexte selbst bleibt unverändert. Das in BUG-004 eingeführte sanfte Auf-/Zuklappen der Boxen bleibt erhalten — nur die Höhenkopplung zwischen den beiden Karten, die den Button-Sprung verursacht, wird entfernt.
+
+**Akzeptanzkriterien:**
+- [x] Auf einem breiten Bildschirm (Karten nebeneinander) bleiben beide Start-Buttons exakt auf derselben Höhe und Größe, egal ob keine, eine oder beide Erläuterungs-Boxen geöffnet sind.
+- [x] Öffnet man die Box bei „Collaborate with Agents", bewegt sich der Start-Button der Karte „Work as a Team" nicht.
+- [x] Öffnet man die Box bei „Work as a Team", bewegt sich der Start-Button der Karte „Collaborate with Agents" nicht.
+- [x] Das sanfte Auf-/Zuklappen der Erläuterungs-Boxen selbst (aus BUG-004) funktioniert unverändert weiter.
+- [x] Auf schmaler Bildschirmbreite (Handy) bleibt das bisherige Verhalten unverändert — Karten stehen untereinander, das Öffnen einer Box schiebt die darunterliegende Karte wie bisher nach unten; das ist hier kein Fehler.
+- [x] Die Versionsnummer im Fußbereich der Seite wurde erhöht.
+
+**Fundstellen-Sweep:** Gesucht nach `.modecards`/`.modecard` im gesamten `public/index.html`: 8 Treffer (6 CSS-Regeln, 2 Markup-Stellen) — beide Markup-Stellen liegen ausschließlich in `renderModePicker()`. Gesucht nach `<details`: 4 Treffer (2 echte `<details>`-Elemente in `renderModePicker()`, 2 reine Code-Kommentare) — keine weiteren aufklappbaren Boxen im Spiel. Gesucht nach allen zweispaltigen Grids (`grid-template-columns:1fr 1fr`): `.fork .choices`, `.cards2`, `.scenlist`, `.modecards` — keines der anderen drei kombiniert ein `flex:1`-Element mit einer aufklappbaren Box, die die Kartenhöhe nachträglich ändert. Das Problem tritt ausschließlich auf dem Moduswahl-Bildschirm auf, keine weiteren Fundstellen.
+
+**Zustands-Check:** Wartezustand entfällt (rein clientseitiges CSS/Layout, kein Laden, keine Netzwerkanfrage). Leerzustand entfällt (beide Karten sind in jedem Spieldurchlauf gleichermaßen vorhanden). Fehlerfall entfällt (keine Eingabevalidierung, keine Netzwerkabhängigkeit).
+
+**Analyse & Planung:** Am echten Code verifiziert (`public/index.html`, `renderModePicker()` + zugehöriges CSS). Ursache: `.modecards` ist ein zweispaltiges CSS-Grid (`grid-template-columns:1fr 1fr`, Zeile 174); Grid-Elemente werden standardmäßig auf gleiche Zeilenhöhe gestreckt (`align-items: stretch` ist der Grid-Standard). Öffnet sich die Erläuterungs-Box einer Karte, wächst deren tatsächliche Inhaltshöhe — die Zeilenhöhe des Grids richtet sich danach, und die ANDERE, geschlossene Karte wird auf diese neue, größere Höhe gestreckt. Weil `.story{flex:1}` (Zeile 183) innerhalb jeder Karte zwischen Kartentext und Button liegt, wächst genau dieser Absatz in der gestreckten geschlossenen Karte, um die zusätzliche Höhe aufzufüllen — und schiebt dadurch deren Start-Button nach unten. Die geöffnete Karte selbst bewegt ihren eigenen Button dagegen nicht (der Button steht im Markup vor der Erläuterungs-Box, das Wachstum passiert unterhalb). Ergebnis: Öffnet man eine Box, wandert der Button der ANDEREN Karte nach unten, während der Button der geöffneten Karte an Ort und Stelle bleibt — die beiden Buttons stehen danach nicht mehr auf gleicher Höhe. Dieselbe Ursache wurde bereits im BUG-004-Code-Kommentar dokumentiert, dort aber bewusst nur die Animation geglättet, nicht die Höhenkopplung selbst entfernt (siehe Optionenvergleich unten).
+
+**Klargestellt (Stephan, 2026-07-25):** Der erste Lösungsvorschlag (Kartenhöhen komplett entkoppeln, siehe alte Option A unten) wurde abgelehnt. Präzisierte Anforderung: Die Start-Buttons bleiben oben auf gleicher Höhe und Größe ausgerichtet — und zwar so, dass darunter jeweils der eingeblendete Erläuterungstext folgt. Das spricht dafür, dass die beiden Kartenboxen dabei weiterhin wie ein zusammengehöriges Paar auf gleicher Gesamthöhe wirken sollen (nicht eine kurz, eine lang), nicht nur die Buttons isoliert. Genau das leistet die unten neu empfohlene Option B.
+
+**Fund entschärft durch den Options-Wechsel:** Der zuvor befürchtete Konflikt mit `tests/BUG-004-visual.test.js` (`assert(shift > 2, ...)` für die Team-Infobox auf breitem Bildschirm) besteht mit Option B nicht mehr. Der Test misst die Position der `<summary>`-Erläuterungs-Zeile, nicht des Buttons — und bei Option B wandert die zusätzliche, durch die Grid-Streckung entstehende Höhe weiterhin unterhalb des Buttons (jetzt über einen Zwischenraum-Absatz statt über `.story`) bis vor die `<summary>`-Zeile. Die Summary verschiebt sich dadurch weiterhin um denselben Betrag wie bisher (~26px) — nur der Button bleibt zusätzlich stehen. Keine bestehende Testassertion muss geändert werden.
+
+**Pre-Mortem:**
+- 💀 Der neue Zwischenraum-Absatz erzeugt in der geschlossenen Karte einen sichtbaren Leerraum zwischen Button und „What's different here?"-Link, solange die andere Karte offen ist — könnte ungewohnt wirken → Gegenmaßnahme: Playwright-Screenshots in allen vier Zuständen (nichts offen / nur Agent / nur Team / beide offen) ansehen, bevor das Ticket als erledigt gilt; bei Bedarf mit Stephan absprechen statt einfach auszuliefern.
+- 💀 Die geänderte Struktur wirkt sich unbemerkt auf ein anderes Element im selben Grid aus → Gegenmaßnahme: Fundstellen-Sweep hat bestätigt, `.modecards`/`.story` kommen nur auf diesem einen Bildschirm vor.
+- 💀 `GAME_VERSION` wird vergessen zu erhöhen → Gegenmaßnahme: eigenes Akzeptanzkriterium und eigener Testschritt.
+- 💀 jsdom kann die Layout-Entkopplung nicht sehen (keine echte Layout-Engine) und suggeriert fälschlich vollständige Prüfung → Gegenmaßnahme: Pflicht-Playwright-Test (siehe Testplan), der die tatsächliche Y-Position beider Buttons vor/nach dem Öffnen misst.
+- 💀 Der neue Zwischenraum-Absatz verändert versehentlich die Klickfläche/Ausrichtung der `<summary>`-Zeile selbst → Gegenmaßnahme: Playwright-Test prüft zusätzlich, dass beide Boxen weiterhin normal per Klick auf- und zuklappen.
+
+**Optionenvergleich:**
+
+### Option A — Grid-Zeilenstreckung komplett entkoppeln (`align-items: start`) — verworfen
+- Vorgehen: Eine CSS-Regel ändern, sodass die beiden Karten im Grid nicht mehr auf gleiche Höhe gestreckt werden; jede Karte behält dadurch immer ihre eigene, natürliche Höhe.
+- Vorteile: Einzeilige CSS-Änderung, kein zusätzliches Markup.
+- Nachteile: Die beiden Kartenboxen (Hintergrund/Rahmen) wirken dann sichtbar unterschiedlich hoch, wenn nur eine Box offen ist — genau das hat Stephan nach Vorstellung dieses Ansatzes explizit abgelehnt.
+
+### Option B — Wachstum unterhalb des Buttons statt oberhalb (Zwischenraum-Element nach dem Button statt `flex:1` auf `.story`) — empfohlen
+- Vorgehen: `.story` bekommt ihre natürliche (feste) Höhe zurück; ein neues, unsichtbares, flexibles Zwischenraum-Element wird zwischen Button und der „What's different here?"-Zeile eingefügt und übernimmt die Rolle, die bisher `.story` hatte (die überschüssige, durch Grid-Streckung entstehende Höhe aufzufangen). Der Button steht dadurch in jeder Karte immer an derselben Position; die Erläuterung folgt weiterhin direkt darunter im Ablauf, nur mit variablem Abstand, falls die Karte durch die Nachbarkarte gestreckt wird.
+- Vorteile: Erfüllt Stephans Anforderung wörtlich — Buttons bleiben oben ausgerichtet UND die Kartenboxen bleiben als Paar auf gleicher Gesamthöhe (kein optischer Unterschied zwischen den beiden Kartenrahmen); BUG-004s bestehender Test bleibt unverändert grün (siehe oben); BUG-004s sanfte Animation bleibt unangetastet.
+- Nachteile: Etwas mehr Markup/CSS als Option A (ein zusätzliches Element); in der geschlossenen Karte kann ein sichtbarer Leerraum zwischen Button und Erläuterungs-Link entstehen, solange die andere Karte offen ist (siehe Pre-Mortem) — das ist aber genau das gewünschte Verhalten laut Ticket („Erläuterungen darunter, unterer Abschluss muss nicht bündig sein").
+
+✅ **Empfehlung: Option B** — einzige der beiden Optionen, die Stephans präzisierte Anforderung vollständig erfüllt (Buttons fix UND Kartenboxen bleiben als Paar gleich hoch), ohne eine bestehende Testassertion anzufassen.
+
+**Testplan:**
+1. jsdom-Test (neu, `tests/BUG-006.test.js`): echte `public/index.html` laden, beide Erläuterungs-Boxen per echtem Klick öffnen/schließen, prüfen dass beide weiterhin unabhängig funktionieren, Start-Buttons weiterhin bis zum Rundenstart funktionieren, `GAME_VERSION` erhöht. **Grenze:** jsdom kann die eigentliche Button-Positions-Frage (Kern dieses Tickets) nicht prüfen, keine echte Layout-Engine — reiner Funktions-/Regressionstest.
+2. **Pflicht-Playwright-Test** (neu, `tests/BUG-006-visual.test.js`, echtes Chromium, aus Retro BUG-004): misst die Y-Position (`boundingBox()`) beider Start-Buttons in vier Zuständen auf breitem Bildschirm (nichts offen / nur Agent offen / nur Team offen / beide offen) und prüft, dass sich in keinem dieser Zustände die Y-Position eines der beiden Buttons gegenüber dem Ausgangszustand ändert (kleine Pixel-Toleranz). Zusätzlich prüft derselbe Test, dass die beiden Kartenboxen (Außenrahmen) in allen vier Zuständen weiterhin gleich hoch bleiben. Screenshots je Zustand zur visuellen Kontrolle (Pre-Mortem-Punkt 1).
+3. `node --check` auf das extrahierte `<script>`-Innere als Syntax-Check.
+4. Reine CSS/Markup-Änderung an einer einzigen, szenario-unabhängigen Bildschirm-Stelle (`renderModePicker()`) — betrifft keine der gemeinsamen Szenario-Konstanten/-Funktionen, daher kein szenario-übergreifender Test nötig.
+5. Vollständiger Regressionslauf gegen alle bestehenden Testdateien in `tests/`, inklusive `tests/BUG-004.test.js` und `tests/BUG-004-visual.test.js` (beide unverändert, siehe oben — falls `BUG-004-visual.test.js` entgegen der Erwartung doch fehlschlägt, ist das ein Signal, dass die Annahme zur Summary-Verschiebung falsch war, und wird Stephan gemeldet statt die Assertion ungefragt anzupassen). Bereits vor BUG-006 bekannte, unabhängige Fehlschläge (die vier `GAME_VERSION`-Exact-Match-Tests aus BUG-004s Fund) werden separat vermerkt, nicht fälschlich BUG-006 zugeschrieben.
+6. Ein echter Blick im Browser durch Stephan (Desktop-Breite) bleibt offener Punkt, bevor das Ticket endgültig als vollständig geprüft gilt — gerade weil es um einen optischen Eindruck geht, den kein automatisierter Test bewerten kann.
+
+**Scope-Änderungen** *(chronologisches Log):*
+- 2026-07-25: Ursprünglich als Option A (Kartenhöhen-Entkopplung) analysiert und vorgeschlagen. Stephan hat abgelehnt und präzisiert: Buttons müssen oben ausgerichtet bleiben UND die beiden Kartenboxen sollen dabei als Paar gleich hoch wirken. Ansatz auf Option B (Zwischenraum-Element unterhalb des Buttons statt `.story`-Wachstum) geändert — Optionenvergleich, Analyse, Pre-Mortem und Testplan entsprechend überarbeitet.
+
+**Implementierungsnotizen:**
+Umgesetzt wie in Option B spezifiziert. `public/index.html`: (1) CSS-Regel `.modecard .story{...}` verliert `flex:1` (Zeile bei `.modecard .story`, unverändert sonst — Schriftgröße/Farbe/Zeilenhöhe bleiben wie bisher). (2) Neue CSS-Regel `.modecard .cardspace{flex:1 1 0%}` direkt danach ergänzt, inkl. Code-Kommentar zur Begründung (per Grep vorab bestätigt: `cardspace` kam vorher nirgends in der Datei vor). (3) In `renderModePicker()` wird nach BEIDEN Start-Buttons (`#pickAgentMode` und `#pickTeamMode`) je ein `<div class="cardspace"></div>` eingefügt, direkt vor der jeweiligen `<details class="moredet">`-Box. (4) `GAME_VERSION` von `"1.25.0"` auf `"1.26.0"` erhöht. Das BUG-004-Klick-Handling (manuelles `open`-Setzen, `max-height`-Transition) wurde nicht angefasst.
+
+Neue Tests: `tests/BUG-006.test.js` (jsdom) prüft GAME_VERSION-Bump, die korrekte Markup-Reihenfolge Button→`.cardspace`→`.moredet` in beiden Karten, unabhängiges Öffnen/Schließen beider Boxen per echtem Klick und dass beide Start-Buttons nach Öffnen/Schließen weiterhin zum nächsten Screen führen. `tests/BUG-006-visual.test.js` (Playwright/Chromium) misst auf 1400×1000 die Y-Position beider Start-Buttons und die Höhe beider `.modecard`-Boxen in vier Zuständen (beide zu / nur Agent offen / nur Team offen / beide offen): Buttons bleiben in allen vier Zuständen innerhalb 2px der Baseline-Position, die beiden Kartenboxen bleiben in jedem Zustand innerhalb 2px gleich hoch (bestätigt, dass die Kartenboxen weiterhin als Paar gleich hoch bleiben — das, was Stephan an Option A abgelehnt hatte).
+
+Kritische Gegenprobe: `tests/BUG-004-visual.test.js` unverändert gegen den neuen Code ausgeführt — bleibt wie erwartet grün (misst die Position der `<summary>`-Zeile, nicht des Buttons; diese verschiebt sich weiterhin wie zuvor, ~26px breit / ~318px schmal). Ein erster, zu eng getakteter Sammellauf (viele Playwright-Starts in einem 2-Minuten-Fenster) zeigte hier einen einmaligen Flake durch Ressourcenkonkurrenz; bei ausreichendem Abstand zwischen den Testläufen (und 4 weiteren Einzelläufen) lief die Datei danach 5/5 mal zuverlässig grün — kein durch BUG-006 verursachter Regressionsfehler.
+
+Regressionslauf: alle 24 vorhandenen `tests/*.test.js`-Dateien (inkl. der beiden neuen) ausgeführt. 19 grün, 5 vorbestehend rot — alle wegen hartcodierter exakter `GAME_VERSION`-Strings aus früheren Tickets: `FEATURE-009.test.js` (erwartet 1.16.0), `FEATURE-010.test.js` (1.17.0), `FEATURE-011.test.js` (1.18.0), `FEATURE-012.test.js` (1.19.0) — wie im Testplan bereits dokumentiert bekannt — sowie zusätzlich `BUG-004.test.js` (erwartet 1.23.0, dort bislang nicht explizit als Beispiel genannt, aber derselben Fragilitätsklasse). Alle fünf waren bereits vor dieser Änderung rot (keiner der hartcodierten Werte entspricht dem Repo-Stand 1.25.0 vor BUG-006) — keiner dieser Fehlschläge ist BUG-006 zuzuschreiben. `node --check` auf das extrahierte `<script>`-Innere: syntaktisch fehlerfrei.
+
+Offen: ein echter Blick im Browser durch Stephan (Desktop-Breite) sowie Release + Live-Verifikation.
+
 
 ## 📋 ToDo
 
@@ -134,86 +215,6 @@ Dieser Textvorschlag ersetzt nicht Stephans Freigabe – er ist ein konkreter Au
 **Implementierungsnotizen:**
 *(leer bei Erstellung)*
 
-### BUG-006 Start-Buttons nicht mehr oben ausgerichtet, wenn eine „What's different here?"-Infobox geöffnet ist
-
-| Feld | Wert |
-|------|------|
-| **Typ** | BugFix |
-| **Priorität** | Mittel |
-| **Status** | In Progress |
-| **Erstellt** | 2026-07-25 |
-| **In Progress seit** | 2026-07-25 |
-
-**Beschreibung:** Auf dem Moduswahl-Startbildschirm öffnet ein Klick auf „What's different here?" bei einer der beiden Karten die zugehörige Infobox. Weil die zweite Karte dadurch mitwächst (siehe BUG-004), verschieben sich die beiden „Start"-Schaltflächen der beiden Karten gegeneinander, sobald nur eine Infobox offen ist — sie stehen dann nicht mehr auf gleicher Höhe. Das wirkt unprofessionell. Gewünscht: Beide Start-Schaltflächen bleiben immer auf gleicher Höhe/Position und Größe ausgerichtet, unabhängig davon, ob eine, keine oder beide Infoboxen geöffnet sind. Die Erläuterungstexte schließen darunter an; ihr unterer Abschluss muss dabei nicht zwingend auf gleicher Höhe liegen.
-
-**User Story:** Als Spielerin/Spieler möchte ich, dass die beiden Start-Schaltflächen auf dem Startbildschirm immer gleich ausgerichtet bleiben, auch wenn ich mir eine oder beide Erläuterungen anschaue, sodass der Bildschirm professionell und ruhig wirkt statt zu „springen".
-
-**Bezug:** Direkt von Stephan gemeldet, 2026-07-25. Betrifft dieselbe Stelle wie BUG-004 (Moduswahl-Startbildschirm, `renderModePicker()`), aber einen anderen Aspekt: BUG-004 behob die Klick-Treffsicherheit durch eine sanfte Animation des Sprungs; BUG-006 verlangt, dass die Buttons durch das Aufklappen gar nicht erst gegeneinander verschoben werden.
-
-**Repo-Stand geprüft (2026-07-25):** HEAD `0156b3c` (v1.25.0, BUG-005), `git status` clean bis auf diese Backlog.md-Bearbeitung — kein zwischenzeitliches unabhängiges Arbeiten am Code.
-
-**Scope:** Eingeschlossen: Moduswahl-Startbildschirm, Darstellung der beiden Karten „Collaborate with Agents" und „Work as a Team" auf breiten Bildschirmen (Karten stehen nebeneinander) — dort bleiben Position und Größe beider Start-Buttons unverändert, egal ob keine, eine oder beide Erläuterungs-Boxen geöffnet sind. Ausgeschlossen: Verhalten auf schmalen Bildschirmen (Handy-Breite) — dort stehen die Karten bereits heute untereinander (gestapelt); dass das Öffnen der ersten Box die darunterliegende zweite Karte nach unten schiebt, ist dort normales Stapel-Verhalten (kein Nebeneinander zum Vergleichen vorhanden) und nicht Teil dieses Tickets. Inhalt der Erläuterungstexte selbst bleibt unverändert. Das in BUG-004 eingeführte sanfte Auf-/Zuklappen der Boxen bleibt erhalten — nur die Höhenkopplung zwischen den beiden Karten, die den Button-Sprung verursacht, wird entfernt.
-
-**Akzeptanzkriterien:**
-- [x] Auf einem breiten Bildschirm (Karten nebeneinander) bleiben beide Start-Buttons exakt auf derselben Höhe und Größe, egal ob keine, eine oder beide Erläuterungs-Boxen geöffnet sind.
-- [x] Öffnet man die Box bei „Collaborate with Agents", bewegt sich der Start-Button der Karte „Work as a Team" nicht.
-- [x] Öffnet man die Box bei „Work as a Team", bewegt sich der Start-Button der Karte „Collaborate with Agents" nicht.
-- [x] Das sanfte Auf-/Zuklappen der Erläuterungs-Boxen selbst (aus BUG-004) funktioniert unverändert weiter.
-- [x] Auf schmaler Bildschirmbreite (Handy) bleibt das bisherige Verhalten unverändert — Karten stehen untereinander, das Öffnen einer Box schiebt die darunterliegende Karte wie bisher nach unten; das ist hier kein Fehler.
-- [x] Die Versionsnummer im Fußbereich der Seite wurde erhöht.
-
-**Fundstellen-Sweep:** Gesucht nach `.modecards`/`.modecard` im gesamten `public/index.html`: 8 Treffer (6 CSS-Regeln, 2 Markup-Stellen) — beide Markup-Stellen liegen ausschließlich in `renderModePicker()`. Gesucht nach `<details`: 4 Treffer (2 echte `<details>`-Elemente in `renderModePicker()`, 2 reine Code-Kommentare) — keine weiteren aufklappbaren Boxen im Spiel. Gesucht nach allen zweispaltigen Grids (`grid-template-columns:1fr 1fr`): `.fork .choices`, `.cards2`, `.scenlist`, `.modecards` — keines der anderen drei kombiniert ein `flex:1`-Element mit einer aufklappbaren Box, die die Kartenhöhe nachträglich ändert. Das Problem tritt ausschließlich auf dem Moduswahl-Bildschirm auf, keine weiteren Fundstellen.
-
-**Zustands-Check:** Wartezustand entfällt (rein clientseitiges CSS/Layout, kein Laden, keine Netzwerkanfrage). Leerzustand entfällt (beide Karten sind in jedem Spieldurchlauf gleichermaßen vorhanden). Fehlerfall entfällt (keine Eingabevalidierung, keine Netzwerkabhängigkeit).
-
-**Analyse & Planung:** Am echten Code verifiziert (`public/index.html`, `renderModePicker()` + zugehöriges CSS). Ursache: `.modecards` ist ein zweispaltiges CSS-Grid (`grid-template-columns:1fr 1fr`, Zeile 174); Grid-Elemente werden standardmäßig auf gleiche Zeilenhöhe gestreckt (`align-items: stretch` ist der Grid-Standard). Öffnet sich die Erläuterungs-Box einer Karte, wächst deren tatsächliche Inhaltshöhe — die Zeilenhöhe des Grids richtet sich danach, und die ANDERE, geschlossene Karte wird auf diese neue, größere Höhe gestreckt. Weil `.story{flex:1}` (Zeile 183) innerhalb jeder Karte zwischen Kartentext und Button liegt, wächst genau dieser Absatz in der gestreckten geschlossenen Karte, um die zusätzliche Höhe aufzufüllen — und schiebt dadurch deren Start-Button nach unten. Die geöffnete Karte selbst bewegt ihren eigenen Button dagegen nicht (der Button steht im Markup vor der Erläuterungs-Box, das Wachstum passiert unterhalb). Ergebnis: Öffnet man eine Box, wandert der Button der ANDEREN Karte nach unten, während der Button der geöffneten Karte an Ort und Stelle bleibt — die beiden Buttons stehen danach nicht mehr auf gleicher Höhe. Dieselbe Ursache wurde bereits im BUG-004-Code-Kommentar dokumentiert, dort aber bewusst nur die Animation geglättet, nicht die Höhenkopplung selbst entfernt (siehe Optionenvergleich unten).
-
-**Klargestellt (Stephan, 2026-07-25):** Der erste Lösungsvorschlag (Kartenhöhen komplett entkoppeln, siehe alte Option A unten) wurde abgelehnt. Präzisierte Anforderung: Die Start-Buttons bleiben oben auf gleicher Höhe und Größe ausgerichtet — und zwar so, dass darunter jeweils der eingeblendete Erläuterungstext folgt. Das spricht dafür, dass die beiden Kartenboxen dabei weiterhin wie ein zusammengehöriges Paar auf gleicher Gesamthöhe wirken sollen (nicht eine kurz, eine lang), nicht nur die Buttons isoliert. Genau das leistet die unten neu empfohlene Option B.
-
-**Fund entschärft durch den Options-Wechsel:** Der zuvor befürchtete Konflikt mit `tests/BUG-004-visual.test.js` (`assert(shift > 2, ...)` für die Team-Infobox auf breitem Bildschirm) besteht mit Option B nicht mehr. Der Test misst die Position der `<summary>`-Erläuterungs-Zeile, nicht des Buttons — und bei Option B wandert die zusätzliche, durch die Grid-Streckung entstehende Höhe weiterhin unterhalb des Buttons (jetzt über einen Zwischenraum-Absatz statt über `.story`) bis vor die `<summary>`-Zeile. Die Summary verschiebt sich dadurch weiterhin um denselben Betrag wie bisher (~26px) — nur der Button bleibt zusätzlich stehen. Keine bestehende Testassertion muss geändert werden.
-
-**Pre-Mortem:**
-- 💀 Der neue Zwischenraum-Absatz erzeugt in der geschlossenen Karte einen sichtbaren Leerraum zwischen Button und „What's different here?"-Link, solange die andere Karte offen ist — könnte ungewohnt wirken → Gegenmaßnahme: Playwright-Screenshots in allen vier Zuständen (nichts offen / nur Agent / nur Team / beide offen) ansehen, bevor das Ticket als erledigt gilt; bei Bedarf mit Stephan absprechen statt einfach auszuliefern.
-- 💀 Die geänderte Struktur wirkt sich unbemerkt auf ein anderes Element im selben Grid aus → Gegenmaßnahme: Fundstellen-Sweep hat bestätigt, `.modecards`/`.story` kommen nur auf diesem einen Bildschirm vor.
-- 💀 `GAME_VERSION` wird vergessen zu erhöhen → Gegenmaßnahme: eigenes Akzeptanzkriterium und eigener Testschritt.
-- 💀 jsdom kann die Layout-Entkopplung nicht sehen (keine echte Layout-Engine) und suggeriert fälschlich vollständige Prüfung → Gegenmaßnahme: Pflicht-Playwright-Test (siehe Testplan), der die tatsächliche Y-Position beider Buttons vor/nach dem Öffnen misst.
-- 💀 Der neue Zwischenraum-Absatz verändert versehentlich die Klickfläche/Ausrichtung der `<summary>`-Zeile selbst → Gegenmaßnahme: Playwright-Test prüft zusätzlich, dass beide Boxen weiterhin normal per Klick auf- und zuklappen.
-
-**Optionenvergleich:**
-
-### Option A — Grid-Zeilenstreckung komplett entkoppeln (`align-items: start`) — verworfen
-- Vorgehen: Eine CSS-Regel ändern, sodass die beiden Karten im Grid nicht mehr auf gleiche Höhe gestreckt werden; jede Karte behält dadurch immer ihre eigene, natürliche Höhe.
-- Vorteile: Einzeilige CSS-Änderung, kein zusätzliches Markup.
-- Nachteile: Die beiden Kartenboxen (Hintergrund/Rahmen) wirken dann sichtbar unterschiedlich hoch, wenn nur eine Box offen ist — genau das hat Stephan nach Vorstellung dieses Ansatzes explizit abgelehnt.
-
-### Option B — Wachstum unterhalb des Buttons statt oberhalb (Zwischenraum-Element nach dem Button statt `flex:1` auf `.story`) — empfohlen
-- Vorgehen: `.story` bekommt ihre natürliche (feste) Höhe zurück; ein neues, unsichtbares, flexibles Zwischenraum-Element wird zwischen Button und der „What's different here?"-Zeile eingefügt und übernimmt die Rolle, die bisher `.story` hatte (die überschüssige, durch Grid-Streckung entstehende Höhe aufzufangen). Der Button steht dadurch in jeder Karte immer an derselben Position; die Erläuterung folgt weiterhin direkt darunter im Ablauf, nur mit variablem Abstand, falls die Karte durch die Nachbarkarte gestreckt wird.
-- Vorteile: Erfüllt Stephans Anforderung wörtlich — Buttons bleiben oben ausgerichtet UND die Kartenboxen bleiben als Paar auf gleicher Gesamthöhe (kein optischer Unterschied zwischen den beiden Kartenrahmen); BUG-004s bestehender Test bleibt unverändert grün (siehe oben); BUG-004s sanfte Animation bleibt unangetastet.
-- Nachteile: Etwas mehr Markup/CSS als Option A (ein zusätzliches Element); in der geschlossenen Karte kann ein sichtbarer Leerraum zwischen Button und Erläuterungs-Link entstehen, solange die andere Karte offen ist (siehe Pre-Mortem) — das ist aber genau das gewünschte Verhalten laut Ticket („Erläuterungen darunter, unterer Abschluss muss nicht bündig sein").
-
-✅ **Empfehlung: Option B** — einzige der beiden Optionen, die Stephans präzisierte Anforderung vollständig erfüllt (Buttons fix UND Kartenboxen bleiben als Paar gleich hoch), ohne eine bestehende Testassertion anzufassen.
-
-**Testplan:**
-1. jsdom-Test (neu, `tests/BUG-006.test.js`): echte `public/index.html` laden, beide Erläuterungs-Boxen per echtem Klick öffnen/schließen, prüfen dass beide weiterhin unabhängig funktionieren, Start-Buttons weiterhin bis zum Rundenstart funktionieren, `GAME_VERSION` erhöht. **Grenze:** jsdom kann die eigentliche Button-Positions-Frage (Kern dieses Tickets) nicht prüfen, keine echte Layout-Engine — reiner Funktions-/Regressionstest.
-2. **Pflicht-Playwright-Test** (neu, `tests/BUG-006-visual.test.js`, echtes Chromium, aus Retro BUG-004): misst die Y-Position (`boundingBox()`) beider Start-Buttons in vier Zuständen auf breitem Bildschirm (nichts offen / nur Agent offen / nur Team offen / beide offen) und prüft, dass sich in keinem dieser Zustände die Y-Position eines der beiden Buttons gegenüber dem Ausgangszustand ändert (kleine Pixel-Toleranz). Zusätzlich prüft derselbe Test, dass die beiden Kartenboxen (Außenrahmen) in allen vier Zuständen weiterhin gleich hoch bleiben. Screenshots je Zustand zur visuellen Kontrolle (Pre-Mortem-Punkt 1).
-3. `node --check` auf das extrahierte `<script>`-Innere als Syntax-Check.
-4. Reine CSS/Markup-Änderung an einer einzigen, szenario-unabhängigen Bildschirm-Stelle (`renderModePicker()`) — betrifft keine der gemeinsamen Szenario-Konstanten/-Funktionen, daher kein szenario-übergreifender Test nötig.
-5. Vollständiger Regressionslauf gegen alle bestehenden Testdateien in `tests/`, inklusive `tests/BUG-004.test.js` und `tests/BUG-004-visual.test.js` (beide unverändert, siehe oben — falls `BUG-004-visual.test.js` entgegen der Erwartung doch fehlschlägt, ist das ein Signal, dass die Annahme zur Summary-Verschiebung falsch war, und wird Stephan gemeldet statt die Assertion ungefragt anzupassen). Bereits vor BUG-006 bekannte, unabhängige Fehlschläge (die vier `GAME_VERSION`-Exact-Match-Tests aus BUG-004s Fund) werden separat vermerkt, nicht fälschlich BUG-006 zugeschrieben.
-6. Ein echter Blick im Browser durch Stephan (Desktop-Breite) bleibt offener Punkt, bevor das Ticket endgültig als vollständig geprüft gilt — gerade weil es um einen optischen Eindruck geht, den kein automatisierter Test bewerten kann.
-
-**Scope-Änderungen** *(chronologisches Log):*
-- 2026-07-25: Ursprünglich als Option A (Kartenhöhen-Entkopplung) analysiert und vorgeschlagen. Stephan hat abgelehnt und präzisiert: Buttons müssen oben ausgerichtet bleiben UND die beiden Kartenboxen sollen dabei als Paar gleich hoch wirken. Ansatz auf Option B (Zwischenraum-Element unterhalb des Buttons statt `.story`-Wachstum) geändert — Optionenvergleich, Analyse, Pre-Mortem und Testplan entsprechend überarbeitet.
-
-**Implementierungsnotizen:**
-Umgesetzt wie in Option B spezifiziert. `public/index.html`: (1) CSS-Regel `.modecard .story{...}` verliert `flex:1` (Zeile bei `.modecard .story`, unverändert sonst — Schriftgröße/Farbe/Zeilenhöhe bleiben wie bisher). (2) Neue CSS-Regel `.modecard .cardspace{flex:1 1 0%}` direkt danach ergänzt, inkl. Code-Kommentar zur Begründung (per Grep vorab bestätigt: `cardspace` kam vorher nirgends in der Datei vor). (3) In `renderModePicker()` wird nach BEIDEN Start-Buttons (`#pickAgentMode` und `#pickTeamMode`) je ein `<div class="cardspace"></div>` eingefügt, direkt vor der jeweiligen `<details class="moredet">`-Box. (4) `GAME_VERSION` von `"1.25.0"` auf `"1.26.0"` erhöht. Das BUG-004-Klick-Handling (manuelles `open`-Setzen, `max-height`-Transition) wurde nicht angefasst.
-
-Neue Tests: `tests/BUG-006.test.js` (jsdom) prüft GAME_VERSION-Bump, die korrekte Markup-Reihenfolge Button→`.cardspace`→`.moredet` in beiden Karten, unabhängiges Öffnen/Schließen beider Boxen per echtem Klick und dass beide Start-Buttons nach Öffnen/Schließen weiterhin zum nächsten Screen führen. `tests/BUG-006-visual.test.js` (Playwright/Chromium) misst auf 1400×1000 die Y-Position beider Start-Buttons und die Höhe beider `.modecard`-Boxen in vier Zuständen (beide zu / nur Agent offen / nur Team offen / beide offen): Buttons bleiben in allen vier Zuständen innerhalb 2px der Baseline-Position, die beiden Kartenboxen bleiben in jedem Zustand innerhalb 2px gleich hoch (bestätigt, dass die Kartenboxen weiterhin als Paar gleich hoch bleiben — das, was Stephan an Option A abgelehnt hatte).
-
-Kritische Gegenprobe: `tests/BUG-004-visual.test.js` unverändert gegen den neuen Code ausgeführt — bleibt wie erwartet grün (misst die Position der `<summary>`-Zeile, nicht des Buttons; diese verschiebt sich weiterhin wie zuvor, ~26px breit / ~318px schmal). Ein erster, zu eng getakteter Sammellauf (viele Playwright-Starts in einem 2-Minuten-Fenster) zeigte hier einen einmaligen Flake durch Ressourcenkonkurrenz; bei ausreichendem Abstand zwischen den Testläufen (und 4 weiteren Einzelläufen) lief die Datei danach 5/5 mal zuverlässig grün — kein durch BUG-006 verursachter Regressionsfehler.
-
-Regressionslauf: alle 24 vorhandenen `tests/*.test.js`-Dateien (inkl. der beiden neuen) ausgeführt. 19 grün, 5 vorbestehend rot — alle wegen hartcodierter exakter `GAME_VERSION`-Strings aus früheren Tickets: `FEATURE-009.test.js` (erwartet 1.16.0), `FEATURE-010.test.js` (1.17.0), `FEATURE-011.test.js` (1.18.0), `FEATURE-012.test.js` (1.19.0) — wie im Testplan bereits dokumentiert bekannt — sowie zusätzlich `BUG-004.test.js` (erwartet 1.23.0, dort bislang nicht explizit als Beispiel genannt, aber derselben Fragilitätsklasse). Alle fünf waren bereits vor dieser Änderung rot (keiner der hartcodierten Werte entspricht dem Repo-Stand 1.25.0 vor BUG-006) — keiner dieser Fehlschläge ist BUG-006 zuzuschreiben. `node --check` auf das extrahierte `<script>`-Innere: syntaktisch fehlerfrei.
-
-Offen: ein echter Blick im Browser durch Stephan (Desktop-Breite) sowie Release + Live-Verifikation.
 
 ## ✅ Done
 
