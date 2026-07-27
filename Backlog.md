@@ -8,6 +8,53 @@
 
 ## 📋 ToDo
 
+### BUG-007 Team-Zeitanzeige "Map the change" läuft nach vollständigem Sortieren nicht weiter herunter
+
+| Feld | Wert |
+|------|------|
+| **Typ** | BugFix |
+| **Priorität** | Hoch *(Vorschlag – zentrale Zeitdruck-Mechanik des Team-Modus betroffen, bitte bestätigen)* |
+| **Status** | ToDo |
+| **Erstellt** | 2026-07-27 |
+
+**Beschreibung:** Beim Sortier-Schritt "Map the change" (Team-Modus, Schritt "A shared picture") zählt oben eine Zeitleiste "Meeting time left" herunter. Beim Testen (Stephan, 27.07.2026) festgestellt: Sobald einmal alle Karten einer Kategorie zugeordnet wurden, bleibt die Anzeige stehen – auch wenn danach noch weitere Änderungen an der Zuordnung vorgenommen werden (z. B. über das bestehende ↩-Icon), läuft die Zeit nicht weiter herunter. Erwartetes Verhalten: Die Zeit soll durchgehend weiterlaufen, bis entweder die vorgegebene Zeit abgelaufen ist oder die Spielerin/der Spieler selbst aktiv den nächsten Schritt startet – unabhängig davon, ob zwischendurch schon einmal alle Karten zugeordnet waren. Möglicher Zusammenhang mit BUG-005 (derselbe Sortier-Schritt, dort ging es um die Korrektheitsprüfung nach Zeitablauf) – in der Analyse prüfen, ob hier dieselbe Stelle im Code betroffen ist, statt das anzunehmen.
+
+**User Story:** Als Spielerin/Spieler möchte ich, dass der Zeitdruck im Meeting durchgehend spürbar bleibt (die Uhr läuft wirklich weiter), damit die Lektion "ihr habt nur ein begrenztes Zeitfenster" nicht durch ein zufälliges Stehenbleiben der Anzeige entwertet wird.
+
+---
+
+### BUG-008 Nach Abschluss von "A shared picture" wird kein Tag für "Analysis" gutgeschrieben
+
+| Feld | Wert |
+|------|------|
+| **Typ** | BugFix |
+| **Priorität** | Hoch *(Vorschlag – betrifft die zentrale Auswertungs-Kennzahl "Analysis"-Zeit, bitte bestätigen)* |
+| **Status** | ToDo |
+| **Erstellt** | 2026-07-27 |
+
+**Beschreibung:** Oben im Spiel zeigt eine Kachel "Analysis" die bisher verbrauchten Tage für die Klärungsphase (aktuell "0d"). Beim Testen (Stephan, 27.07.2026) festgestellt: Nachdem der Sortier-Schritt "A shared picture" abgeschlossen und zum nächsten Spielschritt gewechselt wurde, hat sich diese Anzeige nicht verändert – obwohl für den durchlaufenen Schritt eigentlich Tage gutgeschrieben werden sollten (analog zur bestehenden Gutschrift-Logik an anderen Weggabelungen im Team-Modus). Möglicher Zusammenhang mit BUG-007 (die dort beschriebene stehengebliebene Zeitanzeige könnte dieselbe Ursache haben, z. B. wenn die Gutschrift an denselben internen Zeit-/Fortschrittswert hängt) – das sollte in der Analyse vor der Umsetzung geprüft werden, statt vorschnell von einer oder von zwei getrennten Ursachen auszugehen.
+
+**User Story:** Als Stephan (Moderator/Betreiber) möchte ich, dass die "Analysis"-Kennzahl nach jedem durchlaufenen Klärungsschritt korrekt weitergezählt wird, damit die Abschlussauswertung (Klärungszeit vs. Umsetzungszeit) am Ende verlässlich stimmt.
+
+---
+
+### FEATURE-017 "Wer ist im Raum?"-Einleitungstext ausführlicher erklären
+
+| Feld | Wert |
+|------|------|
+| **Typ** | Feature |
+| **Priorität** | Mittel *(Vorschlag, analog zu FEATURE-003 – bitte bestätigen)* |
+| **Status** | ToDo |
+| **Erstellt** | 2026-07-27 |
+
+**Beschreibung:** Auf dem ersten Bildschirm des Team-Modus ("Who's in the room?") steht bisher nur ein kurzer, sachlicher Satz: "Before you touch the ticket, here's who showed up for this refinement." Stephan hat beim Testen (27.07.2026) angemerkt, dass davor noch ein einordnender, menschlicherer Absatz fehlt – der kurz anerkennt, dass im echten Arbeitsalltag alle beschäftigt sind und unterschiedliche Prioritäten haben, es aber trotzdem gut ist, dass ein Großteil des Teams es ins Meeting geschafft hat. Der bestehende Satz "Before you touch the ticket…" soll danach unverändert stehen bleiben.
+
+Stephans Formulierungsvorschlag (von ihm auf Deutsch notiert – das Spiel läuft aber komplett auf Englisch, eine an den bestehenden Ton angepasste englische Fassung ist Teil der Umsetzung, kein fertiger Text):
+
+> "Du weißt wie es ist: Jeder ist beschäftigt, verschiedene Prioritäten, Projekte und Verpflichtungen, aber zum Glück haben es die meisten des Teams ins Meeting geschafft."
+
+**User Story:** Als Spielerin/Spieler möchte ich auf dem ersten Bildschirm spüren, dass unvollständige Meeting-Teilnahme normaler Arbeitsalltag ist (keine Ausnahmesituation), damit ich mich besser in die Situation "wer fehlt und warum" hineinversetzen kann, bevor ich mit dem Ticket weitermache.
+
 ## ✅ Done
 
 ### FEATURE-016 Echte klickbare Team-Schätzung (T-Shirt-Größe) statt Erzähltext-Schätzung und feste Fast-Start-Formel im Team-Modus

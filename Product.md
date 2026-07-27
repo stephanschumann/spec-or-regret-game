@@ -36,6 +36,10 @@ Seit FEATURE-008 (22.07.2026, Vertical Slice; Ticket-Nummer am 23.07.2026 richti
 - Lange, sich von selbst abspielende Bau-Sequenzen (Übergabe an den Agenten im Agent-Modus, „Start Development" im Team-Modus) lassen den Bildschirm dort stehen, wo er ist, statt automatisch ans Ende zu springen, damit sich der Ablauf chronologisch von oben nach unten mitverfolgen lässt. Gewöhnliche, kurze Schritte scrollen weiterhin automatisch zur Rückmeldung. (Seit v1.16.0, FEATURE-008.)
 - Die Abschlussauswertung des Team-Modus zeigt dieselbe Drei-Balken-Darstellung wie der bestehende Modus (inklusive einer im Vertical Slice zunächst fehlerhaften, seit v1.11.0 korrigierten Grundkosten-Anzeige fürs Bauen im Idealweg), ergänzt um eine eigene, gesondert ausgewiesene Rework-Kategorie „DoR was just paperwork" für Punkte, die abgehakt, aber tatsächlich nicht erfüllt waren. (Seit v1.10.0, FEATURE-008.)
 
+- **Der Meeting-Timer beim Sortier-Schritt "Map the change" (Team-Modus) muss durchgehend weiterlaufen** – bis entweder die vorgegebene Zeit abgelaufen ist oder die Spielerin/der Spieler aktiv vorzeitig zum nächsten Schritt wechselt. Ein Zwischenstand (z. B. "gerade sind alle Karten einer Kategorie zugeordnet") darf die Zeitanzeige nicht anhalten, auch nicht wenn danach noch weitere Änderungen an der Zuordnung vorgenommen werden. *(Beim Testen am 27.07.2026 präzisiert, siehe BUG-007 – aktuell noch nicht korrekt umgesetzt.)*
+- **Nach jedem abgeschlossenen, zeitlich begrenzten Klärungsschritt im Team-Modus wird die dafür verbrauchte Zeit als Tage der "Analysis"-Kennzahl in der oberen Statusleiste gutgeschrieben**, analog zur bestehenden Gutschrift-Logik an anderen Weggabelungen. *(Beim Testen am 27.07.2026 präzisiert, siehe BUG-008 – aktuell noch nicht korrekt umgesetzt.)*
+- Der erste Bildschirm eines Team-Durchlaufs ("Who's in the room?") soll die unvollständige Meeting-Teilnahme als normalen, nachvollziehbaren Arbeitsalltag einordnen, bevor die Anwesenheitsliste gezeigt wird – nicht nur sachlich auflisten, wer da ist. *(Wunsch aus dem Testen am 27.07.2026, siehe FEATURE-017 – Formulierung noch offen.)*
+
 ## Nicht-funktionale Anforderungen
 
 - Technische Umsetzung als einzelne, in sich geschlossene Datei ohne eigenen Server im Hintergrund (rein clientseitig, läuft direkt im Browser).
@@ -58,6 +62,9 @@ Seit FEATURE-008 (22.07.2026, Vertical Slice; Ticket-Nummer am 23.07.2026 richti
 - „The fast start" (Vergleichszeile im Team-Modus-Abschluss) ist aktuell eine feste, szenario-unabhängige Zahl statt eines nachvollziehbaren, an Scrum-Schätzpraxis angelehnten Werts — siehe FEATURE-010 (ToDo).
 - Die übrigen 20 Banking-Szenarien im Team-Modus fehlen noch (bewusst aus dem FEATURE-008-Vertical-Slice-Scope ausgeschlossen, eigenes Folgeticket).
 
+- Offen: exakter englischer Wortlaut für den neuen einordnenden Absatz auf dem "Who's in the room?"-Bildschirm (FEATURE-017) – Stephans Vorschlag liegt bisher nur auf Deutsch vor.
+- Offen: ob die Ursache von BUG-007 (Zeitanzeige bleibt stehen) und BUG-008 (keine Tage-Gutschrift) dieselbe ist oder zwei getrennte Fehler sind – noch nicht analysiert.
+
 ## Änderungsprotokoll
 
 - 17.07.2026: Erstanlage, abgeleitet aus dem bestehenden Projektstand (`agent-contract-training.md`, `learning-subdomain-hosting-anleitung.md`).
@@ -78,3 +85,4 @@ Seit FEATURE-008 (22.07.2026, Vertical Slice; Ticket-Nummer am 23.07.2026 richti
 - 23.07.2026: v1.15.0/v1.15.1 (Testrunde 7) – die kostenlose Analysezeit-Gutschrift wurde bei beiden Weggabelungs-Typen (Business Value raten, Frage vertagen) unabhängig von der getroffenen Wahl vergeben; jetzt an die ehrliche Wahl gekoppelt. Redundant gewordene „Look back"-Kachel im Kopfbereich entfernt.
 - 23.07.2026: v1.16.0 (Testrunde 8) – die beiden langen, sich selbst abspielenden Bau-Sequenzen (Agent-Übergabe, „Start Development") sprangen automatisch ans Seitenende statt den Bildschirm chronologisch mitverfolgbar zu lassen; behoben. FEATURE-008 als vollständiges Done-Ticket in Backlog.md nachdokumentiert (war zuvor nur im Gespräch/Code nachvollziehbar); Ticket-Nummer von FEATURE-009 auf FEATURE-008 richtiggestellt (die Nummer FEATURE-009 gehört jetzt der Szenario-Gruppierungs-Idee); neue Idee „realistische Fast-Start-Schätzung" als FEATURE-010 im Backlog festgehalten.
 - 23.07.2026: Übergeordneter Mac-Projektordner von `Agentic Engineering Gamification/` in `Spec or Regret/` umbenannt (weiterhin mit dem Unterordner `spec-or-regret-game/` als eigentlichem Code-/Repo-Ordner darin). Ab sofort maßgeblicher Pfad; „Agentic Engineering Gamification" nicht mehr verwenden. Dokumenttitel dieser Datei entsprechend auf „Spec or Regret" nachgezogen.
+- 27.07.2026: Drei neue Test-Findings von Stephan als Tickets erfasst (BUG-007, BUG-008, FEATURE-017) und als offene Anforderungen/Klärungen hier ergänzt – noch nicht analysiert oder umgesetzt.
