@@ -6,14 +6,19 @@
 
 ## 🔄 In Progress
 
+## 📋 ToDo
+
+## ✅ Done
+
 ### FEATURE-016 Echte klickbare Team-Schätzung (T-Shirt-Größe) statt Erzähltext-Schätzung und feste Fast-Start-Formel im Team-Modus
 
 | Feld | Wert |
 |------|------|
 | **Typ** | Feature |
 | **Priorität** | Mittel |
-| **Status** | In Progress |
+| **Status** | Done |
 | **Erstellt** | 2026-07-24 |
+| **Done seit** | 2026-07-27 |
 
 **Beschreibung:** Der Team-Modus zeigt heute zu Beginn einen reinen Erzähltext-Moment ohne eigene Interaktion („Before anyone looks at the ticket", umgesetzt in FEATURE-010), und die daraus resultierende „Fast Start"-Zahl im Finale ergibt sich aus einer festen Formel (2 Tage Basis + Aufschlag je nach zufällig gewürfelter fehlender Rolle: 20 Tage bei Product Owner, sonst 16 Tage) – unabhängig vom tatsächlichen Spielverhalten. **Finales Design (Stephan, 25.07.2026, mit „passt" bestätigt, nach mehreren Gesprächsrunden deutlich vereinfacht gegenüber allen vorherigen Entwürfen dieses Tickets):** Dieser Erzähltext-Moment wird durch eine echte, klickbare Team-Schätzung ersetzt. Nach Spielstart sieht das Team zunächst einen kurzen Business-Text mit dem wörtlichen Ticket-Zitat des gespielten Szenarios, direkt gefolgt von einer Aufforderung, trotz der dünnen Informationslage eine T-Shirt-Größe zu wählen – **sieben** Fibonacci-artige Stufen von XXS bis XXL, mit **offen auf den Buttons sichtbarer** Tage-Zahl (XXS=1, XS=2, S=3, M=5, L=8, XL=13, XXL=21 Tage). Die gewählte Größe ist die **alleinige** Quelle der neuen Vergleichszahl im Finale – keine Rollen-Kopplung mehr (die in FEATURE-010 eingeführte feste Formel aus 2-Tage-Basis + 18/14-Tage-Rollen-Aufschlag entfällt ersatzlos, nicht nur teilweise). Die bisherige Bezeichnung „Fast start" wird in der Team-Modus-Oberfläche zu „Estimation" umbenannt.
 
@@ -146,11 +151,6 @@ Umgesetzt am 27.07.2026 (spec-or-regret-impl, Stephans Freigabe für die zwei of
 - Übertragung auf den Mac erfolgte per verifiziertem Patch/Checksum-Abgleich (SHA-256 je Datei identisch zwischen Sandbox-Stand und Mac-Stand) statt Volltext-Transfer.
 - Offen: echter Blick im Browser (Desktop + Handy-Breite, wegen der 7 Buttons), Release.
 
-
-
-## 📋 ToDo
-
-## ✅ Done
 
 ### BUG-006 Start-Buttons nicht mehr oben ausgerichtet, wenn eine „What's different here?"-Infobox geöffnet ist
 
