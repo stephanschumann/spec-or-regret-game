@@ -6,65 +6,6 @@
 
 ## 🔄 In Progress
 
-### TASK-003 Landing-Page-Kacheltitel und Kurzzeile nach Nutzertest überarbeitet
-
-| Feld | Wert |
-|------|------|
-| **Typ** | Task |
-| **Priorität** | Mittel *(Vorschlag – UX-Klarheit aus echtem Nutzertest, kein Bug, bitte bestätigen)* |
-| **Status** | In Progress |
-| **Erstellt** | 2026-07-27 |
-
-**Beschreibung:** Nutzertests der Moduswahl-Seite (`renderModePicker()`) zeigten, dass Spielende nicht erkannten, dass die beiden Kacheln zwei grundsätzlich verschiedene Herangehensweisen an Produktentwicklung darstellen (mit KI-Agent vs. rein menschliches Team) – der Unterschied stand nur versteckt im eingeklappten „What's different here?"-Bereich (Punkt „No agent — the work is done entirely by the team itself"), nicht im sichtbaren Titel oder Story-Text. Nach Ausprobieren an einem eigenständigen HTML-Prototyp (`claude/landing-page-prototyp.html`, Projekt-Wissensablage „SPEC OR REGRET Game") wurden mit Stephan folgende drei Änderungen an genau dieser einen Seite festgelegt, ohne die Spielmechanik oder die „What's different here?"-Inhalte zu verändern oder vorab zu verraten:
-
-1. Kachel-Titel „Collaborate with Agents" → „We collaborate with AI Agents"; „Work as a Team" → „We collaborate as a Human-only Team" (Stephans eigene Benennung – gleiches Verb, unterschiedliches Objekt, macht den Gegensatz auf einen Blick lesbar).
-2. Direkt unter jedem Titel eine neue, immer sichtbare Kurzzeile (kein Aufklappen nötig, reiner Text ohne Icon – ein Icon wäre ein Duplikat zum bereits vorhandenen großen Icon `🤖`/`👥` darüber): „An AI agent does the actual building. You steer it." bzw. „No AI involved — your team builds it, start to finish."
-3. Der bestehende Einleitungssatz direkt über den Kacheln bekommt einen zusätzlichen Satz angehängt: „Same requirement, same goal — one way with AI agents doing the build, the other with a human-only team." (Platzierung von Stephan bestätigt: direkt an den bestehenden Einleitungstext angehängt, keine eigene abgesetzte Zeile.)
-
-**User Story:** Als Spielerin/Spieler möchte ich auf der Moduswahl-Seite auf einen Blick verstehen, dass ich zwischen zwei grundsätzlich verschiedenen Arbeitsweisen wähle – mit oder ohne KI-Agent –, statt das erst nach dem Spielen oder nach dem Aufklappen der Detailinfos zu merken.
-
-**Fundstellen-Sweep:** Gesucht nach `Collaborate with Agents` und `Work as a Team` im gesamten Repo (Code, Tests, Docs, `grep -rn` über `.js`/`.html`/`.md`). Ergebnis: Die Titel selbst stehen nur an genau zwei Stellen im gerenderten Code (`public/index.html`, `renderModePicker()`, aktuell Zeile 830 und 840), plus zwei rein beschreibende Kommentarzeilen direkt darüber (Zeile 786/789, kein Verhalten, werden aus Konsistenzgründen mit umbenannt). In `tests/FEATURE-009.test.js` und `tests/BUG-006.test.js` kommen beide Begriffe ausschließlich in menschenlesbaren Assert-Meldungstexten bzw. Kommentaren vor – die eigentlichen Prüfungen greifen über `getElementById("pickAgentMode")`/`getElementById("pickTeamMode")` (IDs bleiben unverändert), kein Test prüft den Titel-Text selbst über `textContent`/`innerHTML`. Kein bestehender Test bricht durch die Umbenennung (verifiziert, nicht angenommen).
-
-**Zustands-Check:** Wartezustand: entfällt, rein statischer Text ohne Ladevorgang. Leerzustand: entfällt, beide Kacheln sind immer beide sichtbar. Fehlerfall: rein clientseitig, kein neues Fehlerverhalten – bestehendes Verhalten bleibt unverändert.
-
-**Pre-Mortem:**
-- 💀 Die deutlich längeren Titel (v. a. „We collaborate as a Human-only Team") sprengen das Kachel-Layout auf schmalen Bildschirmen → Gegenmaßnahme: bereits am eigenständigen Prototyp mit identischer CSS-Struktur (`.modecard`, `.e`, `h2`) per Headless-Browser-Screenshot auf Desktop-Breite geprüft, kein Umbruch; vor Release zusätzlich ein Playwright-Screenshot bei 375px (Mobile-Breite) einplanen, da der Prototyp bisher nur Desktop-Breite geprüft hat → eigenes Akzeptanzkriterium.
-- 💀 Die neue Kurzzeile übernimmt nicht automatisch die Kartenfarbe (Amber/Teal) und wirkt optisch nicht zugehörig → Gegenmaßnahme: eigene CSS-Regel `.modecard.modeagent .modebadge` / `.modecard.team .modebadge` mit den bereits bestehenden Variablen `--amber`/`--teal` als Rahmenfarbe, analog zum am Prototyp bewährten Muster.
-- 💀 `GAME_VERSION` wird nicht erhöht → Gegenmaßnahme: eigenes Akzeptanzkriterium.
-- 💀 Die beiden Kommentarzeilen (786/789) verweisen weiterhin auf den alten Titel und verwirren eine künftige Session → Gegenmaßnahme: Kommentartext im selben Diff mitaktualisieren.
-
-**Zusammenspiel bestehender Bausteine:** Betrifft ausschließlich `renderModePicker()` (Titel-Strings, ein neuer `<p class="modebadge">`-Absatz je Kachel, eine Ergänzung am bestehenden Einleitungssatz) sowie den `<style>`-Block (neue `.modebadge`-Regel, analog zu den bestehenden `.modecard`/`.moredet`-Regeln direkt daneben). Keine Berührung von `buildStages`, `renderTeamPicker`, `TEAM_ROLES`, `TSHIRT_SIZES` oder einer anderen Team-Modus-Mechanik – die Funktion rendert nur die Moduswahl-Seite selbst, alles Nachgelagerte (Klick auf „Start →") bleibt unverändert.
-
-**Optionenvergleich:** Nur ein sinnvoller Weg – direkte Textänderung an den beiden bestehenden `h2`-Zeilen plus eine neue, kleine CSS-Klasse `.modebadge`; keine Restrukturierung von `renderModePicker()` nötig, die Kachel-Struktur selbst bleibt unverändert.
-
-✅ **Empfehlung:** wie oben beschrieben umsetzen – geringes Risiko, bereits am Prototyp visuell geprüft, keine bestehenden Tests betroffen.
-
-**Analyse & Planung:** Betroffene Stelle: `public/index.html`, Funktion `renderModePicker()` (aktuell Zeile 818–851), Kommentarblock direkt davor (Zeile 786–791), sowie der `<style>`-Block mit den `.modecard`-Regeln (aktuell um Zeile 174–197) für die neue `.modebadge`-Regel. `GAME_VERSION` aktuell `1.27.0` → vorgeschlagen `1.28.0` (Patch/Minor, sichtbare Text-/Layout-Änderung, keine neue Funktion).
-
-**Testplan:**
-1. jsdom-Test (neue Datei `tests/TASK-003.test.js`): `public/index.html` laden, `renderModePicker()` aufrufen (bzw. über den regulären Einstieg erreichen), per `textContent` prüfen, dass beide neuen Titel und beide neuen Kurzzeilen-Texte im DOM stehen, und dass `getElementById("pickAgentMode")`/`getElementById("pickTeamMode")` weiterhin vorhanden und klickbar sind (Regressionsschutz für die bestehenden FEATURE-009/BUG-006-Tests).
-2. `node --check` auf das extrahierte `<script>`-Innere.
-3. Bestehende Regressionssuite (`tests/*.test.js`) vollständig laufen lassen – insbesondere FEATURE-009, BUG-006, FEATURE-012.
-4. Playwright-Screenshot bei zwei Breiten (1200px Desktop, 375px Mobile) der Moduswahl-Seite, visuell auf Umbruch/Abschneiden geprüft (siehe Pre-Mortem).
-5. Ein echter Blick im Browser bleibt ein offener Punkt im Testplan, bis Stephan ihn selbst nach dem Release bestätigt.
-
-**Scope:**
-Eingeschlossen: Titel-Text beider Kacheln, eine neue immer sichtbare Kurzzeile je Kachel (plus CSS-Regel dafür), eine Ergänzung am bestehenden Einleitungssatz über den Kacheln, `GAME_VERSION`-Erhöhung, Aktualisierung der beiden Kommentarzeilen.
-Ausgeschlossen: die Story-Absätze der Kacheln; der Inhalt der „What's different here?"-Listen; die Szenario-Auswahl (`renderTeamPicker`); die Facilitator-Hinweise; jede Spielmechanik oder Shortcut-Logik im Team- oder Agenten-Modus.
-
-**Akzeptanzkriterien:**
-- [x] Die linke Kachel zeigt den Titel „We collaborate with AI Agents", die rechte „We collaborate as a Human-only Team".
-- [x] Direkt unter jedem Titel steht eine kurze, immer sichtbare Zeile („An AI agent does the actual building. You steer it." bzw. „No AI involved — your team builds it, start to finish.") – ohne Icon davor.
-- [x] Der Einleitungssatz über den Kacheln endet zusätzlich mit dem Satz „Same requirement, same goal — one way with AI agents doing the build, the other with a human-only team."
-- [x] Auf 375px Bildschirmbreite bricht keiner der beiden Titel oder der Kurzzeilen das Kachel-Layout sichtbar um oder schneidet Text ab.
-- [x] Ein Klick auf „Start →" funktioniert in beiden Kacheln weiterhin unverändert (Regression).
-- [x] `GAME_VERSION` wurde erhöht (1.27.0 → 1.28.0).
-- [x] Alle bestehenden Tests unter `tests/*.test.js` laufen weiterhin fehlerfrei durch – mit einer dokumentierten Ausnahme, siehe Umsetzung unten.
-
-**Umsetzung (27.07.2026):** Umgesetzt in `public/index.html` (`renderModePicker()` + neue `.modebadge`-CSS-Regel + `GAME_VERSION`), neue Testdatei `tests/TASK-003.test.js` (4/4 grün) angelegt und dauerhaft im Repo abgelegt. Vollständiger Regressionslauf über alle `tests/*.test.js` durchgeführt (nicht nur behauptet): 20 von 25 Dateien PASS, darunter alle drei bestehenden visuellen Playwright-Tests, die genau die Kartenausrichtung/-höhe prüfen (`FEATURE-009-visual`, `BUG-004-visual`, `BUG-006-visual`) – alle weiterhin grün, also keine Layout-Regression durch die längeren Titel. Die verbleibenden 5 Dateien (`BUG-004`, `FEATURE-009`, `FEATURE-011`, `FEATURE-012`, `FEATURE-016`) scheitern ausschließlich an fest einprogrammierten, historischen `GAME_VERSION`-Exaktwerten aus früheren Tickets (z. B. „sollte auf 1.16.0 stehen") – gegen den unveränderten Stand vor diesem Ticket (`git stash`, HEAD `2c90335`) geprüft: dieselben 5 Dateien scheitern dort exakt gleich, also nicht durch TASK-003 verursacht. Diese Tests wurden nicht angefasst (nur Stephan darf bestehende Tests ändern). Zusätzlich Screenshots bei 1200px und 375px Breite per Playwright angefertigt und visuell geprüft – kein Umbruch, keine Überlappung. Ein echter Blick im eigenen Browser sowie das eigentliche Release bleiben offen (siehe Testplan Punkt 5).
-
----
-
 ## 📋 ToDo
 
 ### BUG-007 Team-Zeitanzeige "Map the change" läuft nach vollständigem Sortieren nicht weiter herunter
@@ -137,6 +78,63 @@ Freigegebener neuer "setup"-Text (ersetzt den bisherigen String, für alle Szena
 
 
 ## ✅ Done
+
+### BUG-009 Start-Buttons in der Moduswahl unterschiedlich groß (Padding/Schriftgröße)
+
+| Feld | Wert |
+|------|------|
+| **Typ** | BugFix |
+| **Priorität** | Mittel |
+| **Status** | Done |
+| **Erstellt** | 2026-07-27 |
+| **Done seit** | 2026-07-27 |
+
+**Beschreibung:** Direkt nach dem TASK-003-Release hat Stephan per Screenshot gemeldet, dass die beiden Start-Buttons in der Moduswahl („We collaborate with AI Agents" / „We collaborate as a Human-only Team") sichtbar unterschiedlich groß sind — der Agent-Button deutlich höher/mit mehr Innenabstand als der Team-Button.
+
+**Fundstellen-Sweep / Ursache (am echten Code verifiziert, nicht angenommen):** Der Agent-Button trug `class="btn big"` (`.btn.big`: `padding:18px 30px;font-size:19px`), der Team-Button dagegen nur `class="btn team"` (`.btn.team` überschreibt ausschließlich Hintergrund/Farbe/Schatten, nicht Padding/Schriftgröße — Basis bleibt `.btn{padding:14px 22px;font-size:16px}`). Per `git log -S".btn.big" -- public/index.html` bestätigt: dieser Größen-Unterschied existiert bereits seit dem allerersten Firebase-Hosting-Commit, also lange vor TASK-003. BUG-004 und BUG-006 hatten beide bewusst nur die Y-POSITION/Ausrichtung der Buttons behoben (Kartenhöhen-Stretch-Problem), nie die eigene Größe der Buttons selbst — dieser konkrete Größen-Unterschied wurde also nie zuvor behoben, ist kein neu durch TASK-003 eingeführter Regressionsfehler.
+
+**Optionenvergleich:** Einfachster, risikoärmster Weg: Team-Button bekommt zusätzlich die Klasse `big` (`class="btn big team"`). Da `.btn.team` im Stylesheet NACH `.btn.big` steht und bei gleicher Spezifität die späteren, tatsächlich gesetzten Eigenschaften gewinnen, übernimmt der Team-Button dadurch Padding/Schriftgröße von `.btn.big`, behält aber seine türkise Farbe von `.btn.team`. Keine Änderung an `.btn.big`/`.btn.team` selbst nötig, keine Auswirkung auf andere Verwendungsstellen von `class="btn team"` (z. B. `teamStartBtn`, dort ohne "big"-Gegenstück, bewusst unverändert gelassen).
+
+**Analyse & Planung:** Betroffene Stelle: `public/index.html`, `renderModePicker()`, Button mit `id="pickTeamMode"` (eine Zeile). `GAME_VERSION` `1.28.0` → `1.28.1` (Patch, reiner visueller Bugfix, keine neue Funktion).
+
+**Testplan:**
+1. jsdom-Test (neu, `tests/BUG-009.test.js`): prüft strukturell, dass beide Start-Buttons die Klasse `big` tragen (jsdom hat keine echte Layout-Engine, kann also keine Pixelgrößen messen — nur Klassenzugehörigkeit), plus Regression (Buttons weiterhin klickbar), plus `GAME_VERSION`-Bump.
+2. **Pflicht-Playwright-Test** (neu, `tests/BUG-009-visual.test.js`, echtes Chromium): misst `boundingBox()` beider Start-Buttons und prüft Höhe und Breite auf ±2px Übereinstimmung.
+3. Vollständige bestehende Regressionssuite erneut laufen lassen.
+
+**Akzeptanzkriterien:**
+- [x] Beide Start-Buttons in der Moduswahl sind gleich hoch und gleich breit (visuell und per Playwright-Messung bestätigt).
+- [x] Die Farbunterscheidung (Amber/Agent vs. Teal/Team) bleibt vollständig erhalten.
+- [x] `GAME_VERSION` wurde erhöht (1.28.0 → 1.28.1).
+- [x] Alle bestehenden Tests laufen weiterhin fehlerfrei durch, mit denselben 5 dokumentierten Ausnahmen wie bei TASK-003 (vorbestehend, unabhängig).
+
+**Umsetzung (27.07.2026):** Umgesetzt in `public/index.html` (eine Zeile: `class="btn team"` → `class="btn big team"` beim Team-Start-Button, plus `GAME_VERSION`). Neue Testdateien `tests/BUG-009.test.js` (3/3 grün) und `tests/BUG-009-visual.test.js` (Playwright, PASS — beide Buttons exakt 58,0px hoch und 437,0px breit, Differenz 0px) dauerhaft im Repo abgelegt. Vollständiger Regressionslauf: 20/25 nicht-visuelle Testdateien PASS, dieselben 5 vorbestehenden, unabhängigen `GAME_VERSION`-Exaktwert-Fehler wie bei TASK-003 (unverändert, nicht durch diesen Fix verursacht); alle 4 visuellen Playwright-Tests (`BUG-004-visual`, `BUG-006-visual`, `FEATURE-009-visual`, `BUG-009-visual`) grün. Per Screenshot vor/nach der Änderung visuell verglichen. Release, GitHub-Actions-Deploy und Live-Bestätigung im echten Browser: siehe Release-Eintrag unten.
+
+---
+
+### TASK-003 Landing-Page-Kacheltitel und Kurzzeile nach Nutzertest überarbeitet
+
+| Feld | Wert |
+|------|------|
+| **Typ** | Task |
+| **Priorität** | Mittel |
+| **Status** | Done |
+| **Erstellt** | 2026-07-27 |
+| **Done seit** | 2026-07-27 |
+
+**Beschreibung:** Nutzertests der Moduswahl-Seite (`renderModePicker()`) zeigten, dass Spielende nicht erkannten, dass die beiden Kacheln zwei grundsätzlich verschiedene Herangehensweisen an Produktentwicklung darstellen (mit KI-Agent vs. rein menschliches Team) – der Unterschied stand nur versteckt im eingeklappten „What's different here?"-Bereich (Punkt „No agent — the work is done entirely by the team itself"), nicht im sichtbaren Titel oder Story-Text. Nach Ausprobieren an einem eigenständigen HTML-Prototyp (`claude/landing-page-prototyp.html`, Projekt-Wissensablage „SPEC OR REGRET Game") wurden mit Stephan folgende drei Änderungen an genau dieser einen Seite festgelegt, ohne die Spielmechanik oder die „What's different here?"-Inhalte zu verändern oder vorab zu verraten:
+
+1. Kachel-Titel „Collaborate with Agents" → „We collaborate with AI Agents"; „Work as a Team" → „We collaborate as a Human-only Team" (Stephans eigene Benennung – gleiches Verb, unterschiedliches Objekt, macht den Gegensatz auf einen Blick lesbar).
+2. Direkt unter jedem Titel eine neue, immer sichtbare Kurzzeile (kein Aufklappen nötig, reiner Text ohne Icon – ein Icon wäre ein Duplikat zum bereits vorhandenen großen Icon `🤖`/`👥` darüber): „An AI agent does the actual building. You steer it." bzw. „No AI involved — your team builds it, start to finish."
+3. Der bestehende Einleitungssatz direkt über den Kacheln bekommt einen zusätzlichen Satz angehängt: „Same requirement, same goal — one way with AI agents doing the build, the other with a human-only team." (Platzierung von Stephan bestätigt: direkt an den bestehenden Einleitungstext angehängt, keine eigene abgesetzte Zeile.)
+
+**User Story:** Als Spielerin/Spieler möchte ich auf der Moduswahl-Seite auf einen Blick verstehen, dass ich zwischen zwei grundsätzlich verschiedenen Arbeitsweisen wähle – mit oder ohne KI-Agent –, statt das erst nach dem Spielen oder nach dem Aufklappen der Detailinfos zu merken.
+
+**Umsetzung (27.07.2026):** Umgesetzt in `public/index.html` (`renderModePicker()` + neue `.modebadge`-CSS-Regel + `GAME_VERSION`), neue Testdatei `tests/TASK-003.test.js` (4/4 grün) angelegt und dauerhaft im Repo abgelegt. Vollständiger Regressionslauf über alle `tests/*.test.js` durchgeführt (nicht nur behauptet): 20 von 25 Dateien PASS, darunter alle drei damals bestehenden visuellen Playwright-Tests (`FEATURE-009-visual`, `BUG-004-visual`, `BUG-006-visual`) – alle grün, keine Layout-Regression durch die längeren Titel. Die verbleibenden 5 Dateien (`BUG-004`, `FEATURE-009`, `FEATURE-011`, `FEATURE-012`, `FEATURE-016`) scheitern ausschließlich an fest einprogrammierten, historischen `GAME_VERSION`-Exaktwerten aus früheren Tickets – gegen den unveränderten Stand vor diesem Ticket (`git stash`, HEAD `2c90335`) geprüft: dieselben 5 Dateien scheitern dort exakt gleich, also nicht durch TASK-003 verursacht. Diese Tests wurden nicht angefasst. Screenshots bei 1200px und 375px Breite per Playwright angefertigt und visuell geprüft – kein Umbruch, keine Überlappung.
+
+**Release (27.07.2026):** Commit `bca3e07` auf `main` gepusht, GitHub-Actions-Lauf „Deploy to Firebase Hosting on merge" #38 erfolgreich (Status: Success, 41s). Live-Stand auf `learning.stephanschumann.com` per eigenständigem Chrome-Browser-Check bestätigt (nicht nur angenommen): `GAME_VERSION` zeigt v1.28.0, beide neuen Titel, beide Kurzzeilen ohne Icon, Achsen-Satz korrekt an den Einleitungstext angehängt. Direkt danach von Stephan der Anschlussfehler BUG-009 gemeldet (Start-Button-Größe) und im selben Arbeitsgang behoben — siehe BUG-009 oben, gemeinsam released als Commit mit `GAME_VERSION` 1.28.1.
+
+---
 
 ### FEATURE-016 Echte klickbare Team-Schätzung (T-Shirt-Größe) statt Erzähltext-Schätzung und feste Fast-Start-Formel im Team-Modus
 
