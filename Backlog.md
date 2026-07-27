@@ -6,6 +6,65 @@
 
 ## 🔄 In Progress
 
+### TASK-003 Landing-Page-Kacheltitel und Kurzzeile nach Nutzertest überarbeitet
+
+| Feld | Wert |
+|------|------|
+| **Typ** | Task |
+| **Priorität** | Mittel *(Vorschlag – UX-Klarheit aus echtem Nutzertest, kein Bug, bitte bestätigen)* |
+| **Status** | In Progress |
+| **Erstellt** | 2026-07-27 |
+
+**Beschreibung:** Nutzertests der Moduswahl-Seite (`renderModePicker()`) zeigten, dass Spielende nicht erkannten, dass die beiden Kacheln zwei grundsätzlich verschiedene Herangehensweisen an Produktentwicklung darstellen (mit KI-Agent vs. rein menschliches Team) – der Unterschied stand nur versteckt im eingeklappten „What's different here?"-Bereich (Punkt „No agent — the work is done entirely by the team itself"), nicht im sichtbaren Titel oder Story-Text. Nach Ausprobieren an einem eigenständigen HTML-Prototyp (`claude/landing-page-prototyp.html`, Projekt-Wissensablage „SPEC OR REGRET Game") wurden mit Stephan folgende drei Änderungen an genau dieser einen Seite festgelegt, ohne die Spielmechanik oder die „What's different here?"-Inhalte zu verändern oder vorab zu verraten:
+
+1. Kachel-Titel „Collaborate with Agents" → „We collaborate with AI Agents"; „Work as a Team" → „We collaborate as a Human-only Team" (Stephans eigene Benennung – gleiches Verb, unterschiedliches Objekt, macht den Gegensatz auf einen Blick lesbar).
+2. Direkt unter jedem Titel eine neue, immer sichtbare Kurzzeile (kein Aufklappen nötig, reiner Text ohne Icon – ein Icon wäre ein Duplikat zum bereits vorhandenen großen Icon `🤖`/`👥` darüber): „An AI agent does the actual building. You steer it." bzw. „No AI involved — your team builds it, start to finish."
+3. Der bestehende Einleitungssatz direkt über den Kacheln bekommt einen zusätzlichen Satz angehängt: „Same requirement, same goal — one way with AI agents doing the build, the other with a human-only team." (Platzierung von Stephan bestätigt: direkt an den bestehenden Einleitungstext angehängt, keine eigene abgesetzte Zeile.)
+
+**User Story:** Als Spielerin/Spieler möchte ich auf der Moduswahl-Seite auf einen Blick verstehen, dass ich zwischen zwei grundsätzlich verschiedenen Arbeitsweisen wähle – mit oder ohne KI-Agent –, statt das erst nach dem Spielen oder nach dem Aufklappen der Detailinfos zu merken.
+
+**Fundstellen-Sweep:** Gesucht nach `Collaborate with Agents` und `Work as a Team` im gesamten Repo (Code, Tests, Docs, `grep -rn` über `.js`/`.html`/`.md`). Ergebnis: Die Titel selbst stehen nur an genau zwei Stellen im gerenderten Code (`public/index.html`, `renderModePicker()`, aktuell Zeile 830 und 840), plus zwei rein beschreibende Kommentarzeilen direkt darüber (Zeile 786/789, kein Verhalten, werden aus Konsistenzgründen mit umbenannt). In `tests/FEATURE-009.test.js` und `tests/BUG-006.test.js` kommen beide Begriffe ausschließlich in menschenlesbaren Assert-Meldungstexten bzw. Kommentaren vor – die eigentlichen Prüfungen greifen über `getElementById("pickAgentMode")`/`getElementById("pickTeamMode")` (IDs bleiben unverändert), kein Test prüft den Titel-Text selbst über `textContent`/`innerHTML`. Kein bestehender Test bricht durch die Umbenennung (verifiziert, nicht angenommen).
+
+**Zustands-Check:** Wartezustand: entfällt, rein statischer Text ohne Ladevorgang. Leerzustand: entfällt, beide Kacheln sind immer beide sichtbar. Fehlerfall: rein clientseitig, kein neues Fehlerverhalten – bestehendes Verhalten bleibt unverändert.
+
+**Pre-Mortem:**
+- 💀 Die deutlich längeren Titel (v. a. „We collaborate as a Human-only Team") sprengen das Kachel-Layout auf schmalen Bildschirmen → Gegenmaßnahme: bereits am eigenständigen Prototyp mit identischer CSS-Struktur (`.modecard`, `.e`, `h2`) per Headless-Browser-Screenshot auf Desktop-Breite geprüft, kein Umbruch; vor Release zusätzlich ein Playwright-Screenshot bei 375px (Mobile-Breite) einplanen, da der Prototyp bisher nur Desktop-Breite geprüft hat → eigenes Akzeptanzkriterium.
+- 💀 Die neue Kurzzeile übernimmt nicht automatisch die Kartenfarbe (Amber/Teal) und wirkt optisch nicht zugehörig → Gegenmaßnahme: eigene CSS-Regel `.modecard.modeagent .modebadge` / `.modecard.team .modebadge` mit den bereits bestehenden Variablen `--amber`/`--teal` als Rahmenfarbe, analog zum am Prototyp bewährten Muster.
+- 💀 `GAME_VERSION` wird nicht erhöht → Gegenmaßnahme: eigenes Akzeptanzkriterium.
+- 💀 Die beiden Kommentarzeilen (786/789) verweisen weiterhin auf den alten Titel und verwirren eine künftige Session → Gegenmaßnahme: Kommentartext im selben Diff mitaktualisieren.
+
+**Zusammenspiel bestehender Bausteine:** Betrifft ausschließlich `renderModePicker()` (Titel-Strings, ein neuer `<p class="modebadge">`-Absatz je Kachel, eine Ergänzung am bestehenden Einleitungssatz) sowie den `<style>`-Block (neue `.modebadge`-Regel, analog zu den bestehenden `.modecard`/`.moredet`-Regeln direkt daneben). Keine Berührung von `buildStages`, `renderTeamPicker`, `TEAM_ROLES`, `TSHIRT_SIZES` oder einer anderen Team-Modus-Mechanik – die Funktion rendert nur die Moduswahl-Seite selbst, alles Nachgelagerte (Klick auf „Start →") bleibt unverändert.
+
+**Optionenvergleich:** Nur ein sinnvoller Weg – direkte Textänderung an den beiden bestehenden `h2`-Zeilen plus eine neue, kleine CSS-Klasse `.modebadge`; keine Restrukturierung von `renderModePicker()` nötig, die Kachel-Struktur selbst bleibt unverändert.
+
+✅ **Empfehlung:** wie oben beschrieben umsetzen – geringes Risiko, bereits am Prototyp visuell geprüft, keine bestehenden Tests betroffen.
+
+**Analyse & Planung:** Betroffene Stelle: `public/index.html`, Funktion `renderModePicker()` (aktuell Zeile 818–851), Kommentarblock direkt davor (Zeile 786–791), sowie der `<style>`-Block mit den `.modecard`-Regeln (aktuell um Zeile 174–197) für die neue `.modebadge`-Regel. `GAME_VERSION` aktuell `1.27.0` → vorgeschlagen `1.28.0` (Patch/Minor, sichtbare Text-/Layout-Änderung, keine neue Funktion).
+
+**Testplan:**
+1. jsdom-Test (neue Datei `tests/TASK-003.test.js`): `public/index.html` laden, `renderModePicker()` aufrufen (bzw. über den regulären Einstieg erreichen), per `textContent` prüfen, dass beide neuen Titel und beide neuen Kurzzeilen-Texte im DOM stehen, und dass `getElementById("pickAgentMode")`/`getElementById("pickTeamMode")` weiterhin vorhanden und klickbar sind (Regressionsschutz für die bestehenden FEATURE-009/BUG-006-Tests).
+2. `node --check` auf das extrahierte `<script>`-Innere.
+3. Bestehende Regressionssuite (`tests/*.test.js`) vollständig laufen lassen – insbesondere FEATURE-009, BUG-006, FEATURE-012.
+4. Playwright-Screenshot bei zwei Breiten (1200px Desktop, 375px Mobile) der Moduswahl-Seite, visuell auf Umbruch/Abschneiden geprüft (siehe Pre-Mortem).
+5. Ein echter Blick im Browser bleibt ein offener Punkt im Testplan, bis Stephan ihn selbst nach dem Release bestätigt.
+
+**Scope:**
+Eingeschlossen: Titel-Text beider Kacheln, eine neue immer sichtbare Kurzzeile je Kachel (plus CSS-Regel dafür), eine Ergänzung am bestehenden Einleitungssatz über den Kacheln, `GAME_VERSION`-Erhöhung, Aktualisierung der beiden Kommentarzeilen.
+Ausgeschlossen: die Story-Absätze der Kacheln; der Inhalt der „What's different here?"-Listen; die Szenario-Auswahl (`renderTeamPicker`); die Facilitator-Hinweise; jede Spielmechanik oder Shortcut-Logik im Team- oder Agenten-Modus.
+
+**Akzeptanzkriterien:**
+- [x] Die linke Kachel zeigt den Titel „We collaborate with AI Agents", die rechte „We collaborate as a Human-only Team".
+- [x] Direkt unter jedem Titel steht eine kurze, immer sichtbare Zeile („An AI agent does the actual building. You steer it." bzw. „No AI involved — your team builds it, start to finish.") – ohne Icon davor.
+- [x] Der Einleitungssatz über den Kacheln endet zusätzlich mit dem Satz „Same requirement, same goal — one way with AI agents doing the build, the other with a human-only team."
+- [x] Auf 375px Bildschirmbreite bricht keiner der beiden Titel oder der Kurzzeilen das Kachel-Layout sichtbar um oder schneidet Text ab.
+- [x] Ein Klick auf „Start →" funktioniert in beiden Kacheln weiterhin unverändert (Regression).
+- [x] `GAME_VERSION` wurde erhöht (1.27.0 → 1.28.0).
+- [x] Alle bestehenden Tests unter `tests/*.test.js` laufen weiterhin fehlerfrei durch – mit einer dokumentierten Ausnahme, siehe Umsetzung unten.
+
+**Umsetzung (27.07.2026):** Umgesetzt in `public/index.html` (`renderModePicker()` + neue `.modebadge`-CSS-Regel + `GAME_VERSION`), neue Testdatei `tests/TASK-003.test.js` (4/4 grün) angelegt und dauerhaft im Repo abgelegt. Vollständiger Regressionslauf über alle `tests/*.test.js` durchgeführt (nicht nur behauptet): 20 von 25 Dateien PASS, darunter alle drei bestehenden visuellen Playwright-Tests, die genau die Kartenausrichtung/-höhe prüfen (`FEATURE-009-visual`, `BUG-004-visual`, `BUG-006-visual`) – alle weiterhin grün, also keine Layout-Regression durch die längeren Titel. Die verbleibenden 5 Dateien (`BUG-004`, `FEATURE-009`, `FEATURE-011`, `FEATURE-012`, `FEATURE-016`) scheitern ausschließlich an fest einprogrammierten, historischen `GAME_VERSION`-Exaktwerten aus früheren Tickets (z. B. „sollte auf 1.16.0 stehen") – gegen den unveränderten Stand vor diesem Ticket (`git stash`, HEAD `2c90335`) geprüft: dieselben 5 Dateien scheitern dort exakt gleich, also nicht durch TASK-003 verursacht. Diese Tests wurden nicht angefasst (nur Stephan darf bestehende Tests ändern). Zusätzlich Screenshots bei 1200px und 375px Breite per Playwright angefertigt und visuell geprüft – kein Umbruch, keine Überlappung. Ein echter Blick im eigenen Browser sowie das eigentliche Release bleiben offen (siehe Testplan Punkt 5).
+
+---
+
 ## 📋 ToDo
 
 ### BUG-007 Team-Zeitanzeige "Map the change" läuft nach vollständigem Sortieren nicht weiter herunter
@@ -54,6 +113,28 @@ Stephans Formulierungsvorschlag (von ihm auf Deutsch notiert – das Spiel läuf
 > "Du weißt wie es ist: Jeder ist beschäftigt, verschiedene Prioritäten, Projekte und Verpflichtungen, aber zum Glück haben es die meisten des Teams ins Meeting geschafft."
 
 **User Story:** Als Spielerin/Spieler möchte ich auf dem ersten Bildschirm spüren, dass unvollständige Meeting-Teilnahme normaler Arbeitsalltag ist (keine Ausnahmesituation), damit ich mich besser in die Situation "wer fehlt und warum" hineinversetzen kann, bevor ich mit dem Ticket weitermache.
+
+### FEATURE-018 Einleitungstext der Team-Modus-Stage "Spell it out" (Team · 5) ans gespielte Ticket anbinden
+
+| Feld | Wert |
+|------|------|
+| **Typ** | Feature |
+| **Priorität** | Mittel *(Vorschlag, analog zu FEATURE-017 – bitte bestätigen)* |
+| **Status** | ToDo |
+| **Erstellt** | 2026-07-27 |
+
+**Beschreibung:** Im Team-Modus, Schritt "Team · 5" / Kicker "Spell it out" (Code: `public/index.html`, Funktion `buildTeamStages(sc)`, Stage-Typ `teamgherkin`, aktuell Zeile ~970–974), steht als Einleitung für alle 21 Szenarien identisch derselbe Satz: "A first draft reads: "The user gets a reasonable error message when approval fails." Keep it as is, or make it precise." Stephan hat per Screenshot (27.07.2026) bemängelt, dass Spielende an dieser Stelle nicht erkennen, wo sie gerade stehen, woher dieses Draft-Statement stammt und was konkret von ihnen erwartet wird.
+
+Verifiziert am Code: Die Generik dieses Satzes selbst ist laut Konzeptdokument (`Konzept-Team-Modus.md`, Beschreibung von Schritt 5 / "Shortcut C") bewusst so vorgesehen ("eine vage, allgemein gehaltene Formulierung") und soll NICHT verändert werden. Ebenfalls verifiziert (`Product.md`, nicht-funktionale Anforderungen): Dieser Schritt ist ein Versuchungsmoment und darf seit v1.3.0 keinen Hinweis vorab geben, welche der beiden Wahlmöglichkeiten (vage lassen vs. präzise machen) die bessere ist — die Lektion kommt ausschließlich im Nachgespräch (debrief).
+
+Freigegebene Lösung (von Stephan im Chat am 27.07.2026 bestätigt): Den Einleitungstext um das bereits vorhandene, pro Szenario existierende Datenfeld `sc.short` ergänzen (wird im Agent-Modus in Runde 1 analog bereits verwendet, um den Text ans jeweilige Ticket zu binden), damit der Satz erkennbar zum gerade gespielten Ticket gehört — ohne die Neutralität zwischen den beiden Wahlmöglichkeiten zu verletzen. Titel, Kicker, mcode, die beiden Wahlmöglichkeiten/Buttons und der Debrief-Text bleiben unverändert.
+
+Freigegebener neuer "setup"-Text (ersetzt den bisherigen String, für alle Szenarien dynamisch über `sc.short`):
+
+> "You're back at your ticket — " + sc.short + ". One piece of it is still just a single line, exactly as it was first written down: "The user gets a reasonable error message when approval fails." Before this goes to whoever builds it: leave that one line as it is, or turn it into a step-by-step example of what should actually happen."
+
+**User Story:** Als Spielerin/Spieler möchte ich beim Schritt "Spell it out" erkennen, dass das gezeigte Draft-Statement zum gerade gespielten Ticket gehört, damit mir sofort klar ist, worauf sich die Entscheidung "vage lassen oder präzisieren" überhaupt bezieht.
+
 
 ## ✅ Done
 
