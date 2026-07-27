@@ -119,7 +119,9 @@ async function scenarioCleanPoRun() {
     click(doc, "teamStartBtn");
     assert.strictEqual(window.TeamState.roleMissing, "po");
 
-    click(doc, "teamNext"); // -> map
+    click(doc, "teamNext"); // roster -> teamestimate (FEATURE-016, additive)
+    doc.querySelector('.tshirtopt[data-key="m"]').dispatchEvent(new window.Event("click", { bubbles: true }));
+    click(doc, "teamEstNext"); // -> map
     sortMapHonestly(window, doc); // finishes in time -> finishMap(true) fires automatically
     click(doc, "nextBtn"); // -> bizvalue fork (PO missing)
 
@@ -192,7 +194,9 @@ async function scenarioEverythingBad() {
     click(doc, "teamRndBtn");
     click(doc, "teamStartBtn");
 
-    click(doc, "teamNext"); // -> map
+    click(doc, "teamNext"); // roster -> teamestimate (FEATURE-016, additive)
+    doc.querySelector('.tshirtopt[data-key="m"]').dispatchEvent(new window.Event("click", { bubbles: true }));
+    click(doc, "teamEstNext"); // -> map
     // Sort exactly ONE item, then let the timer run out — leaves the rest unsorted.
     const firstItem = doc.querySelector(".item");
     firstItem.dispatchEvent(new window.Event("click", { bubbles: true }));
@@ -291,7 +295,9 @@ async function scenarioDevMissingRoleThread() {
     click(doc, "teamStartBtn");
     assert.strictEqual(window.TeamState.roleMissing, "dev");
 
-    click(doc, "teamNext"); // -> map (no bizvalue fork on this branch)
+    click(doc, "teamNext"); // roster -> teamestimate (FEATURE-016, additive)
+    doc.querySelector('.tshirtopt[data-key="m"]').dispatchEvent(new window.Event("click", { bubbles: true }));
+    click(doc, "teamEstNext"); // -> map (no bizvalue fork on this branch)
     sortMapHonestly(window, doc);
     click(doc, "nextBtn"); // -> gherkin
 

@@ -153,7 +153,9 @@ async function runToImpl(sortMapFn) {
   click(doc, "teamRndBtn");
   click(doc, "teamStartBtn");
 
-  click(doc, "teamNext"); // -> map
+  click(doc, "teamNext"); // roster -> teamestimate (FEATURE-016, additive)
+  doc.querySelector('.tshirtopt[data-key="m"]').dispatchEvent(new window.Event("click", { bubbles: true }));
+  click(doc, "teamEstNext"); // -> map
   const mapReactBefore = doc.getElementById("react");
   sortMapFn(window, doc);
   // Analysis-Gutschrift unmittelbar NACH dem Map-Schritt, BEVOR nachfolgende

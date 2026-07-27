@@ -71,7 +71,9 @@ function testPutBackIcon() {
     click(doc, "pickTeamMode");
     click(doc, "teamRndBtn");
     click(doc, "teamStartBtn");
-    click(doc, "teamNext"); // -> map
+    click(doc, "teamNext"); // roster -> teamestimate (FEATURE-016, additive)
+    doc.querySelector('.tshirtopt[data-key="m"]').dispatchEvent(new window.Event("click", { bubbles: true }));
+    click(doc, "teamEstNext"); // -> map
 
     const st = window.STAGES[window.S.i];
     const firstEl = doc.querySelector(".item");
@@ -116,12 +118,25 @@ function testReviewNextReturnsHome() {
     click(doc, "pickTeamMode");
     click(doc, "teamRndBtn");
     click(doc, "teamStartBtn");
-    click(doc, "teamNext"); // roster -> map, S.i = 1, roster (index 0) now in history
+    click(doc, "teamNext"); // roster -> teamestimate (FEATURE-016, additive)
+    doc.querySelector('.tshirtopt[data-key="m"]').dispatchEvent(new window.Event("click", { bubbles: true }));
+    click(doc, "teamEstNext"); // -> map, S.i = 2, roster (index 0) AND teamestimate (index 1) now in history
 
-    // Open the review at the ONLY reviewable step (index 0, roster) — this is
-    // also the LAST reviewable step (S.i - 1 === 0), so Next should immediately
-    // offer "back to where you are", not a dead disabled button.
+    // FEATURE-016 (25.07.2026, additive Testanpassung, Stephans Freigabe über
+    // den Koordinator "weitermachen"): mit dem neuen teamestimate-Schritt
+    // dazwischen gibt es jetzt ZWEI ansehbare Schritte (roster=0,
+    // teamestimate=1) statt nur einem. Index 0 (roster) ist damit NICHT mehr
+    // der letzte ansehbare Schritt — das ist jetzt Index 1 (teamestimate,
+    // S.i - 1 === 1). Index 0 muss stattdessen "Next step →" anbieten (es
+    // gibt ja noch einen weiteren ansehbaren Schritt danach).
     window.openReview(0);
+    const nextBtnAtRoster = doc.getElementById("reviewNext");
+    assert.strictEqual(nextBtnAtRoster.disabled, false, "Next darf am Roster-Schritt nicht deaktiviert sein — es gibt einen weiteren ansehbaren Schritt danach");
+    assert.strictEqual(nextBtnAtRoster.textContent, "Next step →", "Am Roster-Schritt (jetzt nicht mehr der letzte) sollte 'Next step →' stehen, nicht 'Back to where you are'");
+
+    // Open the review at the new LAST reviewable step (index 1, teamestimate)
+    // — this is where "back to where you are" now belongs.
+    window.openReview(1);
     const nextBtn = doc.getElementById("reviewNext");
     assert.strictEqual(nextBtn.disabled, false, "Next darf am letzten ansehbaren Schritt nicht deaktiviert sein — es soll zurückführen");
     assert.strictEqual(nextBtn.textContent, "Back to where you are →", "Die Beschriftung sollte klar sagen, dass es zurück zur laufenden Seite geht");

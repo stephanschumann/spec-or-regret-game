@@ -70,7 +70,9 @@ async function testReassignmentWhileActive() {
     click(doc, "pickTeamMode");
     click(doc, "teamRndBtn");
     click(doc, "teamStartBtn");
-    click(doc, "teamNext"); // -> map
+    click(doc, "teamNext"); // roster -> teamestimate (FEATURE-016, additive)
+    doc.querySelector('.tshirtopt[data-key="m"]').dispatchEvent(new window.Event("click", { bubbles: true }));
+    click(doc, "teamEstNext"); // -> map
 
     const st = window.STAGES[window.S.i];
     const items = doc.querySelectorAll(".item");
@@ -125,7 +127,9 @@ async function testLockAfterTimeout() {
     click(doc, "pickTeamMode");
     click(doc, "teamRndBtn");
     click(doc, "teamStartBtn");
-    click(doc, "teamNext"); // -> map
+    click(doc, "teamNext"); // roster -> teamestimate (FEATURE-016, additive)
+    doc.querySelector('.tshirtopt[data-key="m"]').dispatchEvent(new window.Event("click", { bubbles: true }));
+    click(doc, "teamEstNext"); // -> map
 
     const tick = window.__intervalFns[window.__intervalFns.length - 1];
     for (let i = 0; i < 69; i++) tick(); // let the timer run all the way out
@@ -161,7 +165,9 @@ async function testLookBackAndFinaleGrid() {
     assert.strictEqual(doc.getElementById("navFoot").style.display, "none",
       "Ganz am Anfang (S.i === 0) gibt es noch nichts zum Zurückblicken");
 
-    click(doc, "teamNext"); // roster -> map (S.i now 1, roster is in history)
+    click(doc, "teamNext"); // roster -> teamestimate (FEATURE-016, additive)
+    doc.querySelector('.tshirtopt[data-key="m"]').dispatchEvent(new window.Event("click", { bubbles: true }));
+    click(doc, "teamEstNext"); // -> map (S.i now 2, roster is in history)
     assert.notStrictEqual(doc.getElementById("navFoot").style.display, "none",
       "Nach dem ersten abgeschlossenen Schritt sollte die 'Look back'-Leiste am unteren Rand sichtbar sein");
 
@@ -218,10 +224,17 @@ async function testLookBackAndFinaleGrid() {
     // FEATURE-014 (Scope-Änderung, dokumentiert): der neue premortemSkip-Fork
     // vor der Risikoauswahl-Aufgabe ist bei solider Wahl ein regulär
     // gespielter, historisierter Schritt wie jeder andere Fork auch (bizvalue/
-    // question) — die Kachelzahl steigt dadurch bewusst von 8 auf 9. Kein
-    // eigenes Badge, daher bleibt die Badge-Zahl unverändert bei 4.
-    assert.strictEqual(tileCount, 9, "Der Dev-fehlt-Durchlauf hat seit FEATURE-014 9 gespielte Schritte vor dem Finale (der neue premortemSkip-Fork zählt mit) — alle sollten als Kachel erscheinen, nicht nur die 4 mit Badge");
-    assert.strictEqual(window.S.badges.length, 4, "Nur 4 dieser 9 Schritte vergeben tatsächlich ein Badge (Map, Gherkin, Pre-mortem, Scope guardian)");
+    // question) — die Kachelzahl stieg dadurch bewusst von 8 auf 9. Kein
+    // eigenes Badge, daher blieb die Badge-Zahl unverändert bei 4.
+    // FEATURE-016 (25.07.2026, additive Testanpassung, Stephans Freigabe über
+    // den Koordinator "weitermachen"): der neue teamestimate-Schritt direkt
+    // nach dem Roster ist ebenfalls ein regulär gespielter, historisierter
+    // Schritt (go() legt für jeden Schritt eine History-Kachel an, unabhängig
+    // von Badge/analysisDays — siehe renderTeamEstimate()) — die Kachelzahl
+    // steigt dadurch bewusst weiter von 9 auf 10. Auch dieser Schritt vergibt
+    // kein eigenes Badge, daher bleibt die Badge-Zahl weiterhin bei 4.
+    assert.strictEqual(tileCount, 10, "Der Dev-fehlt-Durchlauf hat seit FEATURE-016 10 gespielte Schritte vor dem Finale (der neue teamestimate-Schritt zählt zusätzlich mit) — alle sollten als Kachel erscheinen, nicht nur die 4 mit Badge");
+    assert.strictEqual(window.S.badges.length, 4, "Nur 4 dieser 10 Schritte vergeben tatsächlich ein Badge (Map, Gherkin, Pre-mortem, Scope guardian)");
 
     dom.window.close();
     return null;

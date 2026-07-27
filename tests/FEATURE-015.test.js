@@ -107,7 +107,9 @@ async function scenarioAllThreadsPresent() {
     click(doc, "teamRndBtn");
     click(doc, "teamStartBtn");
 
-    click(doc, "teamNext"); // -> map
+    click(doc, "teamNext"); // roster -> teamestimate (FEATURE-016, additive)
+    doc.querySelector('.tshirtopt[data-key="m"]').dispatchEvent(new window.Event("click", { bubbles: true }));
+    click(doc, "teamEstNext"); // -> map
     sortMapButLeaveSomeUnsorted(window, doc);
     click(doc, "nextBtn"); // -> bizvalue fork
 
@@ -207,7 +209,9 @@ async function scenarioCleanRunEmptyState() {
     click(doc, "teamRndBtn");
     click(doc, "teamStartBtn");
 
-    click(doc, "teamNext"); // -> map
+    click(doc, "teamNext"); // roster -> teamestimate (FEATURE-016, additive)
+    doc.querySelector('.tshirtopt[data-key="m"]').dispatchEvent(new window.Event("click", { bubbles: true }));
+    click(doc, "teamEstNext"); // -> map
     const st = window.STAGES[window.S.i];
     Array.from(doc.querySelectorAll(".item")).forEach((el) => {
       el.dispatchEvent(new window.Event("click", { bubbles: true }));

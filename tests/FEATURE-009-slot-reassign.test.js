@@ -69,7 +69,9 @@ async function main() {
     click(doc, "pickTeamMode");
     click(doc, "teamRndBtn");
     click(doc, "teamStartBtn");
-    click(doc, "teamNext"); // -> map
+    click(doc, "teamNext"); // roster -> teamestimate (FEATURE-016, additive)
+    doc.querySelector('.tshirtopt[data-key="m"]').dispatchEvent(new window.Event("click", { bubbles: true }));
+    click(doc, "teamEstNext"); // -> map
 
     const st = window.STAGES[window.S.i];
     const firstEl = doc.querySelector(".item");

@@ -97,7 +97,9 @@ function main() {
       "Die fehlende Rolle sollte eine der vier bekannten Rollen sein");
 
     // Test 5: Der Meeting-Timer erzwingt den Übergang, auch wenn das Board nicht fertig ist.
-    click(doc, "teamNext"); // roster -> team map
+    click(doc, "teamNext"); // roster -> teamestimate (FEATURE-016, additive)
+    doc.querySelector('.tshirtopt[data-key="m"]').dispatchEvent(new window.Event("click", { bubbles: true }));
+    click(doc, "teamEstNext"); // -> team map
     assert(doc.getElementById("timerFill"), "Der Meeting-Timer sollte während des Mapping-Schritts sichtbar sein");
     assert(window.__intervalFns.length > 0, "Der Timer sollte über setInterval laufen");
     const tick = window.__intervalFns[window.__intervalFns.length - 1];

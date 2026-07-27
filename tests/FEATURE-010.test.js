@@ -1,26 +1,45 @@
 /**
- * tests/FEATURE-010.test.js — jsdom tests for the new "Fast Start" basis in
- * Team mode (FEATURE-010) in "Spec or Regret" (public/index.html).
+ * tests/FEATURE-010.test.js — jsdom tests for the Team-mode "Estimation"
+ * basis (originally "Fast Start").
  *
- * Replaces the old fixed `S.benchmark || 12` with: a fixed 2-day base guess
- * plus a surcharge that depends on which role the dice actually rolled as
- * missing this run (18d if Product Owner, 14d otherwise) — 20d or 16d total.
- * The value is fixed the moment the missing role is rolled (in startTeamMode,
- * before the team looks at the ticket) and must NOT change based on anything
- * the player does afterwards in the meeting.
- *
- * These checks stay durably useful for later team-mode tickets too:
- *   1. GAME_VERSION bumped for this visible change.
- *   2. The new narrative estimate moment is visible on the very first team-mode
- *      screen (folded into the roster screen, not a separate click step —
- *      see Ticket Analyse & Planung for why a separate stage was rejected:
- *      it would have shifted every existing team-mode stage index and broken
- *      the FEATURE-009 regression suite).
- *   3./4. "Fast Start" is fixed immediately when the role is rolled, before any
- *      play happens, and differs correctly by role (20d for PO, 16d otherwise).
- *   5. Two full runs with the SAME rolled role but completely different player
- *      behaviour (one clean, one everything-bad) show the IDENTICAL "Fast
- *      Start" number — proving it is not recalculated from the player's run.
+ * ⚠️ SUPERSEDED BY FEATURE-016 (25.07.2026, Stephans ausdrückliche Freigabe
+ * über den Koordinator, "weitermachen" auf die zwei benannten offenen Punkte):
+ * FEATURE-010's original mechanism — a narrative-only estimate box folded
+ * into the roster screen, producing a FIXED value the moment the missing
+ * role was rolled (2 days base + 18/14 days role-dependent surcharge,
+ * 20d/16d total) — has been completely replaced, not just recombined. See
+ * Backlog.md FEATURE-016 ("keine Rollen-Kopplung mehr, komplette statt
+ * teilweise Ablösung der FEATURE-010-Formel"). The role now has NO influence
+ * at all on the Estimation number; the number is instead the team's own real,
+ * clicked T-shirt-size choice (XXS=1 … XXL=21 days) on a new, dedicated step
+ * right after the roster screen. Full coverage of the NEW mechanism (all 7
+ * sizes, role-independence, play-independence, finale label/note) lives in
+ * tests/FEATURE-016.test.js — this file is intentionally kept lean and does
+ * NOT duplicate that exhaustive coverage. What changed here, and why (per
+ * the TDD escape-hatch protocol):
+ *   - Test 1 (GAME_VERSION): unchanged in intent, but the hardcoded "1.17.0"
+ *     was already stale (many unrelated releases happened since FEATURE-010)
+ *     — switched to the same non-brittle notStrictEqual pattern BUG-003
+ *     already uses, since it was already touched here anyway.
+ *   - Test 2 previously asserted the OLD narrative box ("Before anyone looks
+ *     at the ticket") on the roster screen with no extra click required. That
+ *     assumption is now false by design — replaced with a structural
+ *     regression guard: the old narrative box must be GONE from the roster
+ *     screen, and the new dedicated step must exist as the very next screen.
+ *   - Tests 3/4 previously asserted TeamState.fastStart === 20 (PO missing)
+ *     / === 16 (other role missing) — the exact old formula. That field no
+ *     longer exists (renamed TeamState.estimateLabel/S.benchmark, set only
+ *     after a real click). Replaced with a data-layer proof that picking a
+ *     missing role alone, before any size is clicked, produces NO automatic
+ *     estimate (S.benchmark stays 0) — i.e. the role→number coupling
+ *     FEATURE-010 introduced is verifiably gone, not just recomputed.
+ *   - Test 5 previously played two full runs with the SAME missing role but
+ *     different behaviour, expecting the identical OLD "16d cycle" value.
+ *     Replaced with a stronger version of the same underlying concern (does
+ *     the Estimation number stay independent of things it shouldn't depend
+ *     on?): two full runs with the SAME chosen T-shirt size but DIFFERENT
+ *     missing roles (PO vs. QA) now show the identical Estimation value —
+ *     proving the role has zero effect, not just a fixed effect per role.
  *
  * Ausführen: node tests/FEATURE-010.test.js
  */
@@ -99,65 +118,45 @@ function answerSelectCorrectly(window, doc, mode) {
   doc.getElementById("check").dispatchEvent(new window.Event("click", { bubbles: true }));
 }
 
-// Drives a full "dev missing" run (no bizvalue fork branch) to the finale,
-// either playing it clean/honest or letting everything go wrong, and returns
-// the rendered finale HTML.
-async function playDevMissingRun(clean) {
+// Drives a full run to the finale for a given rolled missing role, picking a
+// fixed T-shirt size ("s" = 3 days) right after the roster screen. Returns
+// the finale HTML.
+async function playRunWithRole(missingRole) {
   const dom = loadGame();
   const { window } = dom;
   const doc = window.document;
-  window.pickMissingRoleId = function () { return "dev"; };
+  window.pickMissingRoleId = function () { return missingRole; };
   click(doc, "introCta");
   click(doc, "pickTeamMode");
   click(doc, "teamRndBtn");
   click(doc, "teamStartBtn");
 
-  if (clean) {
-    click(doc, "teamNext"); // -> map
-    sortMapHonestly(window, doc);
-    click(doc, "nextBtn"); // -> gherkin
-    solveGherkinPrecisely(window, doc);
-    click(doc, "nextBtn"); // -> question fork
-    click(doc, "tSolid");
-    await wait(700);
-    click(doc, "nextBtn"); // -> premortemSkip fork (FEATURE-014)
-    click(doc, "tSolid");
-    await wait(700);
-    click(doc, "nextBtn"); // -> premortem
-    answerSelectCorrectly(window, doc, "pick");
-    click(doc, "nextBtn"); // -> overreach
-    answerSelectCorrectly(window, doc, "catch");
-    click(doc, "nextBtn"); // -> DoR
-    click(doc, "markAll");
-    click(doc, "dorContinue");
-    click(doc, "nextBtn"); // -> teamimpl
-  } else {
-    click(doc, "teamNext"); // -> map
-    // sort nothing, let the timer run out
-    const tick0 = window.__intervalFns[window.__intervalFns.length - 1];
-    for (let i = 0; i < 69; i++) tick0();
-    click(doc, "nextBtn"); // -> gherkin
-    click(doc, "vagueChoice"); // dishonest — keep it vague
-    await wait(600);
-    click(doc, "nextBtn"); // -> question fork
-    click(doc, "tTempt"); // dishonest — defer
-    await wait(700);
-    click(doc, "nextBtn"); // -> premortemSkip fork (FEATURE-014)
-    click(doc, "tSolid"); // FEATURE-014: keep pre-mortem itself played, isolate the pre-existing shortcuts
-    await wait(700);
-    click(doc, "nextBtn"); // -> premortem
-    answerSelectCorrectly(window, doc, "pick");
-    click(doc, "nextBtn"); // -> overreach
-    answerSelectCorrectly(window, doc, "catch");
-    click(doc, "nextBtn"); // -> DoR
-    click(doc, "markAll"); // dishonest
-    click(doc, "dorContinue");
-    click(doc, "nextBtn"); // -> teamimpl
-  }
+  click(doc, "teamNext"); // roster -> teamestimate (FEATURE-016)
+  const opt = doc.querySelector('.tshirtopt[data-key="s"]');
+  assert(opt, "T-Shirt-Option 's' sollte existieren");
+  opt.dispatchEvent(new window.Event("click", { bubbles: true }));
+  click(doc, "teamEstNext"); // -> map
+
+  sortMapHonestly(window, doc);
+  click(doc, "nextBtn");
+  if (missingRole === "po") { click(doc, "tSolid"); await wait(700); click(doc, "nextBtn"); }
+  solveGherkinPrecisely(window, doc);
+  click(doc, "nextBtn");
+  click(doc, "tSolid"); await wait(700);
+  click(doc, "nextBtn");
+  click(doc, "tSolid"); await wait(700);
+  click(doc, "nextBtn");
+  answerSelectCorrectly(window, doc, "pick");
+  click(doc, "nextBtn");
+  answerSelectCorrectly(window, doc, "catch");
+  click(doc, "nextBtn");
+  click(doc, "markAll");
+  click(doc, "dorContinue");
+  click(doc, "nextBtn");
 
   click(doc, "handoff");
   await wait(2500);
-  click(doc, "nextBtn"); // -> finale
+  click(doc, "nextBtn");
   const html = doc.getElementById("stageHost").innerHTML;
   dom.window.close();
   return html;
@@ -166,15 +165,18 @@ async function playDevMissingRun(clean) {
 async function main() {
   const failures = [];
 
-  // Test 1: GAME_VERSION wurde für dieses Feature erhöht.
+  // Test 1: GAME_VERSION wurde seit FEATURE-010 mehrfach erhöht — nur noch
+  // gegen den damaligen Ausgangswert geprüft (non-brittle, wie BUG-003).
   try {
     const dom = loadGame();
-    assert.strictEqual(dom.window.GAME_VERSION, "1.17.0", "GAME_VERSION sollte auf 1.17.0 stehen");
+    assert.notStrictEqual(dom.window.GAME_VERSION, "1.17.0", "GAME_VERSION sollte seit FEATURE-010 (1.17.0) erhöht worden sein");
     dom.window.close();
   } catch (err) { failures.push("GAME_VERSION: " + err.message); }
 
-  // Test 2: Der neue Schätz-Text ist auf dem allerersten Team-Modus-Screen
-  // sichtbar (auf demselben Screen wie die Besetzungsliste, kein Extra-Klick).
+  // Test 2: Strukturelle Regression — die alte, rein erzählende Schätzbox
+  // ("Before anyone looks at the ticket") ist vom Roster-Screen VERSCHWUNDEN,
+  // und direkt danach folgt der neue, eigene FEATURE-016-Schritt mit den
+  // sieben T-Shirt-Buttons statt direkt der Karte ("map").
   try {
     const dom = loadGame();
     const { window } = dom;
@@ -183,61 +185,53 @@ async function main() {
     click(doc, "pickTeamMode");
     click(doc, "teamRndBtn");
     click(doc, "teamStartBtn");
-    const html = doc.getElementById("stageHost").innerHTML;
-    assert(html.indexOf("Before anyone looks at the ticket") !== -1, "Der Schätz-Kicker sollte auf dem Roster-Screen erscheinen");
-    assert(html.indexOf("starting guess, not a plan") !== -1, "Der deutlich abgesetzte Hinweis sollte auf dem Roster-Screen erscheinen");
-    assert(doc.getElementById("teamNext"), "Der bestehende 'Start the meeting'-Button sollte weiterhin da sein (kein Extra-Klick nötig)");
+    const rosterHTML = doc.getElementById("stageHost").innerHTML;
+    assert(rosterHTML.indexOf("Before anyone looks at the ticket") === -1, "Die alte Erzähltext-Schätzbox sollte NICHT mehr auf dem Roster-Screen erscheinen");
+    assert(rosterHTML.indexOf("starting guess, not a plan") === -1, "Der alte Hinweistext sollte NICHT mehr auf dem Roster-Screen erscheinen");
+    click(doc, "teamNext");
+    const nextHTML = doc.getElementById("stageHost").innerHTML;
+    assert(doc.querySelectorAll(".tshirtopt").length === 7, "Nach dem Roster-Screen sollte direkt der neue Schritt mit 7 T-Shirt-Buttons folgen");
+    assert(nextHTML.indexOf("Before anyone looks at the ticket") === -1, "Der neue Schritt zeigt einen anderen Text als die alte Box");
     dom.window.close();
-  } catch (err) { failures.push("Schätz-Text sichtbar: " + err.message); }
+  } catch (err) { failures.push("Alte Erzählbox entfernt, neuer Schritt folgt: " + err.message); }
 
-  // Test 3: Bei gewürfeltem "Product Owner fehlt" steht Fast Start sofort auf
-  // 20 (2 Basis + 18 Aufschlag) — schon bevor irgendetwas gespielt wurde.
+  // Test 3: Die gewürfelte fehlende Rolle allein — VOR jedem Größen-Klick —
+  // erzeugt keinerlei automatischen Schätzwert mehr (S.benchmark bleibt 0).
+  // Das ist der Daten-Beleg, dass die Rollen-Kopplung aus FEATURE-010
+  // tatsächlich entfernt wurde, nicht nur umbenannt.
   try {
-    const dom = loadGame();
-    const { window } = dom;
-    const doc = window.document;
-    window.pickMissingRoleId = function () { return "po"; };
-    click(doc, "introCta");
-    click(doc, "pickTeamMode");
-    click(doc, "teamRndBtn");
-    click(doc, "teamStartBtn");
-    assert.strictEqual(window.TeamState.fastStart, 20, "PO fehlt -> 20 Tage (2 Basis + 18 Aufschlag)");
-    assert.strictEqual(window.S.benchmark, 20, "S.benchmark sollte direkt beim Start gesetzt sein, nicht erst im Finale");
-    dom.window.close();
-  } catch (err) { failures.push("Fast Start bei PO fehlt: " + err.message); }
+    for (const role of ["po", "qa"]) {
+      const dom = loadGame();
+      const { window } = dom;
+      const doc = window.document;
+      window.pickMissingRoleId = function () { return role; };
+      click(doc, "introCta");
+      click(doc, "pickTeamMode");
+      click(doc, "teamRndBtn");
+      click(doc, "teamStartBtn");
+      assert.strictEqual(window.S.benchmark, 0, "S.benchmark sollte VOR jeder Größenwahl 0 sein, unabhängig von der Rolle (" + role + ")");
+      assert.strictEqual(window.TeamState.fastStart, undefined, "TeamState.fastStart sollte es nicht mehr geben (FEATURE-016 ersetzt es durch TeamState.estimateLabel/S.benchmark)");
+      dom.window.close();
+    }
+  } catch (err) { failures.push("Keine automatische Rollen-Kopplung mehr: " + err.message); }
 
-  // Test 4: Bei einer der anderen drei Rollen steht Fast Start sofort auf 16
-  // (2 Basis + 14 Aufschlag) — kein Business-Value-Aufschlag möglich.
+  // Test 4: Zwei komplette Läufe mit DERSELBEN gewählten Größe ("s" = 3 Tage),
+  // aber unterschiedlicher gewürfelter fehlender Rolle (PO vs. QA), zeigen im
+  // Finale exakt dieselbe Estimation-Zahl — die Rolle hat jetzt GAR keinen
+  // Einfluss mehr (stärker als FEATURE-010s ursprüngliche Erwartung, die noch
+  // von einem festen, rollenabhängigen Unterschied ausging).
   try {
-    const dom = loadGame();
-    const { window } = dom;
-    const doc = window.document;
-    window.pickMissingRoleId = function () { return "qa"; };
-    click(doc, "introCta");
-    click(doc, "pickTeamMode");
-    click(doc, "teamRndBtn");
-    click(doc, "teamStartBtn");
-    assert.strictEqual(window.TeamState.fastStart, 16, "QA fehlt -> 16 Tage (2 Basis + 14 Aufschlag)");
-    assert.strictEqual(window.S.benchmark, 16);
-    dom.window.close();
-  } catch (err) { failures.push("Fast Start bei anderer Rolle: " + err.message); }
-
-  // Test 5: Zwei komplette Durchläufe mit DERSELBEN gewürfelten Rolle (dev),
-  // aber komplett unterschiedlichem Spielverhalten (einmal sauber, einmal
-  // durchgängig unehrlich/verspätet), zeigen im Finale exakt denselben
-  // "Fast Start"-Wert (16d) — der Wert reagiert NICHT auf das Spielverhalten.
-  try {
-    const cleanHTML = await playDevMissingRun(true);
-    const badHTML = await playDevMissingRun(false);
-    assert(cleanHTML.indexOf("0 analysis + 16d cycle") !== -1, "Sauberer Lauf (Dev fehlt) sollte 'Fast Start' mit 16d zeigen");
-    assert(badHTML.indexOf("0 analysis + 16d cycle") !== -1, "Durchgängig schlechter Lauf (Dev fehlt) sollte TROTZDEM 'Fast Start' mit 16d zeigen — unverändert durch das Spielverhalten");
-  } catch (err) { failures.push("Fast Start unabhängig vom Spielverlauf: " + err.message); }
+    const poHTML = await playRunWithRole("po");
+    const qaHTML = await playRunWithRole("qa");
+    assert(poHTML.indexOf("S → 3 days") !== -1, "PO-fehlt-Lauf sollte 'S → 3 days' zeigen");
+    assert(qaHTML.indexOf("S → 3 days") !== -1, "QA-fehlt-Lauf sollte TROTZDEM 'S → 3 days' zeigen — die Rolle darf keinen Unterschied machen");
+  } catch (err) { failures.push("Estimation unabhängig von der Rolle: " + err.message); }
 
   if (failures.length) {
     console.error("FAIL —\n" + failures.join("\n"));
     process.exit(1);
   }
-  console.log("PASS — 5/5 Checks grün (Version, Schätz-Text sichtbar ohne Extra-Klick, Fast Start 20d bei PO, 16d bei anderer Rolle, unverändert durch Spielverhalten)");
+  console.log("PASS — 4/4 Checks grün (Version, alte Erzählbox entfernt + neuer Schritt folgt, keine automatische Rollen-Kopplung mehr, Estimation unabhängig von der Rolle)");
   process.exit(0);
 }
 

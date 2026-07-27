@@ -86,7 +86,9 @@ async function testForkCredit(missingRoleId, kind, honest) {
     click(doc, "pickTeamMode");
     click(doc, "teamRndBtn");
     click(doc, "teamStartBtn");
-    click(doc, "teamNext"); // roster -> map
+    click(doc, "teamNext"); // roster -> teamestimate (FEATURE-016, additive)
+    doc.querySelector('.tshirtopt[data-key="m"]').dispatchEvent(new window.Event("click", { bubbles: true }));
+    click(doc, "teamEstNext"); // -> map
     sortMapHonestly(window, doc); // finishes in time -> next stage auto-reached
 
     if (kind === "bizvalue") {

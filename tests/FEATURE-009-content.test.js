@@ -73,7 +73,9 @@ async function playThrough(window, doc, roleMissing) {
   click(doc, "teamStartBtn");
   snap("roster");
 
-  click(doc, "teamNext"); // -> map
+  click(doc, "teamNext"); // roster -> teamestimate (FEATURE-016, additive)
+  doc.querySelector('.tshirtopt[data-key="m"]').dispatchEvent(new window.Event("click", { bubbles: true }));
+  click(doc, "teamEstNext"); // -> map
   snap("map");
   // sort everything honestly so we walk the "clean" content path too
   const st = window.STAGES[window.S.i];

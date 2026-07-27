@@ -113,7 +113,9 @@ async function playPoEverythingBadRun() {
   click(doc, "teamRndBtn");
   click(doc, "teamStartBtn");
 
-  click(doc, "teamNext"); // -> map
+  click(doc, "teamNext"); // roster -> teamestimate (FEATURE-016, additive)
+  doc.querySelector('.tshirtopt[data-key="m"]').dispatchEvent(new window.Event("click", { bubbles: true }));
+  click(doc, "teamEstNext"); // -> map
   const firstItem = doc.querySelector(".item");
   firstItem.dispatchEvent(new window.Event("click", { bubbles: true }));
   const st = window.STAGES[window.S.i];
@@ -205,7 +207,9 @@ async function testCleanRunBreakdownsMatch() {
     click(doc, "pickTeamMode");
     click(doc, "teamRndBtn");
     click(doc, "teamStartBtn");
-    click(doc, "teamNext"); // -> map
+    click(doc, "teamNext"); // roster -> teamestimate (FEATURE-016, additive)
+    doc.querySelector('.tshirtopt[data-key="m"]').dispatchEvent(new window.Event("click", { bubbles: true }));
+    click(doc, "teamEstNext"); // -> map
     const st = window.STAGES[window.S.i];
     Array.from(doc.querySelectorAll(".item")).forEach((el) => {
       el.dispatchEvent(new window.Event("click", { bubbles: true }));

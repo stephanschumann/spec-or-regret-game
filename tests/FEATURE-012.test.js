@@ -162,7 +162,9 @@ async function playTeamRoundForScenarioIdx(idx) {
 
   const rosterHTML = doc.getElementById("stageHost").innerHTML;
 
-  click(doc, "teamNext"); // -> map
+  click(doc, "teamNext"); // roster -> teamestimate (FEATURE-016, additive)
+  doc.querySelector('.tshirtopt[data-key="m"]').dispatchEvent(new window.Event("click", { bubbles: true }));
+  click(doc, "teamEstNext"); // -> map
   const st = window.STAGES[window.S.i];
   Array.from(doc.querySelectorAll(".item")).forEach((el) => {
     el.dispatchEvent(new window.Event("click", { bubbles: true }));

@@ -84,7 +84,9 @@ async function main() {
 
     // --- Stage 1: roster -> map, let the timer run out with an EMPTY board (no
     // card sorted at all) — the shortcut this bug report is about.
-    click(doc, "teamNext");
+    click(doc, "teamNext"); // roster -> teamestimate (FEATURE-016, additive)
+    doc.querySelector('.tshirtopt[data-key="m"]').dispatchEvent(new window.Event("click", { bubbles: true }));
+    click(doc, "teamEstNext"); // -> map
     assert(window.__intervalFns.length > 0, "Meeting-Timer sollte laufen");
     const tick = window.__intervalFns[window.__intervalFns.length - 1];
     for (let i = 0; i < 69; i++) tick(); // 68s abgelaufen (45s + 50%), Board nicht fertig sortiert
