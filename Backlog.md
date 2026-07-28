@@ -6,78 +6,6 @@
 
 ## 🔄 In Progress
 
-### FEATURE-018 Einleitungstext der Team-Modus-Stage "Spell it out" (Team · 5) ans gespielte Ticket anbinden
-
-| Feld | Wert |
-|------|------|
-| **Typ** | Feature |
-| **Priorität** | Mittel |
-| **Status** | In Progress |
-| **Erstellt** | 2026-07-27 |
-| **In Progress seit** | 2026-07-28 16:17 |
-
-**Beschreibung:** Im Team-Modus, Schritt "Team · 5" / Kicker "Spell it out" (Code: `public/index.html`, Funktion `buildTeamStages(sc)`, Stage-Typ `teamgherkin`, aktuell Zeile ~970–974), steht als Einleitung für alle 21 Szenarien identisch derselbe Satz: "A first draft reads: "The user gets a reasonable error message when approval fails." Keep it as is, or make it precise." Stephan hat per Screenshot (27.07.2026) bemängelt, dass Spielende an dieser Stelle nicht erkennen, wo sie gerade stehen, woher dieses Draft-Statement stammt und was konkret von ihnen erwartet wird.
-
-Verifiziert am Code: Die Generik dieses Satzes selbst ist laut Konzeptdokument (`Konzept-Team-Modus.md`, Beschreibung von Schritt 5 / "Shortcut C") bewusst so vorgesehen ("eine vage, allgemein gehaltene Formulierung") und soll NICHT verändert werden. Ebenfalls verifiziert (`Product.md`, nicht-funktionale Anforderungen): Dieser Schritt ist ein Versuchungsmoment und darf seit v1.3.0 keinen Hinweis vorab geben, welche der beiden Wahlmöglichkeiten (vage lassen vs. präzise machen) die bessere ist — die Lektion kommt ausschließlich im Nachgespräch (debrief).
-
-Freigegebene Lösung (von Stephan im Chat am 27.07.2026 bestätigt): Den Einleitungstext um das bereits vorhandene, pro Szenario existierende Datenfeld `sc.short` ergänzen (wird im Agent-Modus in Runde 1 analog bereits verwendet, um den Text ans jeweilige Ticket zu binden), damit der Satz erkennbar zum gerade gespielten Ticket gehört — ohne die Neutralität zwischen den beiden Wahlmöglichkeiten zu verletzen. Titel, Kicker, mcode, die beiden Wahlmöglichkeiten/Buttons und der Debrief-Text bleiben unverändert.
-
-Freigegebener neuer "setup"-Text (ersetzt den bisherigen String, für alle Szenarien dynamisch über `sc.short`):
-
-> "You're back at your ticket — " + sc.short + ". One piece of it is still just a single line, exactly as it was first written down: "The user gets a reasonable error message when approval fails." Before this goes to whoever builds it: leave that one line as it is, or turn it into a step-by-step example of what should actually happen."
-
-**User Story:** Als Spielerin/Spieler möchte ich beim Schritt "Spell it out" erkennen, dass das gezeigte Draft-Statement zum gerade gespielten Ticket gehört, damit mir sofort klar ist, worauf sich die Entscheidung "vage lassen oder präzisieren" überhaupt bezieht.
-
-**Fundstellen-Sweep:** Suchbegriff `"reasonable error message"` im gesamten Code (`public/index.html`): genau 2 Treffer, beide innerhalb derselben Stage "Spell it out" (der Einleitungssatz selbst und der spätere Auswahltext "Keep it vague: …") — keine weitere Fundstelle im restlichen Spiel. Die Änderung betrifft also wirklich nur diese eine Stelle.
-
-**Zustands-Check:**
-- Wartezustand: keiner – reines, synchrones Rendern eines Textbausteins beim Betreten der Stage.
-- Leerzustand: nicht relevant – das benötigte Datenfeld existiert nachweislich für alle 21 Themen (Stichprobe: 21 Treffer geprüft), es gibt also keinen Fall, in dem die Einordnung leer bliebe.
-- Fehlerfall: keiner neu eingeführt – es wird nur ein bereits vorhandenes, immer befülltes Datenfeld in einen bestehenden Text eingefügt; die bestehende Fehlerbehandlung bleibt unverändert.
-
-**Pre-Mortem:**
-- 💀 Der neue Satz liest sich bei einem der 21 Themen grammatikalisch seltsam → Gegenmaßnahme: alle 21 Kurzbeschreibungen wurden gegen den geplanten Satzbau geprüft, alle passen als Fortsetzung von "You're back at your ticket — …"; im Testplan zusätzlich mehrere Themen stichprobenartig rendern.
-- 💀 Die Versionsnummer des Spiels wird bei der Umsetzung vergessen zu erhöhen → Gegenmaßnahme: als eigener Punkt im Testplan festgehalten (aktueller Stand beim Ist-Zustand-Check: v1.28.2).
-- 💀 Eine versehentliche Änderung an einem Nachbarschritt oder an der Anzeige-Funktion dieses Schritts verschiebt unbemerkt den eigentlichen Einstiegspunkt → Gegenmaßnahme: Änderung bleibt bewusst auf genau die eine Einleitungszeile beschränkt, die Anzeige-Funktion selbst wird nicht angefasst; das über einen Vorher/Nachher-Diff der Datei abgesichert.
-- 💀 Ein im Browser zwischengespeicherter alter Spielstand zeigt weiterhin den alten Text → Gegenmaßnahme: reine Textänderung ohne gespeicherten Zustand, kein zusätzliches Caching-Risiko über einen normalen Seiten-Reload hinaus; im Testplan als offener Punkt (harter Reload beim eigenen Test) vermerkt.
-
-**Zusammenspiel bestehender Bausteine:** Betrifft ausschließlich den Aufbau-Schritt, der die Abfolge der Team-Modus-Bildschirme zusammenstellt (genau die Einleitungszeile der "Spell it out"-Stage), und indirekt die zugehörige Anzeige-Funktion, die diese Zeile nur unverändert übernimmt und selbst nichts daran verarbeitet. Reihenfolge: Die Abfolge wird einmalig beim Start einer Team-Runde zusammengestellt; die Anzeige-Funktion liest die Einleitungszeile erst aus, wenn diese Stage tatsächlich erreicht wird. Riskante Kombination: keine erkennbare – das für die Einordnung nötige Datenfeld ist zu diesem Zeitpunkt immer vollständig befüllt (für alle 21 Themen verifiziert), es gibt keinen bekannten Ablauf, der diese Stage mit einem unvollständigen Thema erreicht.
-
-**Scope:**
-Eingeschlossen: Der Einleitungssatz auf dem Bildschirm "Spell it out" (Team-Modus, Schritt 5) wird so ergänzt, dass er erkennbar auf das gerade gespielte Thema verweist.
-Ausgeschlossen: Titel, Kennzeichnung, Schrittnummer, die beiden Auswahlmöglichkeiten samt ihrer Bestätigungstexte und der Nachgespräch-Text bleiben unverändert. Keine Änderung an den anderen 20 Themen selbst oder an einem anderen Spielschritt.
-
-**Akzeptanzkriterien:**
-- [ ] Beim Betreten des Schritts "Spell it out" im Team-Modus ist sofort erkennbar, zu welchem der gerade gespielten Themen der gezeigte Beispielsatz gehört.
-- [ ] Der bisherige Beispielsatz ("The user gets a reasonable error message when approval fails") steht weiterhin wortgleich da – nur die Einordnung davor ist neu.
-- [ ] Die beiden Wahlmöglichkeiten ("vage lassen" / "präzise machen") sehen unverändert aus und verhalten sich unverändert, inklusive der bisherigen Rückmeldungen nach der Wahl.
-- [ ] Das gilt erkennbar für alle 21 Themen, nicht nur für ein einzelnes.
-
-**Optionenvergleich:** Nur ein sinnvoller Weg erkennbar – direkte Ergänzung des bestehenden Einleitungssatzes um das bereits vorhandene, pro Thema existierende Kurzbeschreibungsfeld (wird an anderer Stelle im Spiel schon genauso verwendet, um einen Text ans jeweilige Thema zu binden). Künstliche Alternativen wären hier nicht sinnvoll.
-
-**Analyse & Planung:**
-- [x] Aktuellen Zustand verstehen: Code frisch gegen den heutigen Stand geprüft (Stephans Hinweis auf zwischenzeitlichen Fortschritt) – Einleitungssatz und Funktionsstruktur sind unverändert gegenüber der vorherigen Analyse, keine Verschiebung mit Auswirkung auf dieses Ticket.
-- [x] Betroffene Stellen identifiziert: siehe Fundstellen-Sweep und Zusammenspiel oben.
-- [x] Implementierungsansatz definiert: siehe Optionenvergleich oben.
-- [x] Risiken und Edge Cases benannt: siehe Pre-Mortem oben.
-- [x] Aufwand geschätzt: sehr klein – eine einzelne Textzeile, keine neue Logik.
-
-**Testplan:**
-- [ ] jsdom-Test: `public/index.html` laden und ausführen, `window.matchMedia` stubben, einen Team-Durchlauf für mehrere unterschiedliche Themen bis zur "Spell it out"-Stage durchklicken und den angezeigten Einleitungstext auf den erwarteten, themenspezifischen Satz prüfen.
-- [ ] `node --check` auf den extrahierten Skript-Inhalt als reinen Syntax-Check.
-- [ ] Stichproben-Begründung: Die Änderung betrifft nur die gemeinsame Stage-Definition, die für alle 21 Themen gleichermaßen durchlaufen wird; da das benötigte Datenfeld nachweislich bei allen 21 Themen nach demselben Muster existiert, ist ein Test mit mehreren repräsentativen Themen für alle 21 aussagekräftig.
-- [ ] Bestehende Tests aktualisiert: keine bestehende Testdatei prüft bisher diesen Einleitungssatz – neuer, eigener Test statt einer Änderung an einer bestehenden Datei.
-- [ ] Layout-/Übergangs-Test (Playwright): nicht einschlägig – reine Textänderung ohne CSS-Übergang oder Nachbarelement-Bewegung.
-- [ ] Bekannter Nebenbefund (TASK-004, noch offen): Der Pflicht-Regressionslauf zeigt aktuell 5 bereits bekannte, mit dieser Änderung nicht zusammenhängende Fehlschläge (Versionsnummer-Prüfungen in fünf älteren Testdateien). Diese vorab so einordnen, nicht fälschlich dieser Änderung zuschreiben.
-- [ ] Ein echter Blick im Browser bleibt Stephan nach dem Release vorbehalten.
-
-**Scope-Änderungen** *(chronologisches Log):*
-*(leer bei Erstellung)*
-
-**Implementierungsnotizen:**
-*(leer bei Erstellung)*
-
-
 ## 📋 ToDo
 
 ### TASK-004 Alte fest einprogrammierte GAME_VERSION-Strings in Testdateien bereinigen
@@ -114,6 +42,84 @@ Stephans Formulierungsvorschlag (von ihm auf Deutsch notiert – das Spiel läuf
 
 
 ## ✅ Done
+
+### FEATURE-018 Einleitungstext der Team-Modus-Stage "Spell it out" (Team · 5) ans gespielte Ticket anbinden
+
+| Feld | Wert |
+|------|------|
+| **Typ** | Feature |
+| **Priorität** | Mittel |
+| **Status** | Done |
+| **Erstellt** | 2026-07-27 |
+| **In Progress seit** | 2026-07-28 16:17 |
+| **Done seit** | 2026-07-28 |
+
+**Beschreibung:** Im Team-Modus, Schritt "Team · 5" / Kicker "Spell it out" (Code: `public/index.html`, Funktion `buildTeamStages(sc)`, Stage-Typ `teamgherkin`, aktuell Zeile ~970–974), steht als Einleitung für alle 21 Szenarien identisch derselbe Satz: "A first draft reads: "The user gets a reasonable error message when approval fails." Keep it as is, or make it precise." Stephan hat per Screenshot (27.07.2026) bemängelt, dass Spielende an dieser Stelle nicht erkennen, wo sie gerade stehen, woher dieses Draft-Statement stammt und was konkret von ihnen erwartet wird.
+
+Verifiziert am Code: Die Generik dieses Satzes selbst ist laut Konzeptdokument (`Konzept-Team-Modus.md`, Beschreibung von Schritt 5 / "Shortcut C") bewusst so vorgesehen ("eine vage, allgemein gehaltene Formulierung") und soll NICHT verändert werden. Ebenfalls verifiziert (`Product.md`, nicht-funktionale Anforderungen): Dieser Schritt ist ein Versuchungsmoment und darf seit v1.3.0 keinen Hinweis vorab geben, welche der beiden Wahlmöglichkeiten (vage lassen vs. präzise machen) die bessere ist — die Lektion kommt ausschließlich im Nachgespräch (debrief).
+
+Freigegebene Lösung (von Stephan im Chat am 27.07.2026 bestätigt): Den Einleitungstext um das bereits vorhandene, pro Szenario existierende Datenfeld `sc.short` ergänzen (wird im Agent-Modus in Runde 1 analog bereits verwendet, um den Text ans jeweilige Ticket zu binden), damit der Satz erkennbar zum gerade gespielten Ticket gehört — ohne die Neutralität zwischen den beiden Wahlmöglichkeiten zu verletzen. Titel, Kicker, mcode, die beiden Wahlmöglichkeiten/Buttons und der Debrief-Text bleiben unverändert.
+
+Freigegebener neuer "setup"-Text (ersetzt den bisherigen String, für alle Szenarien dynamisch über `sc.short`):
+
+> "You're back at your ticket — " + sc.short + ". One piece of it is still just a single line, exactly as it was first written down: "The user gets a reasonable error message when approval fails." Before this goes to whoever builds it: leave that one line as it is, or turn it into a step-by-step example of what should actually happen."
+
+**User Story:** Als Spielerin/Spieler möchte ich beim Schritt "Spell it out" erkennen, dass das gezeigte Draft-Statement zum gerade gespielten Ticket gehört, damit mir sofort klar ist, worauf sich die Entscheidung "vage lassen oder präzisieren" überhaupt bezieht.
+
+**Fundstellen-Sweep:** Suchbegriff `"reasonable error message"` im gesamten Code (`public/index.html`): genau 2 Treffer, beide innerhalb derselben Stage "Spell it out" (der Einleitungssatz selbst und der spätere Auswahltext "Keep it vague: …") — keine weitere Fundstelle im restlichen Spiel. Die Änderung betrifft also wirklich nur diese eine Stelle.
+
+**Zustands-Check:**
+- Wartezustand: keiner – reines, synchrones Rendern eines Textbausteins beim Betreten der Stage.
+- Leerzustand: nicht relevant – das benötigte Datenfeld existiert nachweislich für alle 21 Themen (Stichprobe: 21 Treffer geprüft), es gibt also keinen Fall, in dem die Einordnung leer bliebe.
+- Fehlerfall: keiner neu eingeführt – es wird nur ein bereits vorhandenes, immer befülltes Datenfeld in einen bestehenden Text eingefügt; die bestehende Fehlerbehandlung bleibt unverändert.
+
+**Pre-Mortem:**
+- 💀 Der neue Satz liest sich bei einem der 21 Themen grammatikalisch seltsam → Gegenmaßnahme: alle 21 Kurzbeschreibungen wurden gegen den geplanten Satzbau geprüft, alle passen als Fortsetzung von "You're back at your ticket — …"; im Testplan zusätzlich mehrere Themen stichprobenartig rendern.
+- 💀 Die Versionsnummer des Spiels wird bei der Umsetzung vergessen zu erhöhen → Gegenmaßnahme: als eigener Punkt im Testplan festgehalten (aktueller Stand beim Ist-Zustand-Check: v1.28.2).
+- 💀 Eine versehentliche Änderung an einem Nachbarschritt oder an der Anzeige-Funktion dieses Schritts verschiebt unbemerkt den eigentlichen Einstiegspunkt → Gegenmaßnahme: Änderung bleibt bewusst auf genau die eine Einleitungszeile beschränkt, die Anzeige-Funktion selbst wird nicht angefasst; das über einen Vorher/Nachher-Diff der Datei abgesichert.
+- 💀 Ein im Browser zwischengespeicherter alter Spielstand zeigt weiterhin den alten Text → Gegenmaßnahme: reine Textänderung ohne gespeicherten Zustand, kein zusätzliches Caching-Risiko über einen normalen Seiten-Reload hinaus; im Testplan als offener Punkt (harter Reload beim eigenen Test) vermerkt.
+
+**Zusammenspiel bestehender Bausteine:** Betrifft ausschließlich den Aufbau-Schritt, der die Abfolge der Team-Modus-Bildschirme zusammenstellt (genau die Einleitungszeile der "Spell it out"-Stage), und indirekt die zugehörige Anzeige-Funktion, die diese Zeile nur unverändert übernimmt und selbst nichts daran verarbeitet. Reihenfolge: Die Abfolge wird einmalig beim Start einer Team-Runde zusammengestellt; die Anzeige-Funktion liest die Einleitungszeile erst aus, wenn diese Stage tatsächlich erreicht wird. Riskante Kombination: keine erkennbare – das für die Einordnung nötige Datenfeld ist zu diesem Zeitpunkt immer vollständig befüllt (für alle 21 Themen verifiziert), es gibt keinen bekannten Ablauf, der diese Stage mit einem unvollständigen Thema erreicht.
+
+**Scope:**
+Eingeschlossen: Der Einleitungssatz auf dem Bildschirm "Spell it out" (Team-Modus, Schritt 5) wird so ergänzt, dass er erkennbar auf das gerade gespielte Thema verweist.
+Ausgeschlossen: Titel, Kennzeichnung, Schrittnummer, die beiden Auswahlmöglichkeiten samt ihrer Bestätigungstexte und der Nachgespräch-Text bleiben unverändert. Keine Änderung an den anderen 20 Themen selbst oder an einem anderen Spielschritt.
+
+**Akzeptanzkriterien:**
+- [x] Beim Betreten des Schritts "Spell it out" im Team-Modus ist sofort erkennbar, zu welchem der gerade gespielten Themen der gezeigte Beispielsatz gehört.
+- [x] Der bisherige Beispielsatz ("The user gets a reasonable error message when approval fails") steht weiterhin wortgleich da – nur die Einordnung davor ist neu.
+- [x] Die beiden Wahlmöglichkeiten ("vage lassen" / "präzise machen") sehen unverändert aus und verhalten sich unverändert, inklusive der bisherigen Rückmeldungen nach der Wahl.
+- [x] Das gilt erkennbar für alle 21 Themen, nicht nur für ein einzelnes.
+
+**Optionenvergleich:** Nur ein sinnvoller Weg erkennbar – direkte Ergänzung des bestehenden Einleitungssatzes um das bereits vorhandene, pro Thema existierende Kurzbeschreibungsfeld (wird an anderer Stelle im Spiel schon genauso verwendet, um einen Text ans jeweilige Thema zu binden). Künstliche Alternativen wären hier nicht sinnvoll.
+
+**Analyse & Planung:**
+- [x] Aktuellen Zustand verstehen: Code frisch gegen den heutigen Stand geprüft (Stephans Hinweis auf zwischenzeitlichen Fortschritt) – Einleitungssatz und Funktionsstruktur sind unverändert gegenüber der vorherigen Analyse, keine Verschiebung mit Auswirkung auf dieses Ticket.
+- [x] Betroffene Stellen identifiziert: siehe Fundstellen-Sweep und Zusammenspiel oben.
+- [x] Implementierungsansatz definiert: siehe Optionenvergleich oben.
+- [x] Risiken und Edge Cases benannt: siehe Pre-Mortem oben.
+- [x] Aufwand geschätzt: sehr klein – eine einzelne Textzeile, keine neue Logik.
+
+**Testplan:**
+- [x] jsdom-Test: `public/index.html` laden und ausführen, `window.matchMedia` stubben, einen Team-Durchlauf für mehrere unterschiedliche Themen bis zur "Spell it out"-Stage durchklicken und den angezeigten Einleitungstext auf den erwarteten, themenspezifischen Satz prüfen. → `tests/FEATURE-018.test.js`, 5/5 grün.
+- [x] `node --check` auf den extrahierten Skript-Inhalt als reinen Syntax-Check. → implizit über den erfolgreichen jsdom-Testlauf (Skript wird dabei vollständig ausgeführt).
+- [x] Stichproben-Begründung: Die Änderung betrifft nur die gemeinsame Stage-Definition, die für alle 21 Themen gleichermaßen durchlaufen wird; da das benötigte Datenfeld nachweislich bei allen 21 Themen nach demselben Muster existiert, ist ein Test mit mehreren repräsentativen Themen für alle 21 aussagekräftig.
+- [x] Bestehende Tests aktualisiert: `tests/BUG-003.test.js` (Apostroph-Zählung 540 → 541 wegen des neuen "You're"), von Stephan im Chat freigegeben.
+- [x] Layout-/Übergangs-Test (Playwright): nicht einschlägig – reine Textänderung ohne CSS-Übergang oder Nachbarelement-Bewegung.
+- [x] Bekannter Nebenbefund (TASK-004, noch offen): Der Pflicht-Regressionslauf zeigt aktuell 5 bereits bekannte, mit dieser Änderung nicht zusammenhängende Fehlschläge (Versionsnummer-Prüfungen in fünf älteren Testdateien). Nicht dieser Änderung zuzuschreiben; separat als TASK-004 offen.
+- [x] Ein echter Blick im Browser: von Stephan selbst nach dem Release im echten Terminal/Browser bestätigt (Push + Deploy erfolgreich); zusätzlich per eigenständigem Chrome-Browser-Subagenten live auf learning.stephanschumann.com verifiziert (siehe Implementierungsnotizen).
+
+**Scope-Änderungen** *(chronologisches Log):*
+*(keine – Umsetzung entspricht der freigegebenen Spec unverändert)*
+
+**Implementierungsnotizen:**
+Umgesetzt in `public/index.html`: `setup`-Text der `teamgherkin`-Stage in `buildTeamStages(sc)` wie freigegeben auf „You're back at your ticket — " + sc.short + ". One piece of it is still just a single line, exactly as it was first written down: \"The user gets a reasonable error message when approval fails.\" Before this goes to whoever builds it: leave that one line as it is, or turn it into a step-by-step example of what should actually happen." geändert; `GAME_VERSION` 1.28.2 → 1.28.3.
+
+Neuer Test `tests/FEATURE-018.test.js` (5/5 grün): GAME_VERSION-Check, themenspezifischer Text für 3 Stichproben-Themen (Index 0, 5, 11), unterschiedlicher Text zwischen zwei Themen, unveränderte Auswahlmöglichkeiten (Checkbox + Button), unveränderter Agenten-Modus-Bauschritt. Bestehender Test `tests/BUG-003.test.js` angepasst (Apostroph-Zählung 540 → 541 wegen des neuen "You're"), von Stephan im Chat freigegeben.
+
+Vollständiger Regressionslauf (30 Testdateien): 25/30 grün, 5 bekannte, vorbestehende, mit dieser Änderung nicht zusammenhängende Fehlschläge (hartcodierte GAME_VERSION-Strings, siehe TASK-004).
+
+Release: von Stephan selbst committed und gepusht (Commit `36181ea`), GitHub Action "Deploy to Firebase Hosting on merge" grün. Live-Verifikation per eigenständigem Chrome-Browser-Subagenten auf learning.stephanschumann.com: Versions-Tag zeigt v1.28.3; Szenario "Second approver for large payments" (außerhalb der automatisierten Testfälle) durchgespielt bis zur "Spell it out"-Stage — zeigt korrekt "You're back at your ticket — needing a second person to approve big payments. …", gefolgt vom unveränderten vagen Beispielsatz; Checkbox "Keep it vague" und Button "Make it precise instead →" unverändert vorhanden.
 
 ### BUG-007 Team-Zeitanzeige "Map the change" läuft nach vollständigem Sortieren nicht weiter herunter
 
