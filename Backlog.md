@@ -6,20 +6,72 @@
 
 ## 🔄 In Progress
 
-## 📋 ToDo
-
 ### BUG-007 Team-Zeitanzeige "Map the change" läuft nach vollständigem Sortieren nicht weiter herunter
 
 | Feld | Wert |
 |------|------|
 | **Typ** | BugFix |
 | **Priorität** | Hoch *(Vorschlag – zentrale Zeitdruck-Mechanik des Team-Modus betroffen, bitte bestätigen)* |
-| **Status** | ToDo |
+| **Status** | In Progress |
 | **Erstellt** | 2026-07-27 |
+| **In Progress seit** | 2026-07-27 |
 
 **Beschreibung:** Beim Sortier-Schritt "Map the change" (Team-Modus, Schritt "A shared picture") zählt oben eine Zeitleiste "Meeting time left" herunter. Beim Testen (Stephan, 27.07.2026) festgestellt: Sobald einmal alle Karten einer Kategorie zugeordnet wurden, bleibt die Anzeige stehen – auch wenn danach noch weitere Änderungen an der Zuordnung vorgenommen werden (z. B. über das bestehende ↩-Icon), läuft die Zeit nicht weiter herunter. Erwartetes Verhalten: Die Zeit soll durchgehend weiterlaufen, bis entweder die vorgegebene Zeit abgelaufen ist oder die Spielerin/der Spieler selbst aktiv den nächsten Schritt startet – unabhängig davon, ob zwischendurch schon einmal alle Karten zugeordnet waren. Möglicher Zusammenhang mit BUG-005 (derselbe Sortier-Schritt, dort ging es um die Korrektheitsprüfung nach Zeitablauf) – in der Analyse prüfen, ob hier dieselbe Stelle im Code betroffen ist, statt das anzunehmen.
 
 **User Story:** Als Spielerin/Spieler möchte ich, dass der Zeitdruck im Meeting durchgehend spürbar bleibt (die Uhr läuft wirklich weiter), damit die Lektion "ihr habt nur ein begrenztes Zeitfenster" nicht durch ein zufälliges Stehenbleiben der Anzeige entwertet wird.
+
+**Scope:** Eingeschlossen: der Team-Modus-Schritt „A shared picture" / „Map the change" — sowohl das Zeitanzeige-Verhalten nach einer ersten vollständigen Sortierung als auch die daran hängende Bewertung (Rückmeldungstext, Abzeichen, Tages-Gutschrift für „Analysis"), sofern das Team danach noch etwas an der Zuordnung korrigiert. Ausgeschlossen: die grundsätzliche Korrektheitsprüfung selbst (durch BUG-005 bereits eingeführt, bleibt inhaltlich unverändert); alle anderen Team-Modus-Schritte (kein vergleichbarer Timer/Gutschrift-Mechanismus dort vorhanden, siehe Fundstellen-Sweep); der Einzelspieler-/Agenten-Modus (kein Zeit-Mechanismus dort). Dieses Ticket wird zusammen mit BUG-008 umgesetzt, da beide dieselbe Ursache haben (siehe unten) — BUG-008 verweist auf diese Analyse.
+
+**Akzeptanzkriterien:**
+- Solange der Sortier-Schritt läuft, zählt „Meeting time left" ohne Unterbrechung weiter herunter — auch nachdem einmal alle Karten einer Kategorie zugeordnet wurden und danach noch etwas an der Zuordnung geändert wird (z. B. über das ↩-Icon).
+- Wird das Board vollständig UND korrekt sortiert, bevor die Zeit abläuft, bleibt die sofortige Bestätigung („Everyone sees the same picture", Abzeichen, +1 Tag „Analysis") wie bisher erhalten — unverändert.
+- Ist das Board zwar vollständig, aber (noch) mindestens eine Karte falsch einsortiert: „Next step" bleibt wie bisher sofort anklickbar (keine Gutschrift, wie heute). Nutzt das Team stattdessen die verbleibende Zeit, um die falsch sortierte(n) Karte(n) zu korrigieren, und ist das Board danach vollständig korrekt, bevor die Zeit abläuft, werden Abzeichen und Tages-Gutschrift jetzt doch noch vergeben — statt wie bisher für immer bei „keine Gutschrift" hängen zu bleiben.
+- Läuft die Zeit tatsächlich ab, ohne dass eine vollständig korrekte Sortierung erreicht wurde, wird der zu diesem Zeitpunkt tatsächlich vorliegende Sortierstand bewertet (wie bisher) — keine Änderung an dieser bereits funktionierenden Zeitablauf-Logik.
+- Eine spätere Korrektur ersetzt eine bereits angezeigte Rückmeldung sichtbar, statt sich zusätzlich darüber zu stapeln.
+
+**Fundstellen-Sweep:** Gesucht nach `setInterval`/`timerSeconds`/`clearInterval` im gesamten `public/index.html`: alle Treffer liegen ausschließlich in genau diesem einen Schritt (`renderTeamMap`, Zeile ~1084–1232) — es gibt im ganzen Spiel keinen zweiten Timer-Mechanismus. Zusätzlich alle anderen Team-Modus-Schritt-Funktionen durchgesehen (`renderTeamFork`, `renderTeamGherkin`, `renderTeamSelect`, `renderTeamDoR`, `renderTeamImpl`): keiner davon bleibt nach einer ersten „Fertig"-Auswertung noch weiter bearbeitbar wie `renderTeamMap` — das Muster „Bewertung friert eine noch offene, weiter bearbeitbare Eingabe für immer ein" kommt also nur an dieser einen Stelle vor. Keine weiteren Fundstellen.
+
+**Zustands-Check:** Wartezustand entfällt (rein clientseitig, synchron, kein Laden). Leerzustand entfällt (jedes Szenario hat mindestens 4 Karten, durch den bestehenden Test `BUG-005.test.js` bereits abgesichert). Fehlerfall entfällt (keine Netzwerkabhängigkeit, keine Eingabevalidierung — reine Zustandsmaschine im Browser).
+
+**Analyse & Planung (am echten Code verifiziert, nicht angenommen):** BUG-007 und BUG-008 haben exakt dieselbe Ursache. In `renderTeamMap()` (`public/index.html`, ab Zeile 1084) löst `assign()` (Zeile 1149–1163) sofort `finishMap(true)` aus, sobald `Object.keys(placement).length >= st.items.length` — also beim allerersten Mal, wenn jede Karte irgendwo liegt, unabhängig davon, ob richtig oder falsch. `finishMap()` selbst (Zeile 1171 ff.) ist als Einmal-Funktion gebaut: `if(advanced)return; advanced=true; clearInterval(timerId);` (Zeile 1172). Das bedeutet: (1) Der sichtbare Countdown wird in genau diesem Moment für immer gestoppt — das ist BUG-007. (2) Die Korrektheits-/Gutschrift-Bewertung (`wrongCount`, dann `completeStep(...)`, das u. a. die „Analysis"-Tage hochzählt, Zeile 466) läuft ebenfalls nur genau dieses eine Mal. War das Board in diesem allerersten Moment vollständig, aber nicht vollständig korrekt (mind. eine Karte falsch), bleibt die Gutschrift dauerhaft bei 0 — auch wenn das Team die falsche Karte danach noch korrigiert (das bestehende ↩-Icon erlaubt genau das, siehe Kommentar Zeile 1173–1176: „a board finished early is NOT locked — the team can keep re-sorting cards until the clock actually runs out"). Das ist BUG-008 — der Code erlaubt die Korrektur, wertet sie aber nie erneut aus. Per `git log -S"advanced=true" -- public/index.html` und `git log --oneline --all | grep BUG-005` bestätigt: BUG-005 (`0156b3c`) hat exakt dieselbe Funktion zuletzt geändert (Korrektheitsprüfung eingeführt) — der im Ticket vermutete Zusammenhang trifft zu, es ist eine einzige Ursache, keine zwei getrennten.
+
+**Wichtiger bestehender Test-Konflikt (Schritt 2d):** `tests/BUG-005.test.js`, Funktion `scenarioAllWrongInTime()` (verifiziert per `runToImpl(sortAllWrong)`), verlässt sich darauf, dass der „Next step"-Button unmittelbar nach JEDER vollständigen Sortierung anklickbar ist — auch bei einer komplett falschen, ohne dass die Zeit abläuft. Ein Fix, der diesen Button bei falscher Sortierung erst nach Korrektur oder echtem Zeitablauf erscheinen ließe, würde diesen bestehenden, bereits freigegebenen Test brechen. Die unten empfohlene Option C verändert dieses Verhalten deshalb bewusst NICHT — „Next step" bleibt bei falscher Sortierung weiterhin sofort verfügbar, exakt wie heute.
+
+**Pre-Mortem:**
+- 💀 Der bereits sichtbare „Team notes"-Text unten im Panel zeigt nach einer Korrektur weiterhin die ALTE (falsche) Bewertung, während oben am Board schon korrigiert wurde → Gegenmaßnahme: eigenes Akzeptanzkriterium oben („Eine spätere Korrektur ersetzt..."), eigener Testfall.
+- 💀 Ein zu grober Fix (z. B. `advanced` komplett entfernen) lässt `finishMap()` bei jedem einzelnen Korrektur-Klick erneut feuern und `completeStep()` hängt den Debrief-Block per `insertAdjacentHTML` jedes Mal neu AN, statt ihn zu ERSETZEN → mehrere gestapelte „Team notes"-Karten sichtbar → Gegenmaßnahme: eigener Testfall, der nach mehrfacher Korrektur genau einen Debrief-Block erwartet.
+- 💀 Der bestehende Test `BUG-005.test.js` (`scenarioAllWrongInTime`) verlangt einen sofort klickbaren „Next step" auch bei falscher Sortierung ohne Zeitablauf → siehe Test-Konflikt oben, durch Wahl von Option C bewusst vermieden statt stillschweigend gebrochen.
+- 💀 Läuft der Timer künftig grundsätzlich weiter, auch nach einem bereits erfolgreichen Abschluss, tickt er optisch bis 0 weiter, obwohl am Ergebnis nichts mehr passiert — könnte verwirren („warum läuft die Uhr noch?") → Gegenmaßnahme: bei echtem Erfolg (vollständig UND korrekt, Zeit läuft noch) bleibt der Timer wie bisher sofort final gestoppt; nur der „vollständig, aber noch falsch"-Zwischenzustand lässt ihn weiterlaufen.
+- 💀 `GAME_VERSION` wird beim Umsetzen vergessen zu erhöhen → Gegenmaßnahme: fester Punkt im Testplan.
+
+**Optionenvergleich:**
+
+### Option A — Nur den Timer stoppen später (BUG-007 isoliert, BUG-008 bewusst offen gelassen)
+- Vorgehen: Nur `clearInterval(timerId)` in `finishMap()` so ändern, dass der Timer bis zum echten Ablauf weiterläuft; die Gutschrift-Sperre (`advanced`) bleibt exakt wie heute.
+- Vorteile/Nachteile: Minimalster, risikoärmster Eingriff — bricht sicher keinen bestehenden Test. Lässt aber BUG-008 unbehoben, obwohl der Code eindeutig dieselbe Ursache zeigt.
+
+### Option B — Auswertung bleibt bei falscher Sortierung offen, „Next step" erst nach Korrektur oder Zeitablauf
+- Vorgehen: `advanced` wird nur noch bei echtem Erfolg oder echtem Zeitablauf final gesetzt; bei vollständiger, aber falscher Sortierung erscheint (noch) kein „Next step", bis entweder korrigiert oder die Zeit abläuft.
+- Vorteile/Nachteile: Entspricht dem Ticket-Wortlaut am wörtlichsten. Bricht aber den bestehenden `BUG-005.test.js`-Test (`scenarioAllWrongInTime`) und würde eine ausdrückliche Freigabe zur Testanpassung brauchen (siehe Test-Konflikt oben).
+
+### Option C — Timer läuft weiter, Korrektur wird nachträglich neu bewertet, „Next step" bleibt bei falscher Sortierung sofort verfügbar (✅ empfohlen)
+- Vorgehen: Wie B beim Timer (läuft bis zum echten Ende weiter) und bei der Gutschrift (nicht final bei „vollständig, aber falsch"), ABER der heute schon sofort klickbare „Next step"-Button bleibt unverändert sofort verfügbar. Korrigiert das Team stattdessen weiter und wird das Board vollständig korrekt, bevor die Zeit abläuft, wertet der Code das dann neu aus und vergibt Abzeichen + Gutschrift alsdann doch noch. Der Debrief-Block wird bei einer Neubewertung ersetzt statt angehängt.
+- Vorteile/Nachteile: Behebt beide Bugs an der echten gemeinsamen Ursache, ohne den bestehenden `BUG-005.test.js` zu brechen oder eine Testanpassung zu brauchen. Etwas mehr interne Zustandslogik als A oder B (zwei unabhängige Wege zum Abschluss: sofortiger Klick vs. spätere automatische Neubewertung), aber ohne Zielkonflikt.
+
+✅ Empfehlung: Option C — deckt beide Tickets an der tatsächlichen, im Code verifizierten gemeinsamen Ursache ab, ohne den bestehenden, bereits freigegebenen Test zu brechen.
+
+**Testplan:**
+1. Neue jsdom-Testdatei `tests/BUG-007-BUG-008.test.js` (eine Datei, weil eine Ursache), nach dem Muster von `BUG-005.test.js` (echte Klick-Events, `window.__intervalFns`-Mock zum manuellen Simulieren der Timer-Ticks):
+   - Board einmal vollständig, aber mit mindestens einer falschen Karte sortieren, DANACH die falsche Karte per ↩ korrigieren und richtig neu zuordnen, ohne die Zeit ablaufen zu lassen → erwartet: Abzeichen + 1 Tag „Analysis"-Gutschrift werden jetzt doch vergeben.
+   - Nach der ersten vollständigen Sortierung mehrere Timer-Ticks simulieren → erwartet: die angezeigte Zeit zählt tatsächlich weiter herunter (Füllstand + Text), statt eingefroren zu bleiben.
+   - Nach mehrfacher Korrektur erscheint weiterhin genau ein „Team notes"-Block, keine gestapelten Duplikate.
+   - Bestehendes Verhalten unverändert: `scenarioAllCorrectInTime` (sofortige Gutschrift) und `scenarioAllWrongInTime` (sofort klickbares „Next step", keine Gutschrift) bleiben grün.
+2. Pflicht-Regressionslauf gegen alle bestehenden Testdateien unter `tests/` (aktuell 22, insbesondere `BUG-005.test.js` und die `FEATURE-009-*`-Familie, die denselben Schritt nutzen) — vor Done, siehe `spec-or-regret-impl`.
+3. `node --check` auf das extrahierte `<script>`-Innere.
+4. `GAME_VERSION` muss erhöht werden (aktuell `1.28.1` → `1.28.2`, reiner Bugfix).
+5. Ein echter Blick im Browser bleibt offener Punkt, den Stephan nach dem Release selbst bestätigt — kein `file://`-Zugriff und kein lokaler Server aus dieser Sitzung heraus möglich.
+
+**Test:** Neue Datei `tests/BUG-007-BUG-008.test.js` (5 dauerhafte Prüfpunkte: eine vollständig-aber-falsch sortierte Karte, die vor Zeitablauf noch korrigiert wird, vergibt jetzt doch Abzeichen + 1 Tag „Analysis“-Gutschrift; der Timer stoppt nachweislich NICHT, solange das Board zwar vollständig, aber noch falsch sortiert ist — beobachtet über eine aufgezeichnete `clearInterval()`-Aufrufliste statt nur über simulierte Ticks; ein echter Zeitablauf finalisiert weiterhin wie bisher; mehrfache Korrekturen ersetzen den sichtbaren „Team notes“-/Debrief-Block, statt sich zu stapeln; `GAME_VERSION` erhöht). Zusätzlich gegen den UNVERÄNDERTEN Code laufen lassen (erwartungsgemäß rot: alle 5 Fälle) und erst danach gegen den Fix (grün) — damit verifiziert, dass der Test den echten Bug greift, nicht nur vakuos besteht. Vollständiger Regressionslauf gegen alle 25 Testdateien unter `tests/` (24 bestehende + die neue): exakt dieselben 5 bereits vorher bekannten, unabhängigen Fehlschläge wie vor dieser Änderung (`BUG-004`, `FEATURE-009/010/011/012` — alle wegen fest einprogrammierter alter `GAME_VERSION`-Strings, dokumentierte Altlast, siehe `spec-or-regret-impl`), keine neuen Fehlschläge. `node --check` auf den extrahierten Skript-Inhalt fehlerfrei. Ein echter Blick im Browser bleibt wie immer offen, bis Stephan ihn nach dem Release selbst bestätigt.
 
 ---
 
@@ -29,14 +81,34 @@
 |------|------|
 | **Typ** | BugFix |
 | **Priorität** | Hoch *(Vorschlag – betrifft die zentrale Auswertungs-Kennzahl "Analysis"-Zeit, bitte bestätigen)* |
-| **Status** | ToDo |
+| **Status** | In Progress |
 | **Erstellt** | 2026-07-27 |
+| **In Progress seit** | 2026-07-27 |
 
 **Beschreibung:** Oben im Spiel zeigt eine Kachel "Analysis" die bisher verbrauchten Tage für die Klärungsphase (aktuell "0d"). Beim Testen (Stephan, 27.07.2026) festgestellt: Nachdem der Sortier-Schritt "A shared picture" abgeschlossen und zum nächsten Spielschritt gewechselt wurde, hat sich diese Anzeige nicht verändert – obwohl für den durchlaufenen Schritt eigentlich Tage gutgeschrieben werden sollten (analog zur bestehenden Gutschrift-Logik an anderen Weggabelungen im Team-Modus). Möglicher Zusammenhang mit BUG-007 (die dort beschriebene stehengebliebene Zeitanzeige könnte dieselbe Ursache haben, z. B. wenn die Gutschrift an denselben internen Zeit-/Fortschrittswert hängt) – das sollte in der Analyse vor der Umsetzung geprüft werden, statt vorschnell von einer oder von zwei getrennten Ursachen auszugehen.
 
 **User Story:** Als Stephan (Moderator/Betreiber) möchte ich, dass die "Analysis"-Kennzahl nach jedem durchlaufenen Klärungsschritt korrekt weitergezählt wird, damit die Abschlussauswertung (Klärungszeit vs. Umsetzungszeit) am Ende verlässlich stimmt.
 
+**Analyse:** Bestätigt dieselbe Ursache wie BUG-007 (vollständige Analyse dort) — die Gutschrift für „Analysis" hängt an derselben Einmal-Auswertung (`advanced`-Sperre in `finishMap()`, `renderTeamMap()`), die auch den Timer einfriert. Wurde die erste vollständige Sortierung mit mindestens einer falschen Karte erreicht, blieb die Gutschrift bisher dauerhaft bei 0 — auch nach einer späteren Korrektur. Wird zusammen mit BUG-007 in einer Umsetzung behoben (Option C, siehe dort); kein eigener, getrennter Scope/Testplan nötig.
+
 ---
+
+## 📋 ToDo
+
+### TASK-004 Alte fest einprogrammierte GAME_VERSION-Strings in Testdateien bereinigen
+
+| Feld | Wert |
+|------|------|
+| **Typ** | Task |
+| **Priorität** | Niedrig *(Vorschlag — kein funktionaler Fehler, reine Test-Hygiene; bitte bestätigen)* |
+| **Status** | ToDo |
+| **Erstellt** | 2026-07-28 |
+
+**Beschreibung:** Bei jedem Pflicht-Regressionslauf gegen `tests/*.test.js` tauchen dieselben 5 Fehlschläge wieder auf, die NICHTS mit der jeweils gerade umgesetzten Änderung zu tun haben: `tests/BUG-004.test.js`, `tests/FEATURE-009.test.js`, `tests/FEATURE-011.test.js`, `tests/FEATURE-012.test.js` und `tests/FEATURE-016.test.js` prüfen `GAME_VERSION` jeweils auf einen exakten, längst überholten String (z. B. "1.16.0", "1.18.0", "1.19.0", "1.23.0", "1.27.0") statt nur zu prüfen, dass sich die Version gegenüber einem bekannten Vorgänger-Stand erhöht hat. Das ist bereits als bekannte, offene Fragilitätsklasse in `spec-or-regret-impl` dokumentiert (Schritt 4, Punkt 6) — Stephan möchte das jetzt tatsächlich beheben, statt es bei jedem künftigen Ticket erneut als "bereits vorher bekannter Fehlschlag" wegzuerklären.
+
+**User Story:** Als Stephan möchte ich, dass ein Regressionslauf nur dann rot zeigt, wenn wirklich etwas kaputt ist, damit ich nicht bei jedem Ticket erneut dieselben 5 bekannten, bedeutungslosen Fehlschläge gegen die aktuelle Änderung abgleichen muss.
+
+**Hinweis zur Umsetzung (noch nicht analysiert):** Vermutlich reicht es, in den betroffenen Dateien den harten String-Vergleich durch `assert.notStrictEqual(window.GAME_VERSION, "<bekannter alter Wert>")` zu ersetzen (Muster bereits in `tests/BUG-005.test.js`/`tests/BUG-006.test.js`/`tests/BUG-007-BUG-008.test.js` etabliert) — das muss aber noch durch `spec-or-regret-analyze` bestätigt werden, insbesondere ob eine der fünf Dateien einen triftigen Grund hatte, absichtlich einen exakten Wert zu prüfen.
 
 ### FEATURE-017 "Wer ist im Raum?"-Einleitungstext ausführlicher erklären
 
