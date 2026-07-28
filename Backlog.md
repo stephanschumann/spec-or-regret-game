@@ -6,15 +6,125 @@
 
 ## 🔄 In Progress
 
+### FEATURE-018 Einleitungstext der Team-Modus-Stage "Spell it out" (Team · 5) ans gespielte Ticket anbinden
+
+| Feld | Wert |
+|------|------|
+| **Typ** | Feature |
+| **Priorität** | Mittel |
+| **Status** | In Progress |
+| **Erstellt** | 2026-07-27 |
+| **In Progress seit** | 2026-07-28 16:17 |
+
+**Beschreibung:** Im Team-Modus, Schritt "Team · 5" / Kicker "Spell it out" (Code: `public/index.html`, Funktion `buildTeamStages(sc)`, Stage-Typ `teamgherkin`, aktuell Zeile ~970–974), steht als Einleitung für alle 21 Szenarien identisch derselbe Satz: "A first draft reads: "The user gets a reasonable error message when approval fails." Keep it as is, or make it precise." Stephan hat per Screenshot (27.07.2026) bemängelt, dass Spielende an dieser Stelle nicht erkennen, wo sie gerade stehen, woher dieses Draft-Statement stammt und was konkret von ihnen erwartet wird.
+
+Verifiziert am Code: Die Generik dieses Satzes selbst ist laut Konzeptdokument (`Konzept-Team-Modus.md`, Beschreibung von Schritt 5 / "Shortcut C") bewusst so vorgesehen ("eine vage, allgemein gehaltene Formulierung") und soll NICHT verändert werden. Ebenfalls verifiziert (`Product.md`, nicht-funktionale Anforderungen): Dieser Schritt ist ein Versuchungsmoment und darf seit v1.3.0 keinen Hinweis vorab geben, welche der beiden Wahlmöglichkeiten (vage lassen vs. präzise machen) die bessere ist — die Lektion kommt ausschließlich im Nachgespräch (debrief).
+
+Freigegebene Lösung (von Stephan im Chat am 27.07.2026 bestätigt): Den Einleitungstext um das bereits vorhandene, pro Szenario existierende Datenfeld `sc.short` ergänzen (wird im Agent-Modus in Runde 1 analog bereits verwendet, um den Text ans jeweilige Ticket zu binden), damit der Satz erkennbar zum gerade gespielten Ticket gehört — ohne die Neutralität zwischen den beiden Wahlmöglichkeiten zu verletzen. Titel, Kicker, mcode, die beiden Wahlmöglichkeiten/Buttons und der Debrief-Text bleiben unverändert.
+
+Freigegebener neuer "setup"-Text (ersetzt den bisherigen String, für alle Szenarien dynamisch über `sc.short`):
+
+> "You're back at your ticket — " + sc.short + ". One piece of it is still just a single line, exactly as it was first written down: "The user gets a reasonable error message when approval fails." Before this goes to whoever builds it: leave that one line as it is, or turn it into a step-by-step example of what should actually happen."
+
+**User Story:** Als Spielerin/Spieler möchte ich beim Schritt "Spell it out" erkennen, dass das gezeigte Draft-Statement zum gerade gespielten Ticket gehört, damit mir sofort klar ist, worauf sich die Entscheidung "vage lassen oder präzisieren" überhaupt bezieht.
+
+**Fundstellen-Sweep:** Suchbegriff `"reasonable error message"` im gesamten Code (`public/index.html`): genau 2 Treffer, beide innerhalb derselben Stage "Spell it out" (der Einleitungssatz selbst und der spätere Auswahltext "Keep it vague: …") — keine weitere Fundstelle im restlichen Spiel. Die Änderung betrifft also wirklich nur diese eine Stelle.
+
+**Zustands-Check:**
+- Wartezustand: keiner – reines, synchrones Rendern eines Textbausteins beim Betreten der Stage.
+- Leerzustand: nicht relevant – das benötigte Datenfeld existiert nachweislich für alle 21 Themen (Stichprobe: 21 Treffer geprüft), es gibt also keinen Fall, in dem die Einordnung leer bliebe.
+- Fehlerfall: keiner neu eingeführt – es wird nur ein bereits vorhandenes, immer befülltes Datenfeld in einen bestehenden Text eingefügt; die bestehende Fehlerbehandlung bleibt unverändert.
+
+**Pre-Mortem:**
+- 💀 Der neue Satz liest sich bei einem der 21 Themen grammatikalisch seltsam → Gegenmaßnahme: alle 21 Kurzbeschreibungen wurden gegen den geplanten Satzbau geprüft, alle passen als Fortsetzung von "You're back at your ticket — …"; im Testplan zusätzlich mehrere Themen stichprobenartig rendern.
+- 💀 Die Versionsnummer des Spiels wird bei der Umsetzung vergessen zu erhöhen → Gegenmaßnahme: als eigener Punkt im Testplan festgehalten (aktueller Stand beim Ist-Zustand-Check: v1.28.2).
+- 💀 Eine versehentliche Änderung an einem Nachbarschritt oder an der Anzeige-Funktion dieses Schritts verschiebt unbemerkt den eigentlichen Einstiegspunkt → Gegenmaßnahme: Änderung bleibt bewusst auf genau die eine Einleitungszeile beschränkt, die Anzeige-Funktion selbst wird nicht angefasst; das über einen Vorher/Nachher-Diff der Datei abgesichert.
+- 💀 Ein im Browser zwischengespeicherter alter Spielstand zeigt weiterhin den alten Text → Gegenmaßnahme: reine Textänderung ohne gespeicherten Zustand, kein zusätzliches Caching-Risiko über einen normalen Seiten-Reload hinaus; im Testplan als offener Punkt (harter Reload beim eigenen Test) vermerkt.
+
+**Zusammenspiel bestehender Bausteine:** Betrifft ausschließlich den Aufbau-Schritt, der die Abfolge der Team-Modus-Bildschirme zusammenstellt (genau die Einleitungszeile der "Spell it out"-Stage), und indirekt die zugehörige Anzeige-Funktion, die diese Zeile nur unverändert übernimmt und selbst nichts daran verarbeitet. Reihenfolge: Die Abfolge wird einmalig beim Start einer Team-Runde zusammengestellt; die Anzeige-Funktion liest die Einleitungszeile erst aus, wenn diese Stage tatsächlich erreicht wird. Riskante Kombination: keine erkennbare – das für die Einordnung nötige Datenfeld ist zu diesem Zeitpunkt immer vollständig befüllt (für alle 21 Themen verifiziert), es gibt keinen bekannten Ablauf, der diese Stage mit einem unvollständigen Thema erreicht.
+
+**Scope:**
+Eingeschlossen: Der Einleitungssatz auf dem Bildschirm "Spell it out" (Team-Modus, Schritt 5) wird so ergänzt, dass er erkennbar auf das gerade gespielte Thema verweist.
+Ausgeschlossen: Titel, Kennzeichnung, Schrittnummer, die beiden Auswahlmöglichkeiten samt ihrer Bestätigungstexte und der Nachgespräch-Text bleiben unverändert. Keine Änderung an den anderen 20 Themen selbst oder an einem anderen Spielschritt.
+
+**Akzeptanzkriterien:**
+- [ ] Beim Betreten des Schritts "Spell it out" im Team-Modus ist sofort erkennbar, zu welchem der gerade gespielten Themen der gezeigte Beispielsatz gehört.
+- [ ] Der bisherige Beispielsatz ("The user gets a reasonable error message when approval fails") steht weiterhin wortgleich da – nur die Einordnung davor ist neu.
+- [ ] Die beiden Wahlmöglichkeiten ("vage lassen" / "präzise machen") sehen unverändert aus und verhalten sich unverändert, inklusive der bisherigen Rückmeldungen nach der Wahl.
+- [ ] Das gilt erkennbar für alle 21 Themen, nicht nur für ein einzelnes.
+
+**Optionenvergleich:** Nur ein sinnvoller Weg erkennbar – direkte Ergänzung des bestehenden Einleitungssatzes um das bereits vorhandene, pro Thema existierende Kurzbeschreibungsfeld (wird an anderer Stelle im Spiel schon genauso verwendet, um einen Text ans jeweilige Thema zu binden). Künstliche Alternativen wären hier nicht sinnvoll.
+
+**Analyse & Planung:**
+- [x] Aktuellen Zustand verstehen: Code frisch gegen den heutigen Stand geprüft (Stephans Hinweis auf zwischenzeitlichen Fortschritt) – Einleitungssatz und Funktionsstruktur sind unverändert gegenüber der vorherigen Analyse, keine Verschiebung mit Auswirkung auf dieses Ticket.
+- [x] Betroffene Stellen identifiziert: siehe Fundstellen-Sweep und Zusammenspiel oben.
+- [x] Implementierungsansatz definiert: siehe Optionenvergleich oben.
+- [x] Risiken und Edge Cases benannt: siehe Pre-Mortem oben.
+- [x] Aufwand geschätzt: sehr klein – eine einzelne Textzeile, keine neue Logik.
+
+**Testplan:**
+- [ ] jsdom-Test: `public/index.html` laden und ausführen, `window.matchMedia` stubben, einen Team-Durchlauf für mehrere unterschiedliche Themen bis zur "Spell it out"-Stage durchklicken und den angezeigten Einleitungstext auf den erwarteten, themenspezifischen Satz prüfen.
+- [ ] `node --check` auf den extrahierten Skript-Inhalt als reinen Syntax-Check.
+- [ ] Stichproben-Begründung: Die Änderung betrifft nur die gemeinsame Stage-Definition, die für alle 21 Themen gleichermaßen durchlaufen wird; da das benötigte Datenfeld nachweislich bei allen 21 Themen nach demselben Muster existiert, ist ein Test mit mehreren repräsentativen Themen für alle 21 aussagekräftig.
+- [ ] Bestehende Tests aktualisiert: keine bestehende Testdatei prüft bisher diesen Einleitungssatz – neuer, eigener Test statt einer Änderung an einer bestehenden Datei.
+- [ ] Layout-/Übergangs-Test (Playwright): nicht einschlägig – reine Textänderung ohne CSS-Übergang oder Nachbarelement-Bewegung.
+- [ ] Bekannter Nebenbefund (TASK-004, noch offen): Der Pflicht-Regressionslauf zeigt aktuell 5 bereits bekannte, mit dieser Änderung nicht zusammenhängende Fehlschläge (Versionsnummer-Prüfungen in fünf älteren Testdateien). Diese vorab so einordnen, nicht fälschlich dieser Änderung zuschreiben.
+- [ ] Ein echter Blick im Browser bleibt Stephan nach dem Release vorbehalten.
+
+**Scope-Änderungen** *(chronologisches Log):*
+*(leer bei Erstellung)*
+
+**Implementierungsnotizen:**
+*(leer bei Erstellung)*
+
+
+## 📋 ToDo
+
+### TASK-004 Alte fest einprogrammierte GAME_VERSION-Strings in Testdateien bereinigen
+
+| Feld | Wert |
+|------|------|
+| **Typ** | Task |
+| **Priorität** | Niedrig *(Vorschlag — kein funktionaler Fehler, reine Test-Hygiene; bitte bestätigen)* |
+| **Status** | ToDo |
+| **Erstellt** | 2026-07-28 |
+
+**Beschreibung:** Bei jedem Pflicht-Regressionslauf gegen `tests/*.test.js` tauchen dieselben 5 Fehlschläge wieder auf, die NICHTS mit der jeweils gerade umgesetzten Änderung zu tun haben: `tests/BUG-004.test.js`, `tests/FEATURE-009.test.js`, `tests/FEATURE-011.test.js`, `tests/FEATURE-012.test.js` und `tests/FEATURE-016.test.js` prüfen `GAME_VERSION` jeweils auf einen exakten, längst überholten String (z. B. "1.16.0", "1.18.0", "1.19.0", "1.23.0", "1.27.0") statt nur zu prüfen, dass sich die Version gegenüber einem bekannten Vorgänger-Stand erhöht hat. Das ist bereits als bekannte, offene Fragilitätsklasse in `spec-or-regret-impl` dokumentiert (Schritt 4, Punkt 6) — Stephan möchte das jetzt tatsächlich beheben, statt es bei jedem künftigen Ticket erneut als "bereits vorher bekannter Fehlschlag" wegzuerklären.
+
+**User Story:** Als Stephan möchte ich, dass ein Regressionslauf nur dann rot zeigt, wenn wirklich etwas kaputt ist, damit ich nicht bei jedem Ticket erneut dieselben 5 bekannten, bedeutungslosen Fehlschläge gegen die aktuelle Änderung abgleichen muss.
+
+**Hinweis zur Umsetzung (noch nicht analysiert):** Vermutlich reicht es, in den betroffenen Dateien den harten String-Vergleich durch `assert.notStrictEqual(window.GAME_VERSION, "<bekannter alter Wert>")` zu ersetzen (Muster bereits in `tests/BUG-005.test.js`/`tests/BUG-006.test.js`/`tests/BUG-007-BUG-008.test.js` etabliert) — das muss aber noch durch `spec-or-regret-analyze` bestätigt werden, insbesondere ob eine der fünf Dateien einen triftigen Grund hatte, absichtlich einen exakten Wert zu prüfen.
+
+### FEATURE-017 "Wer ist im Raum?"-Einleitungstext ausführlicher erklären
+
+| Feld | Wert |
+|------|------|
+| **Typ** | Feature |
+| **Priorität** | Mittel *(Vorschlag, analog zu FEATURE-003 – bitte bestätigen)* |
+| **Status** | ToDo |
+| **Erstellt** | 2026-07-27 |
+
+**Beschreibung:** Auf dem ersten Bildschirm des Team-Modus ("Who's in the room?") steht bisher nur ein kurzer, sachlicher Satz: "Before you touch the ticket, here's who showed up for this refinement." Stephan hat beim Testen (27.07.2026) angemerkt, dass davor noch ein einordnender, menschlicherer Absatz fehlt – der kurz anerkennt, dass im echten Arbeitsalltag alle beschäftigt sind und unterschiedliche Prioritäten haben, es aber trotzdem gut ist, dass ein Großteil des Teams es ins Meeting geschafft hat. Der bestehende Satz "Before you touch the ticket…" soll danach unverändert stehen bleiben.
+
+Stephans Formulierungsvorschlag (von ihm auf Deutsch notiert – das Spiel läuft aber komplett auf Englisch, eine an den bestehenden Ton angepasste englische Fassung ist Teil der Umsetzung, kein fertiger Text):
+
+> "Du weißt wie es ist: Jeder ist beschäftigt, verschiedene Prioritäten, Projekte und Verpflichtungen, aber zum Glück haben es die meisten des Teams ins Meeting geschafft."
+
+**User Story:** Als Spielerin/Spieler möchte ich auf dem ersten Bildschirm spüren, dass unvollständige Meeting-Teilnahme normaler Arbeitsalltag ist (keine Ausnahmesituation), damit ich mich besser in die Situation "wer fehlt und warum" hineinversetzen kann, bevor ich mit dem Ticket weitermache.
+
+
+## ✅ Done
+
 ### BUG-007 Team-Zeitanzeige "Map the change" läuft nach vollständigem Sortieren nicht weiter herunter
 
 | Feld | Wert |
 |------|------|
 | **Typ** | BugFix |
 | **Priorität** | Hoch *(Vorschlag – zentrale Zeitdruck-Mechanik des Team-Modus betroffen, bitte bestätigen)* |
-| **Status** | In Progress |
+| **Status** | Done |
 | **Erstellt** | 2026-07-27 |
 | **In Progress seit** | 2026-07-27 |
+| **Done seit** | 2026-07-28 |
 
 **Beschreibung:** Beim Sortier-Schritt "Map the change" (Team-Modus, Schritt "A shared picture") zählt oben eine Zeitleiste "Meeting time left" herunter. Beim Testen (Stephan, 27.07.2026) festgestellt: Sobald einmal alle Karten einer Kategorie zugeordnet wurden, bleibt die Anzeige stehen – auch wenn danach noch weitere Änderungen an der Zuordnung vorgenommen werden (z. B. über das bestehende ↩-Icon), läuft die Zeit nicht weiter herunter. Erwartetes Verhalten: Die Zeit soll durchgehend weiterlaufen, bis entweder die vorgegebene Zeit abgelaufen ist oder die Spielerin/der Spieler selbst aktiv den nächsten Schritt startet – unabhängig davon, ob zwischendurch schon einmal alle Karten zugeordnet waren. Möglicher Zusammenhang mit BUG-005 (derselbe Sortier-Schritt, dort ging es um die Korrektheitsprüfung nach Zeitablauf) – in der Analyse prüfen, ob hier dieselbe Stelle im Code betroffen ist, statt das anzunehmen.
 
@@ -73,6 +183,8 @@
 
 **Test:** Neue Datei `tests/BUG-007-BUG-008.test.js` (5 dauerhafte Prüfpunkte: eine vollständig-aber-falsch sortierte Karte, die vor Zeitablauf noch korrigiert wird, vergibt jetzt doch Abzeichen + 1 Tag „Analysis“-Gutschrift; der Timer stoppt nachweislich NICHT, solange das Board zwar vollständig, aber noch falsch sortiert ist — beobachtet über eine aufgezeichnete `clearInterval()`-Aufrufliste statt nur über simulierte Ticks; ein echter Zeitablauf finalisiert weiterhin wie bisher; mehrfache Korrekturen ersetzen den sichtbaren „Team notes“-/Debrief-Block, statt sich zu stapeln; `GAME_VERSION` erhöht). Zusätzlich gegen den UNVERÄNDERTEN Code laufen lassen (erwartungsgemäß rot: alle 5 Fälle) und erst danach gegen den Fix (grün) — damit verifiziert, dass der Test den echten Bug greift, nicht nur vakuos besteht. Vollständiger Regressionslauf gegen alle 25 Testdateien unter `tests/` (24 bestehende + die neue): exakt dieselben 5 bereits vorher bekannten, unabhängigen Fehlschläge wie vor dieser Änderung (`BUG-004`, `FEATURE-009/010/011/012` — alle wegen fest einprogrammierter alter `GAME_VERSION`-Strings, dokumentierte Altlast, siehe `spec-or-regret-impl`), keine neuen Fehlschläge. `node --check` auf den extrahierten Skript-Inhalt fehlerfrei. Ein echter Blick im Browser bleibt wie immer offen, bis Stephan ihn nach dem Release selbst bestätigt.
 
+**Release-Verifikation:** Gepusht als Commit `efef7ea` (GitHub Action gruen). Live unter learning.stephanschumann.com per echtem Chrome-Browser bestaetigt: `GAME_VERSION` zeigt `1.28.2`; der gemeldete Bug wurde im echten Spiel nachgestellt und ist behoben - Board vollstaendig aber absichtlich falsch sortiert (8 Karten), danach mehrere Sekunden gewartet: die Zeitanzeige zaehlte nachweislich weiter herunter (68s auf 63s, Fuellstand sichtbar kleiner) statt einzufrieren; anschliessend alle Karten vor Zeitablauf korrekt neu zugeordnet - Abzeichen "Team mapper" und +1 Tag "Analysis"-Gutschrift wurden daraufhin tatsaechlich vergeben (vorher dauerhaft verloren). Genau ein "Team notes"-/Debrief-Block sichtbar, keine Duplikate.
+
 ---
 
 ### BUG-008 Nach Abschluss von "A shared picture" wird kein Tag für "Analysis" gutgeschrieben
@@ -81,9 +193,10 @@
 |------|------|
 | **Typ** | BugFix |
 | **Priorität** | Hoch *(Vorschlag – betrifft die zentrale Auswertungs-Kennzahl "Analysis"-Zeit, bitte bestätigen)* |
-| **Status** | In Progress |
+| **Status** | Done |
 | **Erstellt** | 2026-07-27 |
 | **In Progress seit** | 2026-07-27 |
+| **Done seit** | 2026-07-28 |
 
 **Beschreibung:** Oben im Spiel zeigt eine Kachel "Analysis" die bisher verbrauchten Tage für die Klärungsphase (aktuell "0d"). Beim Testen (Stephan, 27.07.2026) festgestellt: Nachdem der Sortier-Schritt "A shared picture" abgeschlossen und zum nächsten Spielschritt gewechselt wurde, hat sich diese Anzeige nicht verändert – obwohl für den durchlaufenen Schritt eigentlich Tage gutgeschrieben werden sollten (analog zur bestehenden Gutschrift-Logik an anderen Weggabelungen im Team-Modus). Möglicher Zusammenhang mit BUG-007 (die dort beschriebene stehengebliebene Zeitanzeige könnte dieselbe Ursache haben, z. B. wenn die Gutschrift an denselben internen Zeit-/Fortschrittswert hängt) – das sollte in der Analyse vor der Umsetzung geprüft werden, statt vorschnell von einer oder von zwei getrennten Ursachen auszugehen.
 
@@ -91,65 +204,9 @@
 
 **Analyse:** Bestätigt dieselbe Ursache wie BUG-007 (vollständige Analyse dort) — die Gutschrift für „Analysis" hängt an derselben Einmal-Auswertung (`advanced`-Sperre in `finishMap()`, `renderTeamMap()`), die auch den Timer einfriert. Wurde die erste vollständige Sortierung mit mindestens einer falschen Karte erreicht, blieb die Gutschrift bisher dauerhaft bei 0 — auch nach einer späteren Korrektur. Wird zusammen mit BUG-007 in einer Umsetzung behoben (Option C, siehe dort); kein eigener, getrennter Scope/Testplan nötig.
 
+**Release-Verifikation:** Gepusht als Commit `efef7ea` (GitHub Action gruen). Live unter learning.stephanschumann.com per echtem Chrome-Browser bestaetigt: `GAME_VERSION` zeigt `1.28.2`; der gemeldete Bug wurde im echten Spiel nachgestellt und ist behoben - Board vollstaendig aber absichtlich falsch sortiert (8 Karten), danach mehrere Sekunden gewartet: die Zeitanzeige zaehlte nachweislich weiter herunter (68s auf 63s, Fuellstand sichtbar kleiner) statt einzufrieren; anschliessend alle Karten vor Zeitablauf korrekt neu zugeordnet - Abzeichen "Team mapper" und +1 Tag "Analysis"-Gutschrift wurden daraufhin tatsaechlich vergeben (vorher dauerhaft verloren). Genau ein "Team notes"-/Debrief-Block sichtbar, keine Duplikate.
+
 ---
-
-## 📋 ToDo
-
-### TASK-004 Alte fest einprogrammierte GAME_VERSION-Strings in Testdateien bereinigen
-
-| Feld | Wert |
-|------|------|
-| **Typ** | Task |
-| **Priorität** | Niedrig *(Vorschlag — kein funktionaler Fehler, reine Test-Hygiene; bitte bestätigen)* |
-| **Status** | ToDo |
-| **Erstellt** | 2026-07-28 |
-
-**Beschreibung:** Bei jedem Pflicht-Regressionslauf gegen `tests/*.test.js` tauchen dieselben 5 Fehlschläge wieder auf, die NICHTS mit der jeweils gerade umgesetzten Änderung zu tun haben: `tests/BUG-004.test.js`, `tests/FEATURE-009.test.js`, `tests/FEATURE-011.test.js`, `tests/FEATURE-012.test.js` und `tests/FEATURE-016.test.js` prüfen `GAME_VERSION` jeweils auf einen exakten, längst überholten String (z. B. "1.16.0", "1.18.0", "1.19.0", "1.23.0", "1.27.0") statt nur zu prüfen, dass sich die Version gegenüber einem bekannten Vorgänger-Stand erhöht hat. Das ist bereits als bekannte, offene Fragilitätsklasse in `spec-or-regret-impl` dokumentiert (Schritt 4, Punkt 6) — Stephan möchte das jetzt tatsächlich beheben, statt es bei jedem künftigen Ticket erneut als "bereits vorher bekannter Fehlschlag" wegzuerklären.
-
-**User Story:** Als Stephan möchte ich, dass ein Regressionslauf nur dann rot zeigt, wenn wirklich etwas kaputt ist, damit ich nicht bei jedem Ticket erneut dieselben 5 bekannten, bedeutungslosen Fehlschläge gegen die aktuelle Änderung abgleichen muss.
-
-**Hinweis zur Umsetzung (noch nicht analysiert):** Vermutlich reicht es, in den betroffenen Dateien den harten String-Vergleich durch `assert.notStrictEqual(window.GAME_VERSION, "<bekannter alter Wert>")` zu ersetzen (Muster bereits in `tests/BUG-005.test.js`/`tests/BUG-006.test.js`/`tests/BUG-007-BUG-008.test.js` etabliert) — das muss aber noch durch `spec-or-regret-analyze` bestätigt werden, insbesondere ob eine der fünf Dateien einen triftigen Grund hatte, absichtlich einen exakten Wert zu prüfen.
-
-### FEATURE-017 "Wer ist im Raum?"-Einleitungstext ausführlicher erklären
-
-| Feld | Wert |
-|------|------|
-| **Typ** | Feature |
-| **Priorität** | Mittel *(Vorschlag, analog zu FEATURE-003 – bitte bestätigen)* |
-| **Status** | ToDo |
-| **Erstellt** | 2026-07-27 |
-
-**Beschreibung:** Auf dem ersten Bildschirm des Team-Modus ("Who's in the room?") steht bisher nur ein kurzer, sachlicher Satz: "Before you touch the ticket, here's who showed up for this refinement." Stephan hat beim Testen (27.07.2026) angemerkt, dass davor noch ein einordnender, menschlicherer Absatz fehlt – der kurz anerkennt, dass im echten Arbeitsalltag alle beschäftigt sind und unterschiedliche Prioritäten haben, es aber trotzdem gut ist, dass ein Großteil des Teams es ins Meeting geschafft hat. Der bestehende Satz "Before you touch the ticket…" soll danach unverändert stehen bleiben.
-
-Stephans Formulierungsvorschlag (von ihm auf Deutsch notiert – das Spiel läuft aber komplett auf Englisch, eine an den bestehenden Ton angepasste englische Fassung ist Teil der Umsetzung, kein fertiger Text):
-
-> "Du weißt wie es ist: Jeder ist beschäftigt, verschiedene Prioritäten, Projekte und Verpflichtungen, aber zum Glück haben es die meisten des Teams ins Meeting geschafft."
-
-**User Story:** Als Spielerin/Spieler möchte ich auf dem ersten Bildschirm spüren, dass unvollständige Meeting-Teilnahme normaler Arbeitsalltag ist (keine Ausnahmesituation), damit ich mich besser in die Situation "wer fehlt und warum" hineinversetzen kann, bevor ich mit dem Ticket weitermache.
-
-### FEATURE-018 Einleitungstext der Team-Modus-Stage "Spell it out" (Team · 5) ans gespielte Ticket anbinden
-
-| Feld | Wert |
-|------|------|
-| **Typ** | Feature |
-| **Priorität** | Mittel *(Vorschlag, analog zu FEATURE-017 – bitte bestätigen)* |
-| **Status** | ToDo |
-| **Erstellt** | 2026-07-27 |
-
-**Beschreibung:** Im Team-Modus, Schritt "Team · 5" / Kicker "Spell it out" (Code: `public/index.html`, Funktion `buildTeamStages(sc)`, Stage-Typ `teamgherkin`, aktuell Zeile ~970–974), steht als Einleitung für alle 21 Szenarien identisch derselbe Satz: "A first draft reads: "The user gets a reasonable error message when approval fails." Keep it as is, or make it precise." Stephan hat per Screenshot (27.07.2026) bemängelt, dass Spielende an dieser Stelle nicht erkennen, wo sie gerade stehen, woher dieses Draft-Statement stammt und was konkret von ihnen erwartet wird.
-
-Verifiziert am Code: Die Generik dieses Satzes selbst ist laut Konzeptdokument (`Konzept-Team-Modus.md`, Beschreibung von Schritt 5 / "Shortcut C") bewusst so vorgesehen ("eine vage, allgemein gehaltene Formulierung") und soll NICHT verändert werden. Ebenfalls verifiziert (`Product.md`, nicht-funktionale Anforderungen): Dieser Schritt ist ein Versuchungsmoment und darf seit v1.3.0 keinen Hinweis vorab geben, welche der beiden Wahlmöglichkeiten (vage lassen vs. präzise machen) die bessere ist — die Lektion kommt ausschließlich im Nachgespräch (debrief).
-
-Freigegebene Lösung (von Stephan im Chat am 27.07.2026 bestätigt): Den Einleitungstext um das bereits vorhandene, pro Szenario existierende Datenfeld `sc.short` ergänzen (wird im Agent-Modus in Runde 1 analog bereits verwendet, um den Text ans jeweilige Ticket zu binden), damit der Satz erkennbar zum gerade gespielten Ticket gehört — ohne die Neutralität zwischen den beiden Wahlmöglichkeiten zu verletzen. Titel, Kicker, mcode, die beiden Wahlmöglichkeiten/Buttons und der Debrief-Text bleiben unverändert.
-
-Freigegebener neuer "setup"-Text (ersetzt den bisherigen String, für alle Szenarien dynamisch über `sc.short`):
-
-> "You're back at your ticket — " + sc.short + ". One piece of it is still just a single line, exactly as it was first written down: "The user gets a reasonable error message when approval fails." Before this goes to whoever builds it: leave that one line as it is, or turn it into a step-by-step example of what should actually happen."
-
-**User Story:** Als Spielerin/Spieler möchte ich beim Schritt "Spell it out" erkennen, dass das gezeigte Draft-Statement zum gerade gespielten Ticket gehört, damit mir sofort klar ist, worauf sich die Entscheidung "vage lassen oder präzisieren" überhaupt bezieht.
-
-
-## ✅ Done
 
 ### BUG-009 Start-Buttons in der Moduswahl unterschiedlich groß (Padding/Schriftgröße)
 

@@ -30,8 +30,11 @@
  *      100 ”, 536 ’. FEATURE-015 (24.07.2026, Stephans Freigabe) added two
  *      more curly apostrophes ("there's", "let's" in the Team-mode
  *      consequence-chat redesign), shifting the baseline again to 100 “,
- *      100 ”, 538 ’ — updated below. Any future ticket that adds quoted UI
- *      text will shift these numbers again; that is expected, not a defect.
+ *      100 ”, 538 ’. FEATURE-018 (28.07.2026, pending Stephans Freigabe) added one more
+ *      curly apostrophe ("You’re" in the Team-mode "Spell it out" intro
+ *      text), shifting the baseline again to 100 “, 100 ”, 541 ’ — updated
+ *      below. Any future ticket that adds quoted UI text will shift these
+ *      numbers again; that is expected, not a defect.
  *   3. A real scenario ticket (rendered via the actual stageHead() render
  *      path, same as a player would see on the "reveal" stage) shows the
  *      fixed English-style quotes.
@@ -124,7 +127,7 @@ function testSourceCharacterCounts() {
     assert.strictEqual(germanOpen, 0, "es sollte kein deutsches „-Zeichen mehr im Quelltext vorkommen, tatsächlich: " + germanOpen);
     assert.strictEqual(curlyLeft, 100, "es sollten genau 100 “-Zeichen im Quelltext stehen (99 zum Zeitpunkt von BUG-003 + 1 neu durch FEATURE-014, unverändert durch FEATURE-016), tatsächlich: " + curlyLeft);
     assert.strictEqual(curlyRight, 100, "es sollten genau 100 ”-Zeichen im Quelltext stehen (99 zum Zeitpunkt von BUG-003 + 1 neu durch FEATURE-014, unverändert durch FEATURE-016), tatsächlich: " + curlyRight);
-    assert.strictEqual(apostrophes, 540, "es sollten genau 540 Apostrophe (’) im Quelltext stehen (534 zum Zeitpunkt von BUG-003 + 2 neu durch FEATURE-014 + 2 neu durch FEATURE-015 + 2 neu durch FEATURE-016), tatsächlich: " + apostrophes);
+    assert.strictEqual(apostrophes, 541, "es sollten genau 541 Apostrophe (’) im Quelltext stehen (534 zum Zeitpunkt von BUG-003 + 2 neu durch FEATURE-014 + 2 neu durch FEATURE-015 + 2 neu durch FEATURE-016 + 1 neu durch FEATURE-018), tatsächlich: " + apostrophes);
     return null;
   } catch (err) {
     return "Zeichen-Zählung im Quelltext: " + err.message;
