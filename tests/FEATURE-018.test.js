@@ -123,9 +123,16 @@ function main() {
   const VAGUE_SENTENCE = "The user gets a reasonable error message when approval fails.";
 
   // Test 1: GAME_VERSION wurde für diese sichtbare Änderung erhöht.
+  // War ursprünglich ein exakter Vergleich auf "1.28.3" (den zum Zeitpunkt von
+  // FEATURE-018 aktuellen Stand) — das ist dieselbe Fragilitätsklasse wie die
+  // bereits bekannten hartcodierten Versions-Strings in FEATURE-009/011/012
+  // (siehe TASK-004) und wurde durch FEATURE-017 (28.07.2026, Stephans
+  // Freigabe, GAME_VERSION 1.28.3 -> 1.28.4) prompt neu rot. Auf das robustere
+  // "seit dem bekannten Vorgänger-Stand erhöht"-Muster umgestellt, das bereits
+  // in BUG-005/BUG-006/BUG-007-BUG-008 etabliert ist.
   try {
     const { dom, window } = reachGherkinStage(0);
-    assert.strictEqual(window.GAME_VERSION, "1.28.3", "GAME_VERSION sollte auf 1.28.3 stehen");
+    assert.notStrictEqual(window.GAME_VERSION, "1.28.2", "GAME_VERSION sollte gegenüber dem Vorgänger-Stand vor FEATURE-018 (1.28.2) erhöht worden sein, tatsächlich: " + window.GAME_VERSION);
     dom.window.close();
   } catch (err) { failures.push("GAME_VERSION: " + err.message); }
 

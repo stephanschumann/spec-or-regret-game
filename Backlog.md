@@ -6,6 +6,88 @@
 
 ## 🔄 In Progress
 
+### FEATURE-017 "Wer ist im Raum?"-Einleitungstext ausführlicher erklären
+
+| Feld | Wert |
+|------|------|
+| **Typ** | Feature |
+| **Priorität** | Mittel *(von Stephan am 28.07.2026 bestätigt)* |
+| **Status** | In Progress |
+| **In Progress seit** | 2026-07-28 |
+| **Erstellt** | 2026-07-27 |
+
+**Beschreibung:** Auf dem ersten Bildschirm des Team-Modus ("Who's in the room?") steht bisher nur ein kurzer, sachlicher Satz: "Before you touch the ticket, here's who showed up for this refinement." Stephan hat beim Testen (27.07.2026) angemerkt, dass davor noch ein einordnender, menschlicherer Absatz fehlt – der kurz anerkennt, dass im echten Arbeitsalltag alle beschäftigt sind und unterschiedliche Prioritäten haben, es aber trotzdem gut ist, dass ein Großteil des Teams es ins Meeting geschafft hat. Der bestehende Satz "Before you touch the ticket…" soll danach unverändert stehen bleiben.
+
+Stephans Formulierungsvorschlag (von ihm auf Deutsch notiert – das Spiel läuft aber komplett auf Englisch, eine an den bestehenden Ton angepasste englische Fassung ist Teil der Umsetzung, kein fertiger Text):
+
+> "Du weißt wie es ist: Jeder ist beschäftigt, verschiedene Prioritäten, Projekte und Verpflichtungen, aber zum Glück haben es die meisten des Teams ins Meeting geschafft."
+
+**User Story:** Als Spielerin/Spieler möchte ich auf dem ersten Bildschirm spüren, dass unvollständige Meeting-Teilnahme normaler Arbeitsalltag ist (keine Ausnahmesituation), damit ich mich besser in die Situation "wer fehlt und warum" hineinversetzen kann, bevor ich mit dem Ticket weitermache.
+
+**Verifiziert am Code (28.07.2026):** Repo sauber (`main`, `GAME_VERSION = "1.28.3"`, passend zum zuletzt dokumentierten Stand nach FEATURE-018). Die genannte Stelle ist eindeutig der Bildschirm "Team · 1" / Kicker "Who's in the room?" (Funktion `buildTeamStages(sc)`, Stage-Typ `teamroster`); der Einleitungssatz wird über ein gemeinsames Text-Feld (`stageHead()`) dargestellt, das für JEDEN Spielschritt (Team- und Einzelmodus) genutzt wird – geändert wird hier aber ausschließlich der Textinhalt dieses einen Eintrags, nicht die gemeinsame Darstellungsfunktion selbst.
+
+**Fundstellen-Sweep:** Suche nach dem genauen Wortlaut "Before you touch the ticket" / "showed up for this refinement" im gesamten Code: genau 1 Treffer – der oben genannte Bildschirm. Keine weitere Fundstelle, dieser Text wird nirgends sonst verwendet.
+
+**Zustands-Check:**
+- Wartezustand: keiner – reines, synchrones Anzeigen eines Textbausteins beim Betreten des Bildschirms.
+- Leerzustand: nicht relevant – die angezeigte Team-Besetzung (wer da ist, wer fehlt) ist bei jedem Durchlauf vollständig befüllt, es gibt keinen Fall mit leerer Anzeige.
+- Fehlerfall: keiner neu – reine Textänderung ohne neue Logik, nichts an der bestehenden Fehlerbehandlung ändert sich.
+
+**Scope:**
+Eingeschlossen: Der Einleitungstext auf dem allerersten Team-Modus-Bildschirm ("Who's in the room?") wird um einen vorangestellten, menschlicheren Satz ergänzt, der anerkennt, dass unvollständige Meeting-Teilnahme normaler Arbeitsalltag ist. Der bestehende Satz bleibt danach wortgleich stehen, beide Sätze bilden zusammen einen fließenden Text ohne sichtbaren Absatzumbruch (von Stephan am 28.07.2026 so entschieden – entspricht auch, wie jeder andere Einleitungstext im Spiel bisher aufgebaut ist). Die genaue englische Formulierung (angepasst an den bestehenden Ton des Spiels) wird während der Umsetzung final abgestimmt.
+Ausgeschlossen: keine Änderung an der Darstellung der Team-Besetzung selbst (wer da ist/wer fehlt), keine Änderung an einem anderen Spielschritt, keine Änderung an Bewertungslogik oder Szenario-Inhalten, kein neuer optischer Absatzumbruch.
+
+**Akzeptanzkriterien:**
+- [x] Beim Betreten des allerersten Team-Modus-Bildschirms ("Who's in the room?") steht vor dem bisherigen Satz ein neuer, menschlicherer Satz, der anerkennt, dass im echten Arbeitsalltag alle beschäftigt sind und unterschiedliche Prioritäten haben.
+- [x] Der bisherige Satz ("Before you touch the ticket, here's who showed up for this refinement.") steht danach unverändert und wortgleich weiter da.
+- [x] Beide Sätze wirken als ein zusammenhängender Textfluss ohne sichtbaren Absatzumbruch – wie an dieser Stelle im Spiel bisher überall gehandhabt.
+- [x] Das gilt für jeden Durchlauf des Team-Modus gleichermaßen, unabhängig davon, welche Rolle gerade fehlt oder welches Thema gespielt wird – die Team-Besetzungsanzeige selbst sieht unverändert aus.
+- [ ] Auf einem schmalen Bildschirm (Handy-Breite) bleibt der längere Text weiterhin lesbar, nichts überlappt oder wird abgeschnitten.
+- [x] Keine Konsolenfehler.
+
+**Pre-Mortem:**
+- 💀 Der neue Satz führt neue Apostrophe ein (z. B. in "everyone's") und verschiebt damit die exakte, global über die ganze Datei gezählte Apostroph-Anzahl, die ein bestehender Test (Anführungszeichen-Konsistenz-Check) hart prüft → Gegenmaßnahme: nach Festlegung des exakten Wortlauts den betroffenen Zähler aktualisieren, analog zum Vorgehen bei FEATURE-018, nur mit Stephans ausdrücklicher Freigabe (siehe Testplan).
+- 💀 Der längere Text sprengt auf einem schmalen Bildschirm (Handy-Breite) die vorgesehene maximale Textbreite des Einleitungstext-Bausteins → Gegenmaßnahme: eigenes Akzeptanzkriterium oben + Playwright/Screenshot-Test in Handy-Breite im Testplan.
+- 💀 Die Formulierung wirkt für manche der 21 Themen unpassend, weil der Satz unabhängig vom gerade gespielten Thema immer gleich ist → Gegenmaßnahme: bewusst als themenunabhängiger, allgemeiner Satz konzipiert – genau wie der bestehende Satz direkt danach, der ebenfalls für alle 21 Themen identisch ist; kein Themenbezug, daher kein Risiko einer schlecht passenden Kombination.
+- 💀 Die Versionsnummer des Spiels wird bei der Umsetzung vergessen zu erhöhen → Gegenmaßnahme: eigener Punkt im Testplan.
+
+**Zusammenspiel bestehender Bausteine:** Betrifft ausschließlich den Textinhalt genau eines Eintrags in der Abfolge der Team-Modus-Bildschirme (wird einmalig beim Start einer Team-Runde zusammengestellt); die zugehörige Anzeige-Funktion übernimmt diesen Text danach nur unverändert über den gemeinsamen Darstellungsbaustein, den JEDER Spielschritt im Team- und im Einzelmodus verwendet. Riskante Kombination: Da nur der Textinhalt dieses einen Eintrags geändert wird, nicht der gemeinsame Darstellungsbaustein selbst, kann kein anderer Spielschritt betroffen sein – die einzige echte Querverbindung ist die oben genannte, global über die ganze Datei gezählte Apostroph-Anzahl.
+
+**Optionenvergleich:** Nur ein sinnvoller Weg erkennbar – den neuen Satz direkt vor den bestehenden Satz in denselben Textbaustein setzen, als ein zusammenhängender Fließtext (wie von Stephan entschieden, und wie jeder andere Einleitungstext im Spiel bisher aufgebaut ist). Eine Variante mit echtem sichtbaren Absatzumbruch wurde von Stephan bereits ausgeschlossen, künstliche weitere Alternativen wären hier nicht sinnvoll.
+
+✅ Empfehlung: Direkte Ergänzung im bestehenden Textfeld, ein zusammenhängender Fließtext vor dem bestehenden Satz.
+
+**Analyse & Planung:**
+- [x] Aktuellen Zustand verstanden: siehe "Verifiziert am Code" oben.
+- [x] Betroffene Stelle identifiziert: siehe Fundstellen-Sweep oben.
+- [x] Implementierungsansatz definiert: siehe Optionenvergleich oben.
+- [x] Risiken benannt: siehe Pre-Mortem oben.
+- [x] Aufwand geschätzt: sehr klein – eine einzelne Textzeile, keine neue Logik.
+
+**Testplan:**
+- [x] jsdom-Test: `public/index.html` laden und ausführen, `window.matchMedia` stubben, einen Team-Durchlauf starten und den angezeigten Text auf dem allerersten Bildschirm ("Who's in the room?") auf beide Sätze (neuen Satz + bestehenden Satz, in dieser Reihenfolge, bestehender Satz wortgleich) prüfen. → `tests/FEATURE-017.test.js`, 6/6 grün.
+- [x] `node --check` auf den extrahierten Skript-Inhalt als reinen Syntax-Check.
+- [x] Versionsnummer-Erhöhung geprüft. `GAME_VERSION` 1.28.3 → 1.28.4.
+- [x] Testabdeckung: Dieser Bildschirm ist unabhängig vom gespielten Thema immer identisch (kein themenspezifischer Text) – ein Testlauf mit einem beliebigen Thema ist damit für alle 21 Themen repräsentativ.
+- [x] Bestehender Apostroph-Zählungs-Test: sobald der exakte Wortlaut feststeht, Zähler aktualisieren – nur mit Stephans ausdrücklicher Freigabe im Chat (analog FEATURE-018). Erledigt: `tests/BUG-003.test.js` von 541 auf 542 angehoben (Stephans Freigabe 28.07.2026).
+- [ ] Layout-/Handy-Breite-Test (Playwright/Screenshot): Text bleibt lesbar, nichts überlappt oder wird abgeschnitten.
+- [x] Vollständiger Regressionslauf gegen alle 31 Testdateien: 26/31 grün, 4 vorbestehende, bekannte Fehlschläge (BUG-004, FEATURE-009, FEATURE-011, FEATURE-012 – TASK-004-Fragilitätsklasse, nicht dieser Änderung zuzuschreiben), 1 vorbestehender Hänger (FEATURE-016, auch gegen unveränderten Originalstand verifiziert). `tests/FEATURE-018.test.js` prüfte ursprünglich exakt auf `GAME_VERSION "1.28.3"` und wurde durch den eigenen Versionssprung neu rot – korrigiert auf das robustere „seit Vorgänger-Stand erhöht"-Muster (Stephans Freigabe), danach wieder grün.
+- [ ] Ein echter Blick im Browser (Desktop und Handy-Breite) bleibt offener Punkt, bis Stephan ihn nach dem Release selbst bestätigt.
+
+**Implementierungsnotizen:**
+Umgesetzt in `public/index.html`: `setup`-Text der `teamroster`-Stage in `buildTeamStages(sc)` (Bildschirm "Team · 1" / "Who's in the room?") um den neuen, vorangestellten Satz ergänzt: "You know how it is — everyone’s swamped, juggling different priorities, projects, and commitments, but thankfully most of the team still made it to this meeting." Der bestehende Satz "Before you touch the ticket, here’s who showed up for this refinement." steht danach wortgleich weiter, beide als ein zusammenhängender Fließtext ohne Absatzumbruch (wie von Stephan entschieden). `GAME_VERSION` 1.28.3 → 1.28.4.
+
+Neuer Test `tests/FEATURE-017.test.js` (6/6 grün): echter Klickpfad bis zur `teamroster`-Stage, neuer Satz vorangestellt, Bestandssatz wortgleich unverändert, kein `<br>`/`<p>` (kein Absatzumbruch), Rollen-Chips unverändert.
+
+Bestehender Test `tests/BUG-003.test.js` angepasst: globaler Apostroph-Zähler 541 → 542 (ein neuer Apostroph durch "everyone’s"), mit Stephans ausdrücklicher Freigabe im Chat (28.07.2026).
+
+Bestehender Test `tests/FEATURE-018.test.js` korrigiert: prüfte ursprünglich hart auf `GAME_VERSION === "1.28.3"` und wurde durch den eigenen Versionssprung dieses Tickets neu rot — auf das robustere „gegenüber dem Vorgänger-Stand erhöht"-Muster umgestellt (dieselbe Fragilitätsklasse wie in TASK-004 beschrieben, hier proaktiv behoben statt als Kollateralschaden hingenommen).
+
+Vollständiger Regressionslauf (31 Testdateien): 26/31 grün, 4 bekannte, vorbestehende Fehlschläge (BUG-004, FEATURE-009, FEATURE-011, FEATURE-012 – TASK-004-Fragilitätsklasse, unabhängig von dieser Änderung), 1 bekannter Hänger (FEATURE-016, auch gegen den unveränderten Originalstand mit Timeout verifiziert — unabhängig von dieser Änderung).
+
+**Offen (Gate vor Done):** Ein echter Blick im Browser (Desktop + Handy-Breite) durch Stephan selbst, sowie Release + Live-Verifikation (`spec-or-regret-release`). Status bleibt In Progress, bis das erledigt ist.
+
+
 ## 📋 ToDo
 
 ### TASK-004 Alte fest einprogrammierte GAME_VERSION-Strings in Testdateien bereinigen
@@ -22,24 +104,6 @@
 **User Story:** Als Stephan möchte ich, dass ein Regressionslauf nur dann rot zeigt, wenn wirklich etwas kaputt ist, damit ich nicht bei jedem Ticket erneut dieselben 5 bekannten, bedeutungslosen Fehlschläge gegen die aktuelle Änderung abgleichen muss.
 
 **Hinweis zur Umsetzung (noch nicht analysiert):** Vermutlich reicht es, in den betroffenen Dateien den harten String-Vergleich durch `assert.notStrictEqual(window.GAME_VERSION, "<bekannter alter Wert>")` zu ersetzen (Muster bereits in `tests/BUG-005.test.js`/`tests/BUG-006.test.js`/`tests/BUG-007-BUG-008.test.js` etabliert) — das muss aber noch durch `spec-or-regret-analyze` bestätigt werden, insbesondere ob eine der fünf Dateien einen triftigen Grund hatte, absichtlich einen exakten Wert zu prüfen.
-
-### FEATURE-017 "Wer ist im Raum?"-Einleitungstext ausführlicher erklären
-
-| Feld | Wert |
-|------|------|
-| **Typ** | Feature |
-| **Priorität** | Mittel *(Vorschlag, analog zu FEATURE-003 – bitte bestätigen)* |
-| **Status** | ToDo |
-| **Erstellt** | 2026-07-27 |
-
-**Beschreibung:** Auf dem ersten Bildschirm des Team-Modus ("Who's in the room?") steht bisher nur ein kurzer, sachlicher Satz: "Before you touch the ticket, here's who showed up for this refinement." Stephan hat beim Testen (27.07.2026) angemerkt, dass davor noch ein einordnender, menschlicherer Absatz fehlt – der kurz anerkennt, dass im echten Arbeitsalltag alle beschäftigt sind und unterschiedliche Prioritäten haben, es aber trotzdem gut ist, dass ein Großteil des Teams es ins Meeting geschafft hat. Der bestehende Satz "Before you touch the ticket…" soll danach unverändert stehen bleiben.
-
-Stephans Formulierungsvorschlag (von ihm auf Deutsch notiert – das Spiel läuft aber komplett auf Englisch, eine an den bestehenden Ton angepasste englische Fassung ist Teil der Umsetzung, kein fertiger Text):
-
-> "Du weißt wie es ist: Jeder ist beschäftigt, verschiedene Prioritäten, Projekte und Verpflichtungen, aber zum Glück haben es die meisten des Teams ins Meeting geschafft."
-
-**User Story:** Als Spielerin/Spieler möchte ich auf dem ersten Bildschirm spüren, dass unvollständige Meeting-Teilnahme normaler Arbeitsalltag ist (keine Ausnahmesituation), damit ich mich besser in die Situation "wer fehlt und warum" hineinversetzen kann, bevor ich mit dem Ticket weitermache.
-
 
 ## ✅ Done
 
