@@ -6,13 +6,18 @@
 
 ## 🔄 In Progress
 
+## 📋 ToDo
+
+## ✅ Done
+
 ### TASK-004 Alte fest einprogrammierte GAME_VERSION-Strings in Testdateien bereinigen
 
 | Feld | Wert |
 |------|------|
 | **Typ** | Task |
 | **Priorität** | Niedrig *(von Stephan am 28.07.2026 bestätigt)* |
-| **Status** | In Progress |
+| **Status** | Done |
+| **Done seit** | 2026-07-28 |
 | **In Progress seit** | 2026-07-28 |
 | **Erstellt** | 2026-07-28 |
 
@@ -75,10 +80,6 @@
 **Freigabe:** Von Stephan am 28.07.2026 bestätigt ("implementieren") — Priorität Niedrig unwidersprochen übernommen, Umsetzung mit Option A wie oben beschrieben freigegeben.
 
 **Implementierungsnotizen:** Alle fünf Dateien direkt im echten Repo auf Stephans Mac umgesetzt (`tests/BUG-004.test.js`, `tests/FEATURE-009.test.js`, `tests/FEATURE-011.test.js`, `tests/FEATURE-012.test.js`, `tests/FEATURE-016.test.js`) — jeweils `const KNOWN_PREVIOUS_VERSION = "<verifizierter Vorgänger-Wert>";` ergänzt und die harte `assert.strictEqual(GAME_VERSION, "<alter Zielwert>")`-Prüfung durch `assert.notStrictEqual(GAME_VERSION, KNOWN_PREVIOUS_VERSION)` ersetzt. Danach die tatsächlich auf dem Mac liegenden Dateien direkt (per `device_bash`, nicht über eine zwischenzeitlich stale gewordene Staging-Kopie) gegengelesen, um die Änderung zu bestätigen. Finaler Pflicht-Regressionslauf gegen alle 31 Testdateien (Cloud-Sandbox mit `npm install jsdom`): 30/31 grün, 1 unveränderter vorbestehender Hänger (`FEATURE-016.test.js`, außerhalb des Scopes, siehe Testplan). Keine Änderung an `public/index.html`, daher kein Release nötig (Release-vor-Done-Gate greift nur bei einer Code-Änderung am Spiel selbst). Offen: die Änderung liegt bereits als Datei auf Stephans Mac, ist aber noch nicht committet — Git-Commit folgt in Stephans eigenem Terminal (Befehl siehe Chat), diese Sitzung führt keine Git-Schreibbefehle über die Geräte-Brücke aus.
-
-## 📋 ToDo
-
-## ✅ Done
 
 ### FEATURE-017 "Wer ist im Raum?"-Einleitungstext ausführlicher erklären
 
