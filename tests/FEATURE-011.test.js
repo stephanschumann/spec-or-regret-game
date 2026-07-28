@@ -39,6 +39,11 @@ const assert = require("assert");
 const { JSDOM } = require("jsdom");
 
 const INDEX_HTML = path.join(__dirname, "..", "public", "index.html");
+// GAME_VERSION before this ticket's release (TASK-004: "moved past the known
+// previous value" instead of a pinned exact string — see Backlog.md
+// TASK-004). FEATURE-008/009/010/011 were released together in one combined
+// commit that bumped GAME_VERSION from 1.9.0 to 1.18.0.
+const KNOWN_PREVIOUS_VERSION = "1.9.0";
 
 function loadGame() {
   const html = fs.readFileSync(INDEX_HTML, "utf8");
@@ -146,7 +151,7 @@ async function playPoEverythingBadRun() {
 async function testGameVersion() {
   const dom = loadGame();
   try {
-    assert.strictEqual(dom.window.GAME_VERSION, "1.18.0", "GAME_VERSION sollte auf 1.18.0 stehen");
+    assert.notStrictEqual(dom.window.GAME_VERSION, KNOWN_PREVIOUS_VERSION, "GAME_VERSION sollte gegenüber " + KNOWN_PREVIOUS_VERSION + " erhöht worden sein");
     return null;
   } catch (err) { return "GAME_VERSION: " + err.message; }
   finally { dom.window.close(); }

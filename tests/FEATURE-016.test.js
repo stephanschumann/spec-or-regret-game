@@ -48,6 +48,9 @@ const assert = require("assert");
 const { JSDOM } = require("jsdom");
 
 const INDEX_HTML = path.join(__dirname, "..", "public", "index.html");
+// GAME_VERSION before this ticket (TASK-004: "moved past the known previous
+// value" instead of a pinned exact string — see Backlog.md TASK-004).
+const KNOWN_PREVIOUS_VERSION = "1.26.0";
 
 function loadGame() {
   const html = fs.readFileSync(INDEX_HTML, "utf8");
@@ -214,7 +217,7 @@ async function main() {
   // Test 1: GAME_VERSION wurde für dieses sichtbare Feature erhöht.
   try {
     const dom = loadGame();
-    assert.strictEqual(dom.window.GAME_VERSION, "1.27.0", "GAME_VERSION sollte auf 1.27.0 stehen");
+    assert.notStrictEqual(dom.window.GAME_VERSION, KNOWN_PREVIOUS_VERSION, "GAME_VERSION sollte gegenüber " + KNOWN_PREVIOUS_VERSION + " erhöht worden sein");
     dom.window.close();
   } catch (err) { failures.push("GAME_VERSION: " + err.message); }
 

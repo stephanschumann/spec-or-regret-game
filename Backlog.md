@@ -6,22 +6,77 @@
 
 ## 🔄 In Progress
 
-## 📋 ToDo
-
 ### TASK-004 Alte fest einprogrammierte GAME_VERSION-Strings in Testdateien bereinigen
 
 | Feld | Wert |
 |------|------|
 | **Typ** | Task |
-| **Priorität** | Niedrig *(Vorschlag — kein funktionaler Fehler, reine Test-Hygiene; bitte bestätigen)* |
-| **Status** | ToDo |
+| **Priorität** | Niedrig *(von Stephan am 28.07.2026 bestätigt)* |
+| **Status** | In Progress |
+| **In Progress seit** | 2026-07-28 |
 | **Erstellt** | 2026-07-28 |
 
 **Beschreibung:** Bei jedem Pflicht-Regressionslauf gegen `tests/*.test.js` tauchen dieselben 5 Fehlschläge wieder auf, die NICHTS mit der jeweils gerade umgesetzten Änderung zu tun haben: `tests/BUG-004.test.js`, `tests/FEATURE-009.test.js`, `tests/FEATURE-011.test.js`, `tests/FEATURE-012.test.js` und `tests/FEATURE-016.test.js` prüfen `GAME_VERSION` jeweils auf einen exakten, längst überholten String (z. B. "1.16.0", "1.18.0", "1.19.0", "1.23.0", "1.27.0") statt nur zu prüfen, dass sich die Version gegenüber einem bekannten Vorgänger-Stand erhöht hat. Das ist bereits als bekannte, offene Fragilitätsklasse in `spec-or-regret-impl` dokumentiert (Schritt 4, Punkt 6) — Stephan möchte das jetzt tatsächlich beheben, statt es bei jedem künftigen Ticket erneut als "bereits vorher bekannter Fehlschlag" wegzuerklären.
 
 **User Story:** Als Stephan möchte ich, dass ein Regressionslauf nur dann rot zeigt, wenn wirklich etwas kaputt ist, damit ich nicht bei jedem Ticket erneut dieselben 5 bekannten, bedeutungslosen Fehlschläge gegen die aktuelle Änderung abgleichen muss.
 
-**Hinweis zur Umsetzung (noch nicht analysiert):** Vermutlich reicht es, in den betroffenen Dateien den harten String-Vergleich durch `assert.notStrictEqual(window.GAME_VERSION, "<bekannter alter Wert>")` zu ersetzen (Muster bereits in `tests/BUG-005.test.js`/`tests/BUG-006.test.js`/`tests/BUG-007-BUG-008.test.js` etabliert) — das muss aber noch durch `spec-or-regret-analyze` bestätigt werden, insbesondere ob eine der fünf Dateien einen triftigen Grund hatte, absichtlich einen exakten Wert zu prüfen.
+**Scope:** Eingeschlossen: die fünf im Ticket genannten Testdateien (BUG-004, FEATURE-009, FEATURE-011, FEATURE-012, FEATURE-016) werden so umgestellt, dass ihre Versionsprüfung nicht mehr fehlschlägt, nur weil seither andere Tickets die Versionsnummer weiter erhöht haben — sie schlagen aber weiterhin fehl, wenn eine Versionserhöhung tatsächlich vergessen wurde. Ausgeschlossen: keine Änderung am Spiel selbst; keine Änderung der aktuellen Versionsnummer; der bereits vorher bekannte, von diesem Ticket unabhängige Hänger in einer der fünf Dateien (siehe Fundstellen-Sweep/Testplan) wird NICHT behoben, nur sauber als vorbestehend dokumentiert.
+
+**Akzeptanzkriterien:**
+- [ ] Ein vollständiger Regressionslauf über alle Testdateien zeigt keinen der fünf bisher immer wiederkehrenden, bedeutungslosen Versions-Fehlschläge mehr, obwohl die aktuelle Versionsnummer inzwischen weit über den ursprünglich geprüften Werten liegt.
+- [ ] Wird die Versionsnummer im Spiel für ein künftiges Ticket versehentlich NICHT erhöht, zeigt trotzdem jede der fünf betroffenen Prüfungen weiterhin einen Fehlschlag — die Prüfung bleibt also wirksam, sie wird nur nicht mehr grundlos rot.
+- [ ] Keine der fünf Dateien verliert dabei eine ihrer anderen bestehenden Prüfungen. Bei `FEATURE-009.test.js` laufen die restlichen fünf Prüfungen der Datei sogar zum ersten Mal seit der ursprünglichen Veröffentlichung wieder durch (vorher durch den Versions-Fehlschlag maskiert, siehe Analyse).
+- [ ] Der bereits bekannte, separate Hänger in `FEATURE-016.test.js` bleibt unverändert bestehen (nicht Teil dieses Tickets) und wird in der Dokumentation nicht fälschlich dieser Änderung zugeschrieben.
+
+**Fundstellen-Sweep:** Gezielt nach `assert.strictEqual` in Kombination mit `GAME_VERSION` über alle 31 Testdateien gesucht: genau 6 Treffer — die 5 im Ticket genannten Dateien plus `tests/example.test.js` (dort aber nur `assert.strictEqual(typeof window.GAME_VERSION, "string")`, ein harmloser Typ-Check ohne exakten Wert, unproblematisch, keine Änderung nötig). Keine weiteren Fundstellen.
+
+**Zustands-Check:** Kein Wartezustand (Tests laufen synchron als Node-Skript, kein UI). Kein Leerzustand (kein Spielbildschirm betroffen, reine Testinfrastruktur). Fehlerfall: bei einer echten vergessenen Versionserhöhung schlägt die neue Prüfung weiterhin sichtbar fehl (aktiv mit künstlich zurückgesetzter Version nachgestellt, siehe Testplan) — das gewünschte Fehlerverhalten bleibt also erhalten.
+
+**Pre-Mortem:**
+- 💀 Die neue Prüfung wird so schwach, dass sie nie wieder etwas Echtes findet → Gegenmaßnahme: für 4 der 5 Dateien live nachgestellt (GAME_VERSION testweise auf den jeweils "bekannten alten Wert" zurückgesetzt → Test schlägt tatsächlich fehl); bei der fünften (FEATURE-016) durch identischen Code-Aufbau abgesichert, siehe Testplan für die Einschränkung dort.
+- 💀 Das Beheben von FEATURE-009 lässt zum ersten Mal seit Wochen die bisher maskierten Tests 2–6 der Datei durchlaufen und deckt dabei eine unbemerkt eingeschlichene echte Regression auf → Gegenmaßnahme: aktiv geprüft, alle 6 Prüfungen der Datei laufen jetzt grün durch, keine verdeckte Regression gefunden (siehe Analyse).
+- 💀 Der als Ersatzwert verwendete "bekannte alte Wert" wird geraten statt verifiziert und stimmt nicht mit der echten Historie überein (worst case: er entspricht einem Wert, der nie wirklich verwendet wurde) → Gegenmaßnahme: jeder Wert stammt aus dem echten `git log -p -- public/index.html`, nicht aus der Test-Datei selbst geraten; dabei wurde sogar entdeckt, dass FEATURE-009s ursprünglich gepinnter Wert ("1.16.0") historisch nie real existiert hat (siehe Analyse).
+- 💀 Eine der fünf Dateien hatte doch einen triftigen Grund für die exakte Prüfung (z. B. Abhängigkeit zu einer anderen Prüfung) und verliert durch die Änderung stillschweigend eine wichtige Absicherung → Gegenmaßnahme: jede der fünf Stellen einzeln gelesen; keine hat eine solche Abhängigkeit, jede ist ein eigenständiger, isolierter "Version wurde erhöht"-Test.
+- 💀 Der bereits bekannte Hänger in FEATURE-016 wird versehentlich dieser Änderung zugeschrieben → Gegenmaßnahme: Hänger sowohl vor als auch nach der Änderung identisch reproduziert (gleiches Fehlerbild, gleiche Stelle), im Ticket explizit als vorbestehend und außerhalb des Scopes vermerkt.
+
+**Optionenvergleich:**
+
+### Option A — `assert.notStrictEqual` gegen den jeweils bekannten alten Wert (✅ empfohlen)
+- Vorgehen: in jeder der fünf Dateien einen `KNOWN_PREVIOUS_VERSION`-Konstante mit dem per Git-Historie verifizierten Vorgänger-Wert ergänzen, die harte `assert.strictEqual(...)`-Prüfung durch `assert.notStrictEqual(GAME_VERSION, KNOWN_PREVIOUS_VERSION)` ersetzen.
+- Vorteile: bereits dreifach im Code etabliertes Muster (`BUG-005`, `BUG-006`, `BUG-007-BUG-008`), behält die eigentliche Schutzwirkung (erkennt eine vergessene Versionserhöhung weiterhin), vom Ticket selbst so vorgeschlagen.
+- Nachteile: keine nennenswerten.
+
+### Option B — Nur den Typ prüfen (`typeof GAME_VERSION === "string"`)
+- Vorgehen: wie im bereits bestehenden, harmlosen Fall in `example.test.js`.
+- Nachteile: verliert die eigentliche Aussage "Version wurde für dieses Ticket auch wirklich erhöht" komplett — macht die Prüfung wirkungslos als Regressionsschutz. Nicht empfohlen.
+
+### Option C — Versionsprüfung aus diesen fünf Tests ganz entfernen
+- Nachteile: verliert jede Schutzwirkung, widerspricht dem eigentlichen Zweck des Tickets (nicht nur "nicht mehr grundlos rot", sondern auch weiterhin "rot bei echtem Fehler"). Nicht empfohlen.
+
+✅ **Empfehlung: Option A** — einziger Weg, der beide Ziele erfüllt (kein grundloser Fehlschlag mehr, echte Regression weiterhin erkannt), und bereits als Muster im Projekt etabliert.
+
+**Analyse & Planung (am echten Code und an der echten Git-Historie verifiziert, nicht angenommen):**
+- Betroffene Stelle je Datei: genau eine `assert.strictEqual(window.GAME_VERSION, "<alter Wert>", ...)`-Zeile, jeweils Test 1 der Datei, keine Abhängigkeit zu anderen Prüfungen in derselben Datei.
+- Per `git log -p --follow -- public/index.html` die komplette GAME_VERSION-Historie rekonstruiert (Commit für Commit, nicht geraten) und daraus den jeweils echten Vorgänger-Wert ermittelt:
+  - `BUG-004.test.js` (kombiniert mit BUG-003): Vorgänger `1.21.0` → Ziel `1.23.0` (Commit `c73b93b`).
+  - `FEATURE-009.test.js` und `FEATURE-011.test.js`: beide im selben Commit veröffentlicht (`3f103f0`, "v1.18.0: Team-Modus (FEATURE-008/009), realistische Fast-Start-Basis (FEATURE-010), Lead-Time-Retrospektive-Aufschlüsselung im Finale (FEATURE-011)"), der die Version direkt von `1.9.0` auf `1.18.0` gehoben hat — mehrere ursprünglich einzeln geplante Versionsschritte wurden dabei zu einem einzigen Sprung zusammengefasst. Vorgänger für beide Dateien also `1.9.0`.
+  - **Wichtiger Nebenbefund:** `FEATURE-009.test.js` hatte bisher exakt `"1.16.0"` gepinnt (siehe Code-Kommentar "1.16.0 statt 1.15.1") — dieser Wert kommt in der echten Versionshistorie nirgends vor. Der Test war also nicht nur "irgendwann stale geworden", sondern hat schon am Tag der eigenen Veröffentlichung nie mit dem tatsächlich ausgelieferten Stand übereingestimmt.
+  - `FEATURE-012.test.js`: Vorgänger `1.18.0` → Ziel `1.19.0` (Commit `3d4b475`).
+  - `FEATURE-016.test.js`: Vorgänger `1.26.0` → Ziel `1.27.0` (Commit `0b6a161`).
+- Keine der fünf Änderungen berührt eine gemeinsame Spiel-Funktion oder -Konstante (`buildStages`, `renderCategorize`, `MAP_BUCKETS`/`NG_BUCKETS` o. Ä.) — der gesamte Eingriff bleibt innerhalb der fünf Testdateien, `public/index.html` selbst bleibt unangetastet. Die sonst übliche Pre-Mortem-Vertiefung "welche gemeinsamen Bausteine, welche Reihenfolge, welche Kombination" entfällt daher inhaltlich; die tatsächlich relevanten Risiken (Maskierung, falscher Vorgänger-Wert, schwacher Test) sind oben im Pre-Mortem behandelt.
+
+**Testplan (bereits vollständig durchgeführt, nicht nur geplant):**
+- [x] Vollständiger Regressionslauf VOR der Änderung (jsdom, alle 31 Dateien, Node im Cloud-Sandbox mit `npm install jsdom`, da `device_bash` keinen Internetzugang hat): 26/31 grün, 4 bekannte Fehlschläge (BUG-004, FEATURE-009, FEATURE-011, FEATURE-012 — jeweils exakt und ausschließlich wegen der `GAME_VERSION`-Prüfung), 1 bekannter Hänger (FEATURE-016, per `timeout 30s` bestätigt reproduzierbar, `Not implemented: Window's scrollTo()`-Spam, tritt in Test 3 auf, unabhängig von Test 1/GAME_VERSION).
+- [x] Fix in allen fünf Dateien umgesetzt (`assert.notStrictEqual` + `KNOWN_PREVIOUS_VERSION`-Konstante mit den oben verifizierten Werten) und `node --check` auf allen fünf Dateien: keine Syntaxfehler.
+- [x] Vollständiger Regressionslauf NACH der Änderung: 30/31 grün (alle vier vorherigen Fehlschläge jetzt grün, inkl. `FEATURE-009.test.js` mit allen 6/6 statt vorher nur 0/6 sichtbaren Prüfungen), 1 unveränderter, vorbestehender Hänger (FEATURE-016, identisches Fehlerbild wie vorher — bestätigt vorbestehend und unabhängig von dieser Änderung).
+- [x] Gegenprobe „Prüfung hat weiterhin Biss": GAME_VERSION testweise auf den jeweiligen `KNOWN_PREVIOUS_VERSION`-Wert zurückgesetzt und die vier laufenden Tests erneut ausgeführt — alle vier schlagen dann wie gewünscht wieder fehl (`BUG-004`, `FEATURE-009`, `FEATURE-011`, `FEATURE-012`). Für `FEATURE-016` ließ sich das wegen des vorbestehenden Hängers nicht end-to-end nachstellen (Prozess hängt schon vorher in Test 3, kommt nie bis zur finalen Auswertung) — dort stattdessen durch Code-Vergleich abgesichert: Test 1 ist strukturell identisch zu den anderen vier (eigener try/catch, eigener Eintrag im `failures`-Array), dieselbe Syntax wurde bereits per `node --check` bestätigt.
+- [ ] Kein Blick im Browser nötig — keine sichtbare Spieländerung, reine Testinfrastruktur; `public/index.html` bleibt unverändert.
+
+**Freigabe:** Von Stephan am 28.07.2026 bestätigt ("implementieren") — Priorität Niedrig unwidersprochen übernommen, Umsetzung mit Option A wie oben beschrieben freigegeben.
+
+**Implementierungsnotizen:** Alle fünf Dateien direkt im echten Repo auf Stephans Mac umgesetzt (`tests/BUG-004.test.js`, `tests/FEATURE-009.test.js`, `tests/FEATURE-011.test.js`, `tests/FEATURE-012.test.js`, `tests/FEATURE-016.test.js`) — jeweils `const KNOWN_PREVIOUS_VERSION = "<verifizierter Vorgänger-Wert>";` ergänzt und die harte `assert.strictEqual(GAME_VERSION, "<alter Zielwert>")`-Prüfung durch `assert.notStrictEqual(GAME_VERSION, KNOWN_PREVIOUS_VERSION)` ersetzt. Danach die tatsächlich auf dem Mac liegenden Dateien direkt (per `device_bash`, nicht über eine zwischenzeitlich stale gewordene Staging-Kopie) gegengelesen, um die Änderung zu bestätigen. Finaler Pflicht-Regressionslauf gegen alle 31 Testdateien (Cloud-Sandbox mit `npm install jsdom`): 30/31 grün, 1 unveränderter vorbestehender Hänger (`FEATURE-016.test.js`, außerhalb des Scopes, siehe Testplan). Keine Änderung an `public/index.html`, daher kein Release nötig (Release-vor-Done-Gate greift nur bei einer Code-Änderung am Spiel selbst). Offen: die Änderung liegt bereits als Datei auf Stephans Mac, ist aber noch nicht committet — Git-Commit folgt in Stephans eigenem Terminal (Befehl siehe Chat), diese Sitzung führt keine Git-Schreibbefehle über die Geräte-Brücke aus.
+
+## 📋 ToDo
 
 ## ✅ Done
 

@@ -16,6 +16,14 @@ const assert = require("assert");
 const { JSDOM } = require("jsdom");
 
 const INDEX_HTML = path.join(__dirname, "..", "public", "index.html");
+// GAME_VERSION before this ticket's release. NOTE (TASK-004, verified via
+// `git log -p -- public/index.html`): the exact value this test pinned
+// before ("1.16.0") was never actually shipped — FEATURE-008/009/010/011
+// were released together in one combined commit that bumped the version
+// directly from 1.9.0 to 1.18.0, skipping the sequentially-planned
+// intermediate numbers. So this exact-string check had been silently wrong
+// since the day it was written, not just "gone stale" later.
+const KNOWN_PREVIOUS_VERSION = "1.9.0";
 
 function loadGame() {
   const html = fs.readFileSync(INDEX_HTML, "utf8");
@@ -59,15 +67,18 @@ function main() {
   const doc = window.document;
 
   try {
-    // Test 1: GAME_VERSION wurde für dieses Feature erhöht.
-    // 1.16.0 statt 1.15.1: Runde 8 (23.07.2026) — die beiden langen,
-    // sich von selbst abspielenden Bau-Sequenzen (Agent-Modus: "an den Agent
-    // übergeben", Team-Modus: "Start Development") springen nach dem letzten
-    // Chat-/Rework-Eintrag nicht mehr automatisch ans Ende der Seite — der
-    // Bildschirm bleibt stehen, damit man den Ablauf von oben nach unten
-    // chronologisch mitverfolgen kann (siehe FEATURE-009-scroll-position.test.js).
-    // Gewöhnliche, kurze Schritte scrollen weiterhin wie gewohnt zum Debrief.
-    assert.strictEqual(window.GAME_VERSION, "1.16.0", "GAME_VERSION sollte auf 1.16.0 stehen");
+    // Test 1: GAME_VERSION wurde für dieses Feature erhöht (TASK-004: "moved
+    // past the known previous value" statt eines gepinnten exakten Strings —
+    // siehe Begründung bei KNOWN_PREVIOUS_VERSION oben). Ursprüngliche Notiz
+    // zum Feature selbst bleibt gültig: Runde 8 (23.07.2026) — die beiden
+    // langen, sich von selbst abspielenden Bau-Sequenzen (Agent-Modus: "an
+    // den Agent übergeben", Team-Modus: "Start Development") springen nach
+    // dem letzten Chat-/Rework-Eintrag nicht mehr automatisch ans Ende der
+    // Seite — der Bildschirm bleibt stehen, damit man den Ablauf von oben
+    // nach unten chronologisch mitverfolgen kann (siehe
+    // FEATURE-009-scroll-position.test.js). Gewöhnliche, kurze Schritte
+    // scrollen weiterhin wie gewohnt zum Debrief.
+    assert.notStrictEqual(window.GAME_VERSION, KNOWN_PREVIOUS_VERSION, "GAME_VERSION sollte gegenüber " + KNOWN_PREVIOUS_VERSION + " erhöht worden sein");
 
     // Test 2: Nach dem Intro-Klick kommt die neue Moduswahl-Seite (zwei Kacheln),
     // NICHT mehr direkt die bisherige Szenarioauswahl.

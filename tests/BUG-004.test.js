@@ -56,6 +56,11 @@ const assert = require("assert");
 const { JSDOM } = require("jsdom");
 
 const INDEX_HTML = path.join(__dirname, "..", "public", "index.html");
+// GAME_VERSION before the combined BUG-003+BUG-004 release (TASK-004: exact-string
+// version pin replaced with a "moved past the old known value" check, since a
+// pinned exact value inevitably goes stale as soon as any later ticket bumps
+// GAME_VERSION again — see Backlog.md TASK-004).
+const KNOWN_PREVIOUS_VERSION = "1.21.0";
 // Matches the setTimeout(..., 280) delay in renderModePicker()'s close handler
 // (public/index.html) plus a small margin for real-timer jitter in CI.
 const CLOSE_DELAY_MS = 280;
@@ -163,13 +168,10 @@ async function main() {
     assert(stageHost.innerHTML.length > 0, "Nach Klick auf 'Start' im Agent-Modus sollte stageHost befüllt sein");
     assert(!doc.getElementById("pickAgentMode"), "Der Moduswahlbildschirm (inkl. Infoboxen) sollte nach dem Start ersetzt sein");
 
-    // Test 1: GAME_VERSION bumped. Checked as "at least this bug's own bump"
-    // rather than pinning the current-latest string, because BUG-003 (a
-    // later ticket released together with this one) bumps it further to
-    // 1.23.0 — an exact-string check here would go stale the same way
-    // FEATURE-009/010/011/012's did. See Backlog.md BUG-003 for the combined
-    // release note.
-    assert.strictEqual(window.GAME_VERSION, "1.23.0", "GAME_VERSION sollte (nach dem gemeinsamen Release mit BUG-003) auf 1.23.0 stehen");
+    // Test 1: GAME_VERSION bumped (TASK-004: "moved past the known previous
+    // value" instead of a pinned exact string, which would go stale the same
+    // way FEATURE-009/010/011/012's did — see Backlog.md TASK-004).
+    assert.notStrictEqual(window.GAME_VERSION, KNOWN_PREVIOUS_VERSION, "GAME_VERSION sollte gegenüber " + KNOWN_PREVIOUS_VERSION + " erhöht worden sein");
 
     console.log("PASS — 5/5 Checks grün (2 Infoboxen vorhanden, unabhängiges Öffnen inkl. Nicht-Blockierung, Schließen erst nach echter ~280ms-Verzögerung, Inhalt unverändert, Start-Button funktioniert weiterhin, GAME_VERSION erhöht)");
     dom.window.close();
