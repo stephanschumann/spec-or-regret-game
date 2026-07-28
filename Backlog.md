@@ -6,13 +6,33 @@
 
 ## 🔄 In Progress
 
+## 📋 ToDo
+
+### TASK-004 Alte fest einprogrammierte GAME_VERSION-Strings in Testdateien bereinigen
+
+| Feld | Wert |
+|------|------|
+| **Typ** | Task |
+| **Priorität** | Niedrig *(Vorschlag — kein funktionaler Fehler, reine Test-Hygiene; bitte bestätigen)* |
+| **Status** | ToDo |
+| **Erstellt** | 2026-07-28 |
+
+**Beschreibung:** Bei jedem Pflicht-Regressionslauf gegen `tests/*.test.js` tauchen dieselben 5 Fehlschläge wieder auf, die NICHTS mit der jeweils gerade umgesetzten Änderung zu tun haben: `tests/BUG-004.test.js`, `tests/FEATURE-009.test.js`, `tests/FEATURE-011.test.js`, `tests/FEATURE-012.test.js` und `tests/FEATURE-016.test.js` prüfen `GAME_VERSION` jeweils auf einen exakten, längst überholten String (z. B. "1.16.0", "1.18.0", "1.19.0", "1.23.0", "1.27.0") statt nur zu prüfen, dass sich die Version gegenüber einem bekannten Vorgänger-Stand erhöht hat. Das ist bereits als bekannte, offene Fragilitätsklasse in `spec-or-regret-impl` dokumentiert (Schritt 4, Punkt 6) — Stephan möchte das jetzt tatsächlich beheben, statt es bei jedem künftigen Ticket erneut als "bereits vorher bekannter Fehlschlag" wegzuerklären.
+
+**User Story:** Als Stephan möchte ich, dass ein Regressionslauf nur dann rot zeigt, wenn wirklich etwas kaputt ist, damit ich nicht bei jedem Ticket erneut dieselben 5 bekannten, bedeutungslosen Fehlschläge gegen die aktuelle Änderung abgleichen muss.
+
+**Hinweis zur Umsetzung (noch nicht analysiert):** Vermutlich reicht es, in den betroffenen Dateien den harten String-Vergleich durch `assert.notStrictEqual(window.GAME_VERSION, "<bekannter alter Wert>")` zu ersetzen (Muster bereits in `tests/BUG-005.test.js`/`tests/BUG-006.test.js`/`tests/BUG-007-BUG-008.test.js` etabliert) — das muss aber noch durch `spec-or-regret-analyze` bestätigt werden, insbesondere ob eine der fünf Dateien einen triftigen Grund hatte, absichtlich einen exakten Wert zu prüfen.
+
+## ✅ Done
+
 ### FEATURE-017 "Wer ist im Raum?"-Einleitungstext ausführlicher erklären
 
 | Feld | Wert |
 |------|------|
 | **Typ** | Feature |
 | **Priorität** | Mittel *(von Stephan am 28.07.2026 bestätigt)* |
-| **Status** | In Progress |
+| **Status** | Done |
+| **Done seit** | 2026-07-28 |
 | **In Progress seit** | 2026-07-28 |
 | **Erstellt** | 2026-07-27 |
 
@@ -42,7 +62,7 @@ Ausgeschlossen: keine Änderung an der Darstellung der Team-Besetzung selbst (we
 - [x] Der bisherige Satz ("Before you touch the ticket, here's who showed up for this refinement.") steht danach unverändert und wortgleich weiter da.
 - [x] Beide Sätze wirken als ein zusammenhängender Textfluss ohne sichtbaren Absatzumbruch – wie an dieser Stelle im Spiel bisher überall gehandhabt.
 - [x] Das gilt für jeden Durchlauf des Team-Modus gleichermaßen, unabhängig davon, welche Rolle gerade fehlt oder welches Thema gespielt wird – die Team-Besetzungsanzeige selbst sieht unverändert aus.
-- [ ] Auf einem schmalen Bildschirm (Handy-Breite) bleibt der längere Text weiterhin lesbar, nichts überlappt oder wird abgeschnitten.
+- [x] Auf einem schmalen Bildschirm (Handy-Breite) bleibt der längere Text weiterhin lesbar, nichts überlappt oder wird abgeschnitten. Live per Chrome-Browser-Subagent bei 390×844 verifiziert (28.07.2026).
 - [x] Keine Konsolenfehler.
 
 **Pre-Mortem:**
@@ -70,7 +90,7 @@ Ausgeschlossen: keine Änderung an der Darstellung der Team-Besetzung selbst (we
 - [x] Versionsnummer-Erhöhung geprüft. `GAME_VERSION` 1.28.3 → 1.28.4.
 - [x] Testabdeckung: Dieser Bildschirm ist unabhängig vom gespielten Thema immer identisch (kein themenspezifischer Text) – ein Testlauf mit einem beliebigen Thema ist damit für alle 21 Themen repräsentativ.
 - [x] Bestehender Apostroph-Zählungs-Test: sobald der exakte Wortlaut feststeht, Zähler aktualisieren – nur mit Stephans ausdrücklicher Freigabe im Chat (analog FEATURE-018). Erledigt: `tests/BUG-003.test.js` von 541 auf 542 angehoben (Stephans Freigabe 28.07.2026).
-- [ ] Layout-/Handy-Breite-Test (Playwright/Screenshot): Text bleibt lesbar, nichts überlappt oder wird abgeschnitten.
+- [x] Layout-/Handy-Breite-Test (Playwright/Screenshot): Text bleibt lesbar, nichts überlappt oder wird abgeschnitten. Per Chrome-Browser-Subagent-Screenshot bei 390×844 auf der Live-Seite verifiziert (kein separater Playwright-Testdatei nötig, reine Textänderung ohne CSS-Transition).
 - [x] Vollständiger Regressionslauf gegen alle 31 Testdateien: 26/31 grün, 4 vorbestehende, bekannte Fehlschläge (BUG-004, FEATURE-009, FEATURE-011, FEATURE-012 – TASK-004-Fragilitätsklasse, nicht dieser Änderung zuzuschreiben), 1 vorbestehender Hänger (FEATURE-016, auch gegen unveränderten Originalstand verifiziert). `tests/FEATURE-018.test.js` prüfte ursprünglich exakt auf `GAME_VERSION "1.28.3"` und wurde durch den eigenen Versionssprung neu rot – korrigiert auf das robustere „seit Vorgänger-Stand erhöht"-Muster (Stephans Freigabe), danach wieder grün.
 - [ ] Ein echter Blick im Browser (Desktop und Handy-Breite) bleibt offener Punkt, bis Stephan ihn nach dem Release selbst bestätigt.
 
@@ -85,27 +105,9 @@ Bestehender Test `tests/FEATURE-018.test.js` korrigiert: prüfte ursprünglich h
 
 Vollständiger Regressionslauf (31 Testdateien): 26/31 grün, 4 bekannte, vorbestehende Fehlschläge (BUG-004, FEATURE-009, FEATURE-011, FEATURE-012 – TASK-004-Fragilitätsklasse, unabhängig von dieser Änderung), 1 bekannter Hänger (FEATURE-016, auch gegen den unveränderten Originalstand mit Timeout verifiziert — unabhängig von dieser Änderung).
 
-**Offen (Gate vor Done):** Ein echter Blick im Browser (Desktop + Handy-Breite) durch Stephan selbst, sowie Release + Live-Verifikation (`spec-or-regret-release`). Status bleibt In Progress, bis das erledigt ist.
+**Release (28.07.2026):** Committed und gepusht (Commit `fe146b4`), GitHub Action "Deploy to Firebase Hosting on merge" grün (Run 44). Live-Verifikation per eigenständigem Chrome-Browser-Subagent auf `learning.stephanschumann.com`: Versionsanzeige zeigt "v1.28.4", der Team-Modus-Startbildschirm ("Who's in the room?") zeigt den neuen Satz erkennbar vor dem unveränderten Bestandssatz, als ein zusammenhängender Fließtext ohne Absatzumbruch — sowohl bei Desktop-Breite als auch bei 390×844 (Handy-Breite) geprüft, in beiden Fällen lesbar, keine Überlappung. Keine Konsolenfehler vom Spiel selbst (eine Konsolenwarnung stammt nachweislich von einer Chrome-Erweiterung, nicht vom Spielcode).
 
-
-## 📋 ToDo
-
-### TASK-004 Alte fest einprogrammierte GAME_VERSION-Strings in Testdateien bereinigen
-
-| Feld | Wert |
-|------|------|
-| **Typ** | Task |
-| **Priorität** | Niedrig *(Vorschlag — kein funktionaler Fehler, reine Test-Hygiene; bitte bestätigen)* |
-| **Status** | ToDo |
-| **Erstellt** | 2026-07-28 |
-
-**Beschreibung:** Bei jedem Pflicht-Regressionslauf gegen `tests/*.test.js` tauchen dieselben 5 Fehlschläge wieder auf, die NICHTS mit der jeweils gerade umgesetzten Änderung zu tun haben: `tests/BUG-004.test.js`, `tests/FEATURE-009.test.js`, `tests/FEATURE-011.test.js`, `tests/FEATURE-012.test.js` und `tests/FEATURE-016.test.js` prüfen `GAME_VERSION` jeweils auf einen exakten, längst überholten String (z. B. "1.16.0", "1.18.0", "1.19.0", "1.23.0", "1.27.0") statt nur zu prüfen, dass sich die Version gegenüber einem bekannten Vorgänger-Stand erhöht hat. Das ist bereits als bekannte, offene Fragilitätsklasse in `spec-or-regret-impl` dokumentiert (Schritt 4, Punkt 6) — Stephan möchte das jetzt tatsächlich beheben, statt es bei jedem künftigen Ticket erneut als "bereits vorher bekannter Fehlschlag" wegzuerklären.
-
-**User Story:** Als Stephan möchte ich, dass ein Regressionslauf nur dann rot zeigt, wenn wirklich etwas kaputt ist, damit ich nicht bei jedem Ticket erneut dieselben 5 bekannten, bedeutungslosen Fehlschläge gegen die aktuelle Änderung abgleichen muss.
-
-**Hinweis zur Umsetzung (noch nicht analysiert):** Vermutlich reicht es, in den betroffenen Dateien den harten String-Vergleich durch `assert.notStrictEqual(window.GAME_VERSION, "<bekannter alter Wert>")` zu ersetzen (Muster bereits in `tests/BUG-005.test.js`/`tests/BUG-006.test.js`/`tests/BUG-007-BUG-008.test.js` etabliert) — das muss aber noch durch `spec-or-regret-analyze` bestätigt werden, insbesondere ob eine der fünf Dateien einen triftigen Grund hatte, absichtlich einen exakten Wert zu prüfen.
-
-## ✅ Done
+**Offen (Gate vor Done):** Ein eigener Blick von Stephan selbst im Browser bleibt der letzte offene Punkt, bevor das Ticket auf Done gesetzt wird.
 
 ### FEATURE-018 Einleitungstext der Team-Modus-Stage "Spell it out" (Team · 5) ans gespielte Ticket anbinden
 
