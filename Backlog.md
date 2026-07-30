@@ -6,7 +6,161 @@
 
 ## 🔄 In Progress
 
+### FEATURE-019 Beispiel-Karten im Mapping-Board eindeutig als Einzelfall formulieren
+
+| Feld | Wert |
+|------|------|
+| **Typ** | Feature |
+| **Priorität** | Niedrig *(vorgeschlagen — kleiner, risikoarmer erster Schritt; von Stephan noch zu bestätigen)* |
+| **Status** | In Progress |
+| **In Progress seit** | 2026-07-30 |
+| **Erstellt** | 2026-07-30 |
+
+**Beschreibung:** Nutzer-Feedback: Beispiel- und Regel-Karten im Kategorisierungs-Board "A shared picture" sind inhaltlich/stilistisch zu ähnlich und werden leicht verwechselt. Aktuell lässt sich eine Beispiel-Karte im Board syntaktisch (u. a. am Pfeil "→") erkennen, nicht notwendig an der Formulierung selbst. Ziel: jede der 42 Beispiel-Karten so umformulieren, dass sie schon am Wortlaut — nicht nur am Pfeil — als konkreter Einzelfall erkennbar ist. Reiner erster Schritt einer zweiteiligen Verbesserung; FEATURE-020 baut darauf auf.
+
+**User Story:** Als Spieler/in möchte ich beim Kategorisieren einer Karte schon am Text erkennen, ob es sich um einen konkreten Einzelfall oder eine allgemeingültige Regel handelt, damit ich die vier Kategorien wirklich verstehe statt am Symbol zu raten.
+
+**Verifiziert am Code (30.07.2026):** Repo sauber (`main`, `git status` clean, `GAME_VERSION = "1.28.4"`, passend zum zuletzt bekannten Stand). Kategorisierungs-Board "A shared picture" = Stage-Typ "categorize" (`renderCategorize`), Kategorien über die Konstante `MAP_BUCKETS` (goal/rule/ex/q), Karteninhalte über `sc.map` pro Szenario. Über alle 21 Szenarien per Skript ausgezählt (regex `{"t":"...","c":"CAT"}` gegen alle 168 Karten): 21 goal + 63 rule + 42 ex + 42 q — exakt 1 goal + 3 rule + 2 ex + 2 q je Szenario (8 pro Szenario), deckt sich mit der bereits bestehenden strukturellen Prüfung in `tests/FEATURE-012.test.js`. Alle 42 ex-Karten enthalten "→" (0 Ausnahmen), keine rule- oder goal-Karte enthält "→". Keine rule-Karte enthält eine Ziffer; bei den ex-Karten 14 von 42. Die `MAP_BUCKETS`-Konstante beschreibt "ex" bereits jetzt mit dem UI-Hinweistext "One concrete case" ("hint"-Feld, wird beim Spielen als Kategorie-Erklärung angezeigt) — dieser Hinweistext bleibt unverändert, nur die Karten-Texte selbst werden geschärft.
+
+**Fundstellen-Sweep:** Gesucht nach `"c":"ex"` im gesamten Code: 42 Treffer, ausschließlich innerhalb der `sc.map`-Arrays der 21 Szenarien (Kategorisierungs-Board "A shared picture"). Zusätzlich geprüft, ob dieselbe vier-Kategorien-Struktur (goal/rule/ex/q) an anderer Stelle im Spiel wiederverwendet wird: nein — das zweite Kategorisierungs-Board im Spiel ("Nothing left to guess", `NG_BUCKETS`) nutzt drei komplett andere Kategorien (done/limit/block) ohne Beispiel/Regel-Unterscheidung und ist nicht betroffen. Keine weiteren Fundstellen.
+
+**Zustands-Check:** Wartezustand: keiner — Karten werden synchron beim Betreten des Schritts gerendert. Leerzustand: nicht relevant, jedes der 21 Szenarien hat für alle vier Kategorien immer die volle Kartenzahl befüllt (strukturell geprüft, s. o.). Fehlerfall: keiner neu — reine Textänderung an bestehenden Karten, keine neue Logik; die bestehende Kategorisierungs-Prüfung (richtig/falsch einsortiert) bleibt unverändert, da sie über das Datenfeld `c` arbeitet, nicht über den Kartentext.
+
+**Scope:** Eingeschlossen: alle 42 Beispiel-Karten über alle 21 Szenarien werden so umformuliert, dass sie an der Formulierung selbst (z. B. "eine von …", eine benannte Menge, ein benannter Akteur oder Zeitpunkt) klar als einzelner, konkreter Fall erkennbar sind. Der Pfeil "→" bleibt erhalten. Inhalt/Bedeutung jeder Karte, ihre Kategorie-Zuordnung und alle anderen Kartentypen (Ziel/Regel/Frage) bleiben unverändert. Ausgeschlossen: jede Änderung an Regel-, Ziel- oder Fragen-Karten (das ist Ticket FEATURE-020, dort wieder aufgegriffen); jede Änderung an der Kategorisierungslogik, den Bucket-Labels/Hinweistexten oder an einem anderen Spielschritt.
+
+**Akzeptanzkriterien:**
+- [ ] Beim Betreten von "A shared picture" liest sich jede Beispiel-Karte klar als ein einzelner, konkreter Fall — erkennbar an einer sprachlichen Markierung (z. B. "eine von …", eine genannte Zahl/Menge, ein benannter Akteur oder Zeitpunkt), nicht mehr nur am Pfeil.
+- [ ] Die inhaltliche Aussage jeder der 42 Beispiel-Karten ist nach der Umformulierung identisch zur vorherigen Aussage — nichts wird fachlich neu behauptet oder weggelassen.
+- [ ] Jede Beispiel-Karte enthält weiterhin einen Pfeil, der die Ursache-Wirkung-Beziehung des Einzelfalls zeigt.
+- [ ] Keine Beispiel-Karte wechselt die Kategorie oder wird versehentlich zu einer Regel-, Ziel- oder Fragen-Karte.
+- [ ] Das gilt für alle 21 Themen gleichermaßen, nicht nur für ein Beispielthema.
+
+**Pre-Mortem:**
+- 💀 Eine Umformulierung ändert versehentlich die fachliche Aussage einer Karte (z. B. eine Zahl vertauscht) → Gegenmaßnahme: eigenes AK "inhaltlich identisch", Vorher/Nachher-Abgleich aller 42 Texte im Testplan.
+- 💀 Der neue Wortlaut wird für ein Szenario ungewöhnlich lang und sprengt das Kartenlayout → Gegenmaßnahme: Layout-Check (Playwright/Screenshot Desktop + Handy-Breite) im Testplan.
+- 💀 Eine der 42 neuen Formulierungen wirkt trotzdem allgemeingültig statt konkret (z. B. "typischerweise…" statt "eine von…") und verfehlt den eigentlichen Zweck des Tickets → Gegenmaßnahme: eigenes AK, Stichprobe im Testplan gegen eine bewusste Prüfliste ("eine/eines von…", benannte Menge/Akteur/Zeitpunkt).
+- 💀 Eine bestehende, exakte Zeichenzählung (z. B. Anführungszeichen-/Apostroph-Zähler in `tests/BUG-003.test.js`) verschiebt sich durch die neuen Formulierungen und bricht unbemerkt → Gegenmaßnahme: Zähler nach Festlegung der finalen Texte neu auszählen, nur mit Stephans ausdrücklicher Freigabe anpassen (wie bei FEATURE-017/018 bereits etabliert).
+- 💀 `GAME_VERSION` wird bei der Umsetzung vergessen zu erhöhen → Gegenmaßnahme: eigener Punkt im Testplan.
+
+**Zusammenspiel bestehender Bausteine:** Betrifft nur die Kartentexte in `sc.map` (Datenfeld `t`), nicht die Kategorisierungslogik selbst, die über `c` (nicht über Textinhalt) rechnet — `renderCategorize` liest den Text nur zur Anzeige, die bestehende Korrektheits-Prüfung beim Einsortieren (siehe `BUG-005`) vergleicht ausschließlich `st.items[idx].c` gegen den gewählten Bucket, nie `t`. Reihenfolge: `buildStages(sc)` erzeugt für das gewählte Szenario einmalig die Schrittfolge inkl. `items:sc.map`, danach zeigt `renderCategorize` die Karten und wertet beim Einsortieren aus. Riskante Kombination, die trotzdem geprüft werden musste: keine der Umformulierungen darf versehentlich einen Text erzeugen, der mit einem exakten String-Vergleich in einem bestehenden Test kollidiert — im Fundstellen-Sweep der Tests (Schritt 2d) geprüft: keine solche Abhängigkeit gefunden, da `BUG-005`/`BUG-007-BUG-008`/`FEATURE-012` ausschließlich über `c` bzw. reine Strukturzahlen prüfen, nie über exakten Kartentext.
+
+**Optionenvergleich:**
+
+### Option A — Sprachliche Marker direkt im bestehenden Kartentext ergänzen (✅ empfohlen)
+- Vorgehen: jede der 42 Beispiel-Karten am Satzanfang oder in der Formulierung um einen klaren Einzelfall-Marker ergänzen/umschreiben ("eine von 200 Zeilen…", "an einem Mittwoch…", "eine Mitarbeiterin…"), Pfeil und Rest der Aussage unverändert.
+- Vorteile: löst die Verwechslungsgefahr an der Wurzel (Sprache statt Symbol), keine Änderung an Datenstruktur/Logik nötig, gut testbar (Textvergleich).
+- Nachteile: 42 Einzeltexte müssen von Hand geprüft werden — Aufwand, aber kein Risiko.
+
+### Option B — Ein zusätzliches UI-Label/Icon "Einzelfall" vor jede Beispiel-Karte setzen
+- Vorgehen: visuelle Kennzeichnung statt/zusätzlich zur Sprache.
+- Nachteile: löst laut Auftrag explizit nicht das eigentliche Problem (Formulierung soll selbst erkennbar sein, nicht nur ein zusätzliches Label) und macht das Board voller. Nicht Auftrag dieses Tickets, aber als spätere Ergänzung denkbar.
+
+✅ **Empfehlung: Option A** — entspricht dem expliziten Auftrag ("schon an der Formulierung erkennbar") und bleibt eine reine Content-Änderung ohne Logikrisiko.
+
+**Analyse & Planung:**
+- [ ] Aktuellen Zustand verstanden: siehe "Verifiziert am Code" oben.
+- [ ] Betroffene Stelle identifiziert: `sc.map`-Einträge mit `"c":"ex"` in allen 21 Szenario-Objekten in `public/index.html`.
+- [ ] Implementierungsansatz definiert: siehe Optionenvergleich oben.
+- [ ] Risiken benannt: siehe Pre-Mortem oben.
+- [ ] Aufwand geschätzt: mittel (42 Einzeltexte, aber reine Content-Änderung ohne Logikänderung).
+
+**Testplan:**
+- [ ] jsdom-Test: `public/index.html` laden, für alle 21 Szenarien die `sc.map`-Einträge mit `c==="ex"` prüfen: (a) Text enthält weiterhin "→", (b) Text enthält mindestens einen Einzelfall-Marker (Regex/Stichwortliste), (c) Kategorie unverändert "ex".
+- [ ] Manueller Vorher/Nachher-Abgleich aller 42 Texte (fachliche Aussage identisch) — dokumentiert im Ticket bei Umsetzung.
+- [ ] `node --check` auf den extrahierten Skript-Inhalt.
+- [ ] Testabdeckung: Änderung betrifft ausschließlich szenario-spezifische Kartentexte (Content), nicht die gemeinsame `MAP_BUCKETS`-Konstante oder `renderCategorize` selbst — trotzdem müssen alle 21 Szenarien einzeln geprüft werden (kein repräsentativer Stichproben-Test möglich, da jede Karte einen eigenen Text hat).
+- [ ] Bestehende Tests (Schritt 2d, aktiv geprüft): `tests/FEATURE-012.test.js` prüft nur strukturelle Zahlen (1 goal/3 rule/2 ex/2 q je Szenario) — unverändert, da sich nur Text, nicht Kategorie/Anzahl ändert. `tests/BUG-005.test.js`/`tests/BUG-007-BUG-008.test.js` vergleichen nur `c`, nie Text — unverändert. `tests/BUG-003.test.js` (Anführungszeichen-/Apostroph-Konsistenz) potenziell betroffen, falls neue Formulierungen zusätzliche Anführungszeichen/Apostrophe einführen — Zähler bei Bedarf mit Stephans Freigabe anpassen (siehe Pre-Mortem).
+- [ ] Versionsnummer-Erhöhung geprüft.
+- [ ] Layout-Check (Playwright/Screenshot Desktop + Handy-Breite) für die längsten neuen Kartentexte.
+- [ ] Ein echter Blick im Browser bleibt offener Punkt bis Stephans Bestätigung nach Release.
+
+**Freigabe:** Ausstehend — wartet auf Stephans Bestätigung in der Hauptsitzung (siehe Zusammenfassung im Chat).
+
+**Scope-Änderungen:** *(leer bei Erstellung)*
+
+**Implementierungsnotizen:** *(leer bei Erstellung)*
+
 ## 📋 ToDo
+
+### FEATURE-020 Format-Streuung bei Regel-Karten gegen reines Symbol-Raten im Mapping-Board
+
+| Feld | Wert |
+|------|------|
+| **Typ** | Feature |
+| **Priorität** | Mittel *(vorgeschlagen — größerer, riskanterer Schritt als FEATURE-019; von Stephan noch zu bestätigen)* |
+| **Status** | ToDo |
+| **Erstellt** | 2026-07-30 |
+
+**Abhängigkeit:** Baut auf FEATURE-019 auf (dort werden die Beispiel-Karten zuerst sprachlich als Einzelfall erkennbar gemacht). Sollte nicht vor Abschluss/Freigabe von FEATURE-019 umgesetzt werden — sonst würde die dort gelöste Verwechslungsgefahr zwischenzeitlich in neuer Form wiederhergestellt (siehe Pre-Mortem).
+
+**Beschreibung:** Weil bislang ausnahmslos jede der 42 Beispiel-Karten im Kategorisierungs-Board "A shared picture" einen Pfeil "→" trägt und keine der 63 Regel-Karten das tut (verifiziert), lässt sich das Board nach der zweiten Nutzung rein am Oberflächenformat (Pfeil vorhanden ja/nein) lösen statt am inhaltlichen Verständnis der vier Kategorien. Ein bewusst kleiner Anteil der Regel-Karten soll künftig ebenfalls eine Wenn-Dann-Struktur mit Pfeil bekommen, dabei aber strikt allgemeingültig bleiben (kein Bezug auf einen konkreten Einzelfall — keine Namen, keine Zahlen, keine "eine/eines von…"-Formulierung), damit reines Symbol-Raten unzuverlässig wird, während inhaltliches Lesen weiterhin sicher zwischen Regel und Beispiel unterscheidet. Fragen-Karten sind ausdrücklich NICHT Teil dieses Tickets — das Fragezeichen ist bei einer echten Frage sprachlich zwingend, kein Spieldesign-Fehler.
+
+**User Story:** Als Spieler/in möchte ich eine Karte nicht mehr allein am Vorhandensein eines Pfeils richtig einsortieren können, sondern nur, wenn ich wirklich verstehe, ob sie einen Einzelfall oder eine allgemeingültige Regel beschreibt, damit das Spiel weiterhin das gewünschte Verständnis prüft statt Symbol-Mustererkennung zu belohnen.
+
+**Verifiziert am Code (30.07.2026):** Repo sauber (`main`, `git status` clean, `GAME_VERSION = "1.28.4"`). Dieselbe Stelle wie FEATURE-019 (`MAP_BUCKETS`, `sc.map`, `renderCategorize`, Stage-Typ "categorize"). Eigene Nachprüfung der im Auftrag genannten Zahlen per Skript (regex `{"t":"...","c":"CAT"}` über alle 168 Karten): 63 rule-Karten, 0 davon mit "→"; 42 ex-Karten, 42 davon mit "→" (100 %); 21 goal-Karten, 0 mit "→"; 42 q-Karten, alle enden auf "?", keine andere Kategorie endet auf "?". Gesamtzahl aller "→" im Code: 64 — davon 42 in ex-Karten, die übrigen 22 sind ausschließlich UI-Button-Beschriftungen ("Next step →", "Start →" u. Ä.) und ein interner, nicht sichtbarer Auswertungs-String (`bucketLabel(actualC) + "→" + bucketLabel(...)` beim Auszählen falscher Zuordnungen) — keine weitere Karten-Fundstelle. **Korrektur zur im Auftrag genannten Musterbeschreibung der Ziel-Karten** (nicht Teil dieses Tickets, nur zur Vollständigkeit verifiziert): keine der 21 Ziel-Karten verwendet wörtlich "so that" — 19 von 21 nutzen eine Kurzform ohne "that" ("so it's all in one place", "so no one can…" usw.), 2 von 21 haben gar keinen "so"-Nutzenteil. Für Ticket 2 ohne Konsequenz, da Ziel-Karten nicht verändert werden.
+
+**Fundstellen-Sweep:** Wie FEATURE-019 — `"c":"rule"` und `"→"` im gesamten Code gesucht. 63 Regel-Karten, alle ohne Pfeil (Ist-Zustand, s. o.). Die 22 Pfeile außerhalb von Beispiel-Karten sind reine UI-Navigationstexte bzw. ein interner Debug-/Auswertungs-String — keine Fundstelle, die mit dieser Änderung kollidiert. Das zweite Kategorisierungs-Board im Spiel (`NG_BUCKETS`, "Nothing left to guess") verwendet kein Pfeil-Muster (Kategorien done/limit/block) und ist strukturell unbetroffen. Keine weiteren Fundstellen.
+
+**Zustands-Check:** Wie FEATURE-019 — kein Wartezustand (synchrones Rendern), kein Leerzustand (jede Kategorie in jedem der 21 Szenarien ist immer vollständig befüllt, strukturell geprüft über `tests/FEATURE-012.test.js`), kein neuer Fehlerfall (reine Textänderung, die bestehende Kategorisierungs-Prüfung arbeitet weiterhin über das Datenfeld `c`, nicht über Textinhalt oder Pfeil).
+
+**Scope:** Eingeschlossen: ein bewusst kleiner, bei Umsetzungsstart mit Stephan final festzulegender Anteil der 63 Regel-Karten (verteilt über mehrere/alle 21 Szenarien) bekommt eine Wenn-Dann-Formulierung mit Pfeil, bleibt dabei aber strikt allgemeingültig ohne jeden Bezug auf einen konkreten Einzelfall. Ausgeschlossen: Fragen-Karten werden nicht verändert — das Fragezeichen ist bei einer echten Frage sprachlich zwingend und kein Spieldesign-Fehler, das gilt hiermit als geklärt und soll nicht als offener Punkt in einem künftigen Ticket erneut auftauchen. Ziel-Karten werden nicht verändert. Keine Änderung an den durch FEATURE-019 bereits umformulierten Beispiel-Karten über deren dort erreichten Stand hinaus. Keine Änderung an der Kategorisierungslogik selbst.
+
+**Akzeptanzkriterien:**
+- [ ] Ein Teil der Regel-Karten enthält jetzt ebenfalls einen Pfeil in einer Wenn-Dann-Formulierung, bleibt dabei aber erkennbar allgemeingültig (kein Name, keine Zahl, kein benannter Einzelfall).
+- [ ] Keine so umformulierte Regel-Karte lässt sich an ihrem Text mit einer Beispiel-Karte verwechseln — beim Lesen bleibt eindeutig erkennbar, dass es sich um eine für alle Fälle geltende Regel handelt, nicht um einen einzelnen Vorfall.
+- [ ] Wer nur auf das Vorhandensein eines Pfeils achtet, kann eine Karte nicht mehr zuverlässig richtig einsortieren — wer den Inhalt liest, kann es weiterhin.
+- [ ] Fragen-Karten bleiben unverändert, inklusive ihres Fragezeichens.
+- [ ] Ziel-Karten bleiben unverändert.
+- [ ] Das gilt für alle 21 Themen gleichermaßen, bezogen auf die tatsächlich umformulierten Karten.
+
+**Pre-Mortem:**
+- 💀 (Zentrales, im Auftrag ausdrücklich benanntes Risiko) Eine umformulierte Regel-Karte wirkt am Ende wie ein Beispiel oder ist mit einem Beispiel verwechselbar → das würde die mit FEATURE-019 gerade gelöste Verwechslungsgefahr in neuer Form wiederherstellen. Gegenmaßnahme: eigene, geschärfte Prüfliste im Testplan (kein Name, keine Zahl, kein "eine/eines von…", zusätzlich: Formulierung muss ausdrücklich "immer"/"jedes Mal"/"nie"-Charakter tragen statt einer einmaligen Beobachtung), gegengelesen gegen die parallel in FEATURE-019 präzisierten Beispiel-Karten, damit beide Kartentypen im direkten Vergleich klar unterscheidbar bleiben.
+- 💀 Wird vor FEATURE-019 umgesetzt, verschärft sich die Verwechslungsgefahr kurzzeitig zusätzlich (Beispiel-Karten sind dann noch nicht sprachlich geschärft, während Regel-Karten schon Pfeile bekommen) → Gegenmaßnahme: Abhängigkeit oben explizit vermerkt, Umsetzung erst nach FEATURE-019.
+- 💀 Der gewählte Anteil der umformulierten Regel-Karten ist zu hoch oder zu niedrig, um das Ziel ("Symbol-Raten wird unzuverlässig") tatsächlich zu erreichen → Gegenmaßnahme: konkreter Anteil/konkrete Auswahl wird erst bei Umsetzungsstart mit Stephan final festgelegt (siehe Optionenvergleich), nicht in diesem Analyseschritt vorweggenommen.
+- 💀 Eine Fragen-Karte wird versehentlich mitbearbeitet, weil beim Durcharbeiten der Regel-Karten eine Verwechslung passiert → Gegenmaßnahme: eigenes AK "Fragen-Karten bleiben unverändert" + Testplan-Punkt, der `c==="q"` und das abschließende "?" explizit vor/nach vergleicht.
+- 💀 `GAME_VERSION` wird bei der Umsetzung vergessen zu erhöhen → Gegenmaßnahme: eigener Punkt im Testplan.
+
+**Zusammenspiel bestehender Bausteine:** Wie FEATURE-019 betrifft die Änderung nur `sc.map`-Kartentexte (Feld `t`), nicht die Kategorisierungslogik (Feld `c`) — `buildStages(sc)` stellt einmalig pro Szenario-Start die Schrittfolge inkl. `items:sc.map` zusammen, `renderCategorize` zeigt die Karten danach an und die bestehende Korrektheits-Prüfung (siehe `BUG-005`) vergleicht beim Einsortieren ausschließlich `st.items[idx].c` gegen den gewählten Bucket, nie den Kartentext. Riskante Kombination: eine Regel-Karte, die zwar keinen Namen/keine Zahl enthält, aber durch ihren Satzbau ("Wenn X passiert, dann Y") trotzdem wie die Beobachtung eines einzelnen Vorfalls klingt statt wie eine Bedingung, die für jeden Fall gilt — genau diese Kombination ist das zentrale Pre-Mortem-Risiko oben und wird über die geschärfte Prüfliste im Testplan abgesichert.
+
+**Optionenvergleich:**
+
+### Option A — Fester, kleiner Anteil pro Szenario (z. B. 1 von 3 Regel-Karten je Szenario) (✅ empfohlen)
+- Vorgehen: in jedem der 21 Szenarien eine der drei Regel-Karten (inhaltlich die am ehesten als Wenn-Dann-Bedingung formulierbare) auf Pfeil-Struktur umstellen — macht 21 von 63 Regel-Karten (1/3) betroffen.
+- Vorteile: gleichmäßig über alle Themen verteilt, verändert das Pfeil-Verhältnis spürbar, bleibt eine überschaubare, einzeln gut prüfbare Textmenge.
+- Nachteile: 21 Einzeltexte müssen einzeln auf Allgemeingültigkeit geprüft werden — Aufwand, aber kein Risiko.
+
+### Option B — Nur bei wenigen ausgewählten Szenarien, dafür mehrere Regel-Karten pro Szenario
+- Vorgehen: z. B. bei 5 von 21 Szenarien alle 3 Regel-Karten umstellen, restliche 16 Szenarien unverändert.
+- Nachteile: das Board verhält sich dann je nach Thema unterschiedlich (mal ist der Pfeil ein Signal, mal nicht) — macht das Muster für Spielende eher verwirrender als lehrreicher statt gleichmäßig unzuverlässiger. Nicht empfohlen.
+
+### Option C — Alle 63 Regel-Karten bekommen einen Pfeil
+- Nachteile: Pfeil wäre dann bei rule UND ex immer vorhanden — das Symbol verliert komplett jede Unterscheidungskraft, was zwar "kein Symbol-Raten" technisch erreicht, aber den Pfeil als Wenn-Dann-Stilmittel entwertet und ist deutlich mehr Änderungsaufwand als nötig, um "unzuverlässig" (nicht "bedeutungslos") zu erreichen. Nicht empfohlen.
+
+✅ **Empfehlung: Option A** — gleichmäßige, moderate Verteilung (1 von 3 Regel-Karten je Szenario), erreicht das Ziel ohne den Pfeil als Stilmittel komplett zu entwerten; genauer Anteil/genaue Auswahl der Karten wird gemeinsam mit Stephan bei Umsetzungsstart final festgelegt.
+
+**Analyse & Planung:**
+- [ ] Aktuellen Zustand verstanden: siehe "Verifiziert am Code" oben.
+- [ ] Betroffene Stelle identifiziert: ausgewählte `sc.map`-Einträge mit `"c":"rule"` in `public/index.html`.
+- [ ] Implementierungsansatz definiert: siehe Optionenvergleich oben.
+- [ ] Risiken benannt: siehe Pre-Mortem oben.
+- [ ] Aufwand geschätzt: mittel bis groß — ca. 21 Einzeltexte plus erhöhte Sorgfaltspflicht (Verwechslungsgefahr-Gegenprobe).
+
+**Testplan:**
+- [ ] jsdom-Test: für alle 21 Szenarien prüfen, dass die umformulierten Regel-Karten weiterhin `c==="rule"` sind, einen Pfeil enthalten, aber keine Ziffer und keinen der in FEATURE-019 definierten Einzelfall-Marker enthalten (automatisierte Gegenprobe zur Verwechslungsgefahr).
+- [ ] Derselbe Test prüft, dass alle Fragen-Karten unverändert `c==="q"` sind und weiterhin auf "?" enden, und dass alle Ziel-Karten textlich unverändert bleiben (Vergleich zum Ist-Stand).
+- [ ] Manueller Vorher/Nachher-Abgleich: jede umformulierte Regel-Karte gegen die Prüfliste (kein Name, keine Zahl, kein "eine von…", "immer"/"jedes Mal"-Charakter) durchgegangen — dokumentiert im Ticket bei Umsetzung.
+- [ ] `node --check` auf den extrahierten Skript-Inhalt.
+- [ ] Testabdeckung: wie FEATURE-019 szenario-spezifische Kartentexte — kein repräsentativer Stichproben-Test möglich, jede geänderte Karte wird einzeln geprüft.
+- [ ] Bestehende Tests (Schritt 2d, aktiv geprüft): `tests/FEATURE-012.test.js` prüft nur strukturelle Zahlen (1 goal/3 rule/2 ex/2 q je Szenario) — unverändert, da sich Kategorie/Anzahl nicht ändert. `tests/BUG-005.test.js` und `tests/BUG-007-BUG-008.test.js` vergleichen beim Einsortieren ausschließlich das Feld `c`, niemals Kartentext oder Pfeil — kein bestehender Test codiert eine Erwartung wie "Regel-Karten haben nie einen Pfeil" als Spiellogik; das bisherige Pfeil-Muster war nur eine zufällige Content-Eigenschaft, keine geprüfte Invariante. `tests/BUG-003.test.js` (Anführungszeichen-/Apostroph-Zähler) potenziell betroffen, falls neue Formulierungen zusätzliche Anführungszeichen/Apostrophe einführen — Zähler bei Bedarf nur mit Stephans ausdrücklicher Freigabe anpassen (wie bei FEATURE-017/018 etabliert).
+- [ ] Versionsnummer-Erhöhung geprüft.
+- [ ] Layout-Check (Playwright/Screenshot Desktop + Handy-Breite) für die längsten neuen Kartentexte.
+- [ ] Ein echter Blick im Browser (Desktop und Handy-Breite) bleibt offener Punkt bis Stephan ihn nach dem Release selbst bestätigt.
+
+**Freigabe:** Ausstehend — wartet auf Stephans Bestätigung in der Hauptsitzung, zusätzlich abhängig von der vorherigen Freigabe/Umsetzung von FEATURE-019 (siehe Abhängigkeit oben).
+
+**Scope-Änderungen:** *(leer bei Erstellung)*
+
+**Implementierungsnotizen:** *(leer bei Erstellung)*
 
 ## ✅ Done
 

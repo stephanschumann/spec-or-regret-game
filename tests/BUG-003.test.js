@@ -35,7 +35,11 @@
  *      text), shifting the baseline to 100 “, 100 ”, 541 ’. FEATURE-017
  *      (28.07.2026, Stephans Freigabe) added one more curly apostrophe
  *      ("everyone’s" in the Team-mode "Who's in the room?" intro text),
- *      shifting the baseline again to 100 “, 100 ”, 542 ’ — updated below.
+ *      shifting the baseline again to 100 “, 100 ”, 542 ’. FEATURE-019
+ *      (30.07.2026, Stephans Freigabe) reworded all 42 example cards in the
+ *      "A shared picture" categorize board to read as single concrete cases
+ *      (e.g. "person's", "customer's"), adding 4 more curly apostrophes,
+ *      shifting the baseline again to 100 “, 100 ”, 546 ’ — updated below.
  *      Any future ticket that adds quoted UI text will shift these
  *      numbers again; that is expected, not a defect.
  *   3. A real scenario ticket (rendered via the actual stageHead() render
@@ -130,7 +134,7 @@ function testSourceCharacterCounts() {
     assert.strictEqual(germanOpen, 0, "es sollte kein deutsches „-Zeichen mehr im Quelltext vorkommen, tatsächlich: " + germanOpen);
     assert.strictEqual(curlyLeft, 100, "es sollten genau 100 “-Zeichen im Quelltext stehen (99 zum Zeitpunkt von BUG-003 + 1 neu durch FEATURE-014, unverändert durch FEATURE-016), tatsächlich: " + curlyLeft);
     assert.strictEqual(curlyRight, 100, "es sollten genau 100 ”-Zeichen im Quelltext stehen (99 zum Zeitpunkt von BUG-003 + 1 neu durch FEATURE-014, unverändert durch FEATURE-016), tatsächlich: " + curlyRight);
-    assert.strictEqual(apostrophes, 542, "es sollten genau 542 Apostrophe (’) im Quelltext stehen (534 zum Zeitpunkt von BUG-003 + 2 neu durch FEATURE-014 + 2 neu durch FEATURE-015 + 2 neu durch FEATURE-016 + 1 neu durch FEATURE-018 + 1 neu durch FEATURE-017), tatsächlich: " + apostrophes);
+    assert.strictEqual(apostrophes, 546, "es sollten genau 546 Apostrophe (’) im Quelltext stehen (534 zum Zeitpunkt von BUG-003 + 2 neu durch FEATURE-014 + 2 neu durch FEATURE-015 + 2 neu durch FEATURE-016 + 1 neu durch FEATURE-018 + 1 neu durch FEATURE-017 + 4 neu durch FEATURE-019), tatsächlich: " + apostrophes);
     return null;
   } catch (err) {
     return "Zeichen-Zählung im Quelltext: " + err.message;
