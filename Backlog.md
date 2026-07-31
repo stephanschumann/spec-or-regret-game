@@ -6,89 +6,14 @@
 
 ## 🔄 In Progress
 
-### FEATURE-019 Beispiel-Karten im Mapping-Board eindeutig als Einzelfall formulieren
-
-| Feld | Wert |
-|------|------|
-| **Typ** | Feature |
-| **Priorität** | Niedrig *(vorgeschlagen — kleiner, risikoarmer erster Schritt; von Stephan noch zu bestätigen)* |
-| **Status** | In Progress |
-| **In Progress seit** | 2026-07-30 |
-| **Erstellt** | 2026-07-30 |
-
-**Beschreibung:** Nutzer-Feedback: Beispiel- und Regel-Karten im Kategorisierungs-Board "A shared picture" sind inhaltlich/stilistisch zu ähnlich und werden leicht verwechselt. Aktuell lässt sich eine Beispiel-Karte im Board syntaktisch (u. a. am Pfeil "→") erkennen, nicht notwendig an der Formulierung selbst. Ziel: jede der 42 Beispiel-Karten so umformulieren, dass sie schon am Wortlaut — nicht nur am Pfeil — als konkreter Einzelfall erkennbar ist. Reiner erster Schritt einer zweiteiligen Verbesserung; FEATURE-020 baut darauf auf.
-
-**User Story:** Als Spieler/in möchte ich beim Kategorisieren einer Karte schon am Text erkennen, ob es sich um einen konkreten Einzelfall oder eine allgemeingültige Regel handelt, damit ich die vier Kategorien wirklich verstehe statt am Symbol zu raten.
-
-**Verifiziert am Code (30.07.2026):** Repo sauber (`main`, `git status` clean, `GAME_VERSION = "1.28.4"`, passend zum zuletzt bekannten Stand). Kategorisierungs-Board "A shared picture" = Stage-Typ "categorize" (`renderCategorize`), Kategorien über die Konstante `MAP_BUCKETS` (goal/rule/ex/q), Karteninhalte über `sc.map` pro Szenario. Über alle 21 Szenarien per Skript ausgezählt (regex `{"t":"...","c":"CAT"}` gegen alle 168 Karten): 21 goal + 63 rule + 42 ex + 42 q — exakt 1 goal + 3 rule + 2 ex + 2 q je Szenario (8 pro Szenario), deckt sich mit der bereits bestehenden strukturellen Prüfung in `tests/FEATURE-012.test.js`. Alle 42 ex-Karten enthalten "→" (0 Ausnahmen), keine rule- oder goal-Karte enthält "→". Keine rule-Karte enthält eine Ziffer; bei den ex-Karten 14 von 42. Die `MAP_BUCKETS`-Konstante beschreibt "ex" bereits jetzt mit dem UI-Hinweistext "One concrete case" ("hint"-Feld, wird beim Spielen als Kategorie-Erklärung angezeigt) — dieser Hinweistext bleibt unverändert, nur die Karten-Texte selbst werden geschärft.
-
-**Fundstellen-Sweep:** Gesucht nach `"c":"ex"` im gesamten Code: 42 Treffer, ausschließlich innerhalb der `sc.map`-Arrays der 21 Szenarien (Kategorisierungs-Board "A shared picture"). Zusätzlich geprüft, ob dieselbe vier-Kategorien-Struktur (goal/rule/ex/q) an anderer Stelle im Spiel wiederverwendet wird: nein — das zweite Kategorisierungs-Board im Spiel ("Nothing left to guess", `NG_BUCKETS`) nutzt drei komplett andere Kategorien (done/limit/block) ohne Beispiel/Regel-Unterscheidung und ist nicht betroffen. Keine weiteren Fundstellen.
-
-**Zustands-Check:** Wartezustand: keiner — Karten werden synchron beim Betreten des Schritts gerendert. Leerzustand: nicht relevant, jedes der 21 Szenarien hat für alle vier Kategorien immer die volle Kartenzahl befüllt (strukturell geprüft, s. o.). Fehlerfall: keiner neu — reine Textänderung an bestehenden Karten, keine neue Logik; die bestehende Kategorisierungs-Prüfung (richtig/falsch einsortiert) bleibt unverändert, da sie über das Datenfeld `c` arbeitet, nicht über den Kartentext.
-
-**Scope:** Eingeschlossen: alle 42 Beispiel-Karten über alle 21 Szenarien werden so umformuliert, dass sie an der Formulierung selbst (z. B. "eine von …", eine benannte Menge, ein benannter Akteur oder Zeitpunkt) klar als einzelner, konkreter Fall erkennbar sind. Der Pfeil "→" bleibt erhalten. Inhalt/Bedeutung jeder Karte, ihre Kategorie-Zuordnung und alle anderen Kartentypen (Ziel/Regel/Frage) bleiben unverändert. Ausgeschlossen: jede Änderung an Regel-, Ziel- oder Fragen-Karten (das ist Ticket FEATURE-020, dort wieder aufgegriffen); jede Änderung an der Kategorisierungslogik, den Bucket-Labels/Hinweistexten oder an einem anderen Spielschritt.
-
-**Akzeptanzkriterien:**
-- [ ] Beim Betreten von "A shared picture" liest sich jede Beispiel-Karte klar als ein einzelner, konkreter Fall — erkennbar an einer sprachlichen Markierung (z. B. "eine von …", eine genannte Zahl/Menge, ein benannter Akteur oder Zeitpunkt), nicht mehr nur am Pfeil.
-- [ ] Die inhaltliche Aussage jeder der 42 Beispiel-Karten ist nach der Umformulierung identisch zur vorherigen Aussage — nichts wird fachlich neu behauptet oder weggelassen.
-- [ ] Jede Beispiel-Karte enthält weiterhin einen Pfeil, der die Ursache-Wirkung-Beziehung des Einzelfalls zeigt.
-- [ ] Keine Beispiel-Karte wechselt die Kategorie oder wird versehentlich zu einer Regel-, Ziel- oder Fragen-Karte.
-- [ ] Das gilt für alle 21 Themen gleichermaßen, nicht nur für ein Beispielthema.
-
-**Pre-Mortem:**
-- 💀 Eine Umformulierung ändert versehentlich die fachliche Aussage einer Karte (z. B. eine Zahl vertauscht) → Gegenmaßnahme: eigenes AK "inhaltlich identisch", Vorher/Nachher-Abgleich aller 42 Texte im Testplan.
-- 💀 Der neue Wortlaut wird für ein Szenario ungewöhnlich lang und sprengt das Kartenlayout → Gegenmaßnahme: Layout-Check (Playwright/Screenshot Desktop + Handy-Breite) im Testplan.
-- 💀 Eine der 42 neuen Formulierungen wirkt trotzdem allgemeingültig statt konkret (z. B. "typischerweise…" statt "eine von…") und verfehlt den eigentlichen Zweck des Tickets → Gegenmaßnahme: eigenes AK, Stichprobe im Testplan gegen eine bewusste Prüfliste ("eine/eines von…", benannte Menge/Akteur/Zeitpunkt).
-- 💀 Eine bestehende, exakte Zeichenzählung (z. B. Anführungszeichen-/Apostroph-Zähler in `tests/BUG-003.test.js`) verschiebt sich durch die neuen Formulierungen und bricht unbemerkt → Gegenmaßnahme: Zähler nach Festlegung der finalen Texte neu auszählen, nur mit Stephans ausdrücklicher Freigabe anpassen (wie bei FEATURE-017/018 bereits etabliert).
-- 💀 `GAME_VERSION` wird bei der Umsetzung vergessen zu erhöhen → Gegenmaßnahme: eigener Punkt im Testplan.
-
-**Zusammenspiel bestehender Bausteine:** Betrifft nur die Kartentexte in `sc.map` (Datenfeld `t`), nicht die Kategorisierungslogik selbst, die über `c` (nicht über Textinhalt) rechnet — `renderCategorize` liest den Text nur zur Anzeige, die bestehende Korrektheits-Prüfung beim Einsortieren (siehe `BUG-005`) vergleicht ausschließlich `st.items[idx].c` gegen den gewählten Bucket, nie `t`. Reihenfolge: `buildStages(sc)` erzeugt für das gewählte Szenario einmalig die Schrittfolge inkl. `items:sc.map`, danach zeigt `renderCategorize` die Karten und wertet beim Einsortieren aus. Riskante Kombination, die trotzdem geprüft werden musste: keine der Umformulierungen darf versehentlich einen Text erzeugen, der mit einem exakten String-Vergleich in einem bestehenden Test kollidiert — im Fundstellen-Sweep der Tests (Schritt 2d) geprüft: keine solche Abhängigkeit gefunden, da `BUG-005`/`BUG-007-BUG-008`/`FEATURE-012` ausschließlich über `c` bzw. reine Strukturzahlen prüfen, nie über exakten Kartentext.
-
-**Optionenvergleich:**
-
-### Option A — Sprachliche Marker direkt im bestehenden Kartentext ergänzen (✅ empfohlen)
-- Vorgehen: jede der 42 Beispiel-Karten am Satzanfang oder in der Formulierung um einen klaren Einzelfall-Marker ergänzen/umschreiben ("eine von 200 Zeilen…", "an einem Mittwoch…", "eine Mitarbeiterin…"), Pfeil und Rest der Aussage unverändert.
-- Vorteile: löst die Verwechslungsgefahr an der Wurzel (Sprache statt Symbol), keine Änderung an Datenstruktur/Logik nötig, gut testbar (Textvergleich).
-- Nachteile: 42 Einzeltexte müssen von Hand geprüft werden — Aufwand, aber kein Risiko.
-
-### Option B — Ein zusätzliches UI-Label/Icon "Einzelfall" vor jede Beispiel-Karte setzen
-- Vorgehen: visuelle Kennzeichnung statt/zusätzlich zur Sprache.
-- Nachteile: löst laut Auftrag explizit nicht das eigentliche Problem (Formulierung soll selbst erkennbar sein, nicht nur ein zusätzliches Label) und macht das Board voller. Nicht Auftrag dieses Tickets, aber als spätere Ergänzung denkbar.
-
-✅ **Empfehlung: Option A** — entspricht dem expliziten Auftrag ("schon an der Formulierung erkennbar") und bleibt eine reine Content-Änderung ohne Logikrisiko.
-
-**Analyse & Planung:**
-- [ ] Aktuellen Zustand verstanden: siehe "Verifiziert am Code" oben.
-- [ ] Betroffene Stelle identifiziert: `sc.map`-Einträge mit `"c":"ex"` in allen 21 Szenario-Objekten in `public/index.html`.
-- [ ] Implementierungsansatz definiert: siehe Optionenvergleich oben.
-- [ ] Risiken benannt: siehe Pre-Mortem oben.
-- [ ] Aufwand geschätzt: mittel (42 Einzeltexte, aber reine Content-Änderung ohne Logikänderung).
-
-**Testplan:**
-- [ ] jsdom-Test: `public/index.html` laden, für alle 21 Szenarien die `sc.map`-Einträge mit `c==="ex"` prüfen: (a) Text enthält weiterhin "→", (b) Text enthält mindestens einen Einzelfall-Marker (Regex/Stichwortliste), (c) Kategorie unverändert "ex".
-- [ ] Manueller Vorher/Nachher-Abgleich aller 42 Texte (fachliche Aussage identisch) — dokumentiert im Ticket bei Umsetzung.
-- [ ] `node --check` auf den extrahierten Skript-Inhalt.
-- [ ] Testabdeckung: Änderung betrifft ausschließlich szenario-spezifische Kartentexte (Content), nicht die gemeinsame `MAP_BUCKETS`-Konstante oder `renderCategorize` selbst — trotzdem müssen alle 21 Szenarien einzeln geprüft werden (kein repräsentativer Stichproben-Test möglich, da jede Karte einen eigenen Text hat).
-- [ ] Bestehende Tests (Schritt 2d, aktiv geprüft): `tests/FEATURE-012.test.js` prüft nur strukturelle Zahlen (1 goal/3 rule/2 ex/2 q je Szenario) — unverändert, da sich nur Text, nicht Kategorie/Anzahl ändert. `tests/BUG-005.test.js`/`tests/BUG-007-BUG-008.test.js` vergleichen nur `c`, nie Text — unverändert. `tests/BUG-003.test.js` (Anführungszeichen-/Apostroph-Konsistenz) potenziell betroffen, falls neue Formulierungen zusätzliche Anführungszeichen/Apostrophe einführen — Zähler bei Bedarf mit Stephans Freigabe anpassen (siehe Pre-Mortem).
-- [ ] Versionsnummer-Erhöhung geprüft.
-- [ ] Layout-Check (Playwright/Screenshot Desktop + Handy-Breite) für die längsten neuen Kartentexte.
-- [ ] Ein echter Blick im Browser bleibt offener Punkt bis Stephans Bestätigung nach Release.
-
-**Freigabe:** Ausstehend — wartet auf Stephans Bestätigung in der Hauptsitzung (siehe Zusammenfassung im Chat).
-
-**Scope-Änderungen:** *(leer bei Erstellung)*
-
-**Implementierungsnotizen:** *(leer bei Erstellung)*
-
-## 📋 ToDo
-
 ### FEATURE-020 Format-Streuung bei Regel-Karten gegen reines Symbol-Raten im Mapping-Board
 
 | Feld | Wert |
 |------|------|
 | **Typ** | Feature |
 | **Priorität** | Mittel *(vorgeschlagen — größerer, riskanterer Schritt als FEATURE-019; von Stephan noch zu bestätigen)* |
-| **Status** | ToDo |
+| **Status** | In Progress |
+| **In Progress seit** | 2026-07-31 |
 | **Erstellt** | 2026-07-30 |
 
 **Abhängigkeit:** Baut auf FEATURE-019 auf (dort werden die Beispiel-Karten zuerst sprachlich als Einzelfall erkennbar gemacht). Sollte nicht vor Abschluss/Freigabe von FEATURE-019 umgesetzt werden — sonst würde die dort gelöste Verwechslungsgefahr zwischenzeitlich in neuer Form wiederhergestellt (siehe Pre-Mortem).
@@ -162,7 +87,87 @@
 
 **Implementierungsnotizen:** *(leer bei Erstellung)*
 
+## 📋 ToDo
+
 ## ✅ Done
+
+### FEATURE-019 Beispiel-Karten im Mapping-Board eindeutig als Einzelfall formulieren
+
+| Feld | Wert |
+|------|------|
+| **Typ** | Feature |
+| **Priorität** | Niedrig *(vorgeschlagen — kleiner, risikoarmer erster Schritt; von Stephan noch zu bestätigen)* |
+| **Status** | Done |
+| **Done seit** | 2026-07-30 |
+| **In Progress seit** | 2026-07-30 |
+| **Erstellt** | 2026-07-30 |
+
+**Beschreibung:** Nutzer-Feedback: Beispiel- und Regel-Karten im Kategorisierungs-Board "A shared picture" sind inhaltlich/stilistisch zu ähnlich und werden leicht verwechselt. Aktuell lässt sich eine Beispiel-Karte im Board syntaktisch (u. a. am Pfeil "→") erkennen, nicht notwendig an der Formulierung selbst. Ziel: jede der 42 Beispiel-Karten so umformulieren, dass sie schon am Wortlaut — nicht nur am Pfeil — als konkreter Einzelfall erkennbar ist. Reiner erster Schritt einer zweiteiligen Verbesserung; FEATURE-020 baut darauf auf.
+
+**User Story:** Als Spieler/in möchte ich beim Kategorisieren einer Karte schon am Text erkennen, ob es sich um einen konkreten Einzelfall oder eine allgemeingültige Regel handelt, damit ich die vier Kategorien wirklich verstehe statt am Symbol zu raten.
+
+**Verifiziert am Code (30.07.2026):** Repo sauber (`main`, `git status` clean, `GAME_VERSION = "1.28.4"`, passend zum zuletzt bekannten Stand). Kategorisierungs-Board "A shared picture" = Stage-Typ "categorize" (`renderCategorize`), Kategorien über die Konstante `MAP_BUCKETS` (goal/rule/ex/q), Karteninhalte über `sc.map` pro Szenario. Über alle 21 Szenarien per Skript ausgezählt (regex `{"t":"...","c":"CAT"}` gegen alle 168 Karten): 21 goal + 63 rule + 42 ex + 42 q — exakt 1 goal + 3 rule + 2 ex + 2 q je Szenario (8 pro Szenario), deckt sich mit der bereits bestehenden strukturellen Prüfung in `tests/FEATURE-012.test.js`. Alle 42 ex-Karten enthalten "→" (0 Ausnahmen), keine rule- oder goal-Karte enthält "→". Keine rule-Karte enthält eine Ziffer; bei den ex-Karten 14 von 42. Die `MAP_BUCKETS`-Konstante beschreibt "ex" bereits jetzt mit dem UI-Hinweistext "One concrete case" ("hint"-Feld, wird beim Spielen als Kategorie-Erklärung angezeigt) — dieser Hinweistext bleibt unverändert, nur die Karten-Texte selbst werden geschärft.
+
+**Fundstellen-Sweep:** Gesucht nach `"c":"ex"` im gesamten Code: 42 Treffer, ausschließlich innerhalb der `sc.map`-Arrays der 21 Szenarien (Kategorisierungs-Board "A shared picture"). Zusätzlich geprüft, ob dieselbe vier-Kategorien-Struktur (goal/rule/ex/q) an anderer Stelle im Spiel wiederverwendet wird: nein — das zweite Kategorisierungs-Board im Spiel ("Nothing left to guess", `NG_BUCKETS`) nutzt drei komplett andere Kategorien (done/limit/block) ohne Beispiel/Regel-Unterscheidung und ist nicht betroffen. Keine weiteren Fundstellen.
+
+**Zustands-Check:** Wartezustand: keiner — Karten werden synchron beim Betreten des Schritts gerendert. Leerzustand: nicht relevant, jedes der 21 Szenarien hat für alle vier Kategorien immer die volle Kartenzahl befüllt (strukturell geprüft, s. o.). Fehlerfall: keiner neu — reine Textänderung an bestehenden Karten, keine neue Logik; die bestehende Kategorisierungs-Prüfung (richtig/falsch einsortiert) bleibt unverändert, da sie über das Datenfeld `c` arbeitet, nicht über den Kartentext.
+
+**Scope:** Eingeschlossen: alle 42 Beispiel-Karten über alle 21 Szenarien werden so umformuliert, dass sie an der Formulierung selbst (z. B. "eine von …", eine benannte Menge, ein benannter Akteur oder Zeitpunkt) klar als einzelner, konkreter Fall erkennbar sind. Der Pfeil "→" bleibt erhalten. Inhalt/Bedeutung jeder Karte, ihre Kategorie-Zuordnung und alle anderen Kartentypen (Ziel/Regel/Frage) bleiben unverändert. Ausgeschlossen: jede Änderung an Regel-, Ziel- oder Fragen-Karten (das ist Ticket FEATURE-020, dort wieder aufgegriffen); jede Änderung an der Kategorisierungslogik, den Bucket-Labels/Hinweistexten oder an einem anderen Spielschritt.
+
+**Akzeptanzkriterien:**
+- [x] Beim Betreten von "A shared picture" liest sich jede Beispiel-Karte klar als ein einzelner, konkreter Fall — erkennbar an einer sprachlichen Markierung (z. B. "eine von …", eine genannte Zahl/Menge, ein benannter Akteur oder Zeitpunkt), nicht mehr nur am Pfeil.
+- [x] Die inhaltliche Aussage jeder der 42 Beispiel-Karten ist nach der Umformulierung identisch zur vorherigen Aussage — nichts wird fachlich neu behauptet oder weggelassen.
+- [x] Jede Beispiel-Karte enthält weiterhin einen Pfeil, der die Ursache-Wirkung-Beziehung des Einzelfalls zeigt.
+- [x] Keine Beispiel-Karte wechselt die Kategorie oder wird versehentlich zu einer Regel-, Ziel- oder Fragen-Karte.
+- [x] Das gilt für alle 21 Themen gleichermaßen, nicht nur für ein Beispielthema.
+
+**Pre-Mortem:**
+- 💀 Eine Umformulierung ändert versehentlich die fachliche Aussage einer Karte (z. B. eine Zahl vertauscht) → Gegenmaßnahme: eigenes AK "inhaltlich identisch", Vorher/Nachher-Abgleich aller 42 Texte im Testplan.
+- 💀 Der neue Wortlaut wird für ein Szenario ungewöhnlich lang und sprengt das Kartenlayout → Gegenmaßnahme: Layout-Check (Playwright/Screenshot Desktop + Handy-Breite) im Testplan.
+- 💀 Eine der 42 neuen Formulierungen wirkt trotzdem allgemeingültig statt konkret (z. B. "typischerweise…" statt "eine von…") und verfehlt den eigentlichen Zweck des Tickets → Gegenmaßnahme: eigenes AK, Stichprobe im Testplan gegen eine bewusste Prüfliste ("eine/eines von…", benannte Menge/Akteur/Zeitpunkt).
+- 💀 Eine bestehende, exakte Zeichenzählung (z. B. Anführungszeichen-/Apostroph-Zähler in `tests/BUG-003.test.js`) verschiebt sich durch die neuen Formulierungen und bricht unbemerkt → Gegenmaßnahme: Zähler nach Festlegung der finalen Texte neu auszählen, nur mit Stephans ausdrücklicher Freigabe anpassen (wie bei FEATURE-017/018 bereits etabliert).
+- 💀 `GAME_VERSION` wird bei der Umsetzung vergessen zu erhöhen → Gegenmaßnahme: eigener Punkt im Testplan.
+
+**Zusammenspiel bestehender Bausteine:** Betrifft nur die Kartentexte in `sc.map` (Datenfeld `t`), nicht die Kategorisierungslogik selbst, die über `c` (nicht über Textinhalt) rechnet — `renderCategorize` liest den Text nur zur Anzeige, die bestehende Korrektheits-Prüfung beim Einsortieren (siehe `BUG-005`) vergleicht ausschließlich `st.items[idx].c` gegen den gewählten Bucket, nie `t`. Reihenfolge: `buildStages(sc)` erzeugt für das gewählte Szenario einmalig die Schrittfolge inkl. `items:sc.map`, danach zeigt `renderCategorize` die Karten und wertet beim Einsortieren aus. Riskante Kombination, die trotzdem geprüft werden musste: keine der Umformulierungen darf versehentlich einen Text erzeugen, der mit einem exakten String-Vergleich in einem bestehenden Test kollidiert — im Fundstellen-Sweep der Tests (Schritt 2d) geprüft: keine solche Abhängigkeit gefunden, da `BUG-005`/`BUG-007-BUG-008`/`FEATURE-012` ausschließlich über `c` bzw. reine Strukturzahlen prüfen, nie über exakten Kartentext.
+
+**Optionenvergleich:**
+
+### Option A — Sprachliche Marker direkt im bestehenden Kartentext ergänzen (✅ empfohlen)
+- Vorgehen: jede der 42 Beispiel-Karten am Satzanfang oder in der Formulierung um einen klaren Einzelfall-Marker ergänzen/umschreiben ("eine von 200 Zeilen…", "an einem Mittwoch…", "eine Mitarbeiterin…"), Pfeil und Rest der Aussage unverändert.
+- Vorteile: löst die Verwechslungsgefahr an der Wurzel (Sprache statt Symbol), keine Änderung an Datenstruktur/Logik nötig, gut testbar (Textvergleich).
+- Nachteile: 42 Einzeltexte müssen von Hand geprüft werden — Aufwand, aber kein Risiko.
+
+### Option B — Ein zusätzliches UI-Label/Icon "Einzelfall" vor jede Beispiel-Karte setzen
+- Vorgehen: visuelle Kennzeichnung statt/zusätzlich zur Sprache.
+- Nachteile: löst laut Auftrag explizit nicht das eigentliche Problem (Formulierung soll selbst erkennbar sein, nicht nur ein zusätzliches Label) und macht das Board voller. Nicht Auftrag dieses Tickets, aber als spätere Ergänzung denkbar.
+
+✅ **Empfehlung: Option A** — entspricht dem expliziten Auftrag ("schon an der Formulierung erkennbar") und bleibt eine reine Content-Änderung ohne Logikrisiko.
+
+**Analyse & Planung:**
+- [x] Aktuellen Zustand verstanden: siehe "Verifiziert am Code" oben.
+- [x] Betroffene Stelle identifiziert: `sc.map`-Einträge mit `"c":"ex"` in allen 21 Szenario-Objekten in `public/index.html`.
+- [x] Implementierungsansatz definiert: siehe Optionenvergleich oben.
+- [x] Risiken benannt: siehe Pre-Mortem oben.
+- [x] Aufwand geschätzt: mittel (42 Einzeltexte, aber reine Content-Änderung ohne Logikänderung).
+
+**Testplan:**
+- [x] jsdom-Test: neue Datei `tests/FEATURE-019.test.js` prüft für alle 21 Szenarien jede `c==="ex"`-Karte: (a) Text enthält weiterhin "→", (b) Text enthält mindestens einen Einzelfall-Marker, (c) Kategorie unverändert "ex". Grün (42/42).
+- [x] Manueller Vorher/Nachher-Abgleich aller 42 Texte (fachliche Aussage identisch) — Stephan hat die vollständige Tabelle erhalten und freigegeben, inkl. explizit markierter Ausnahme bei Karte #34 ("A £3 card fee" → zusätzlich "leaves the account" ergänzt, nach Vorbild der Nachbarkarte).
+- [x] `node --check`-äquivalent: jsdom lädt und parst das komplette Skript beim Testlauf fehlerfrei, keine Syntaxfehler.
+- [x] Testabdeckung: alle 21 Szenarien einzeln geprüft (kein Stichprobentest, da jede Karte eigenen Text hat).
+- [x] Bestehende Tests (Regressionslauf): 30 von 31 Testdateien grün gegen den neuen Stand. `tests/BUG-003.test.js` (Anführungszeichen-/Apostroph-Zähler) war zunächst rot (Apostrophe 542→546 durch neue "'s"-Konstruktionen wie "person's", "customer's") — mit Stephans ausdrücklicher Freigabe auf 546 angepasst, danach grün. Einzige verbleibende Abweichung: `tests/FEATURE-016.test.js` (Timeout) — bereits vorher bekannter, von TASK-004 dokumentierter unabhängiger Hänger, nicht durch dieses Ticket verursacht.
+- [x] Versionsnummer-Erhöhung geprüft: `GAME_VERSION` "1.28.4" → "1.28.5" (Patch, Präzedenzfall FEATURE-003 für reine Textänderungen).
+- [x] Layout-Check: Live-Verifikation im echten Browser (siehe unten) zeigte die neuen Kartentexte ohne erkennbare Layout-Probleme.
+- [x] Echter Blick im Browser: per Chrome-Subagent auf learning.stephanschumann.com durchgeführt (Version v1.28.5 bestätigt, Kategorisierungs-Board "A shared picture" zeigt die neue Formulierung, z. B. "One line in that batch has no account number → …").
+
+**Freigabe:** Erteilt (Stephan, 30.07.2026) — inkl. Freigabe der BUG-003-Testanpassung und der Karte-#34-Ausnahme.
+
+**Scope-Änderungen:** *(keine — Umsetzung entspricht dem freigegebenen Scope)*
+
+**Implementierungsnotizen:**
+Alle 42 Beispiel-Karten (`"c":"ex"`) in `public/index.html` umformuliert (überwiegend "A …" → "One …", vereinzelt "for one payment", "that same card" o. ä.), Pfeil und fachliche Aussage jeder Karte unverändert — vollständige Vorher/Nachher-Tabelle wurde Stephan zur Prüfung vorgelegt und freigegeben. Neue dauerhafte Testdatei `tests/FEATURE-019.test.js` (42/42 Karten geprüft: Pfeil, Einzelfall-Marker, Kategorie `ex`). `tests/BUG-003.test.js` mit Stephans Freigabe von 542 auf 546 Apostrophe aktualisiert (Kommentar-Historie ergänzt). `GAME_VERSION` auf "1.28.5" erhöht. Umsetzung erfolgte per Subagent direkt auf Stephans Mac-Repo (Geräte-Datei-Brücke), Tests liefen in der Cloud-Sandbox (jsdom, kein Internetzugang auf der Mac-VM).
+
+**Release:** Committed und gepusht von Stephan (`git commit` + `git push`, Commit `9659831`), GitHub Action "Deploy to Firebase Hosting on merge" lief grün (Run 48). Live-Ergebnis per Chrome-Browser-Subagent verifiziert: `learning.stephanschumann.com` zeigt "Spec or Regret v1.28.5", das Kategorisierungs-Board "A shared picture" im Szenario "Bulk supplier payments" zeigt die neue Formulierung. Ticket auf Done gesetzt.
 
 ### TASK-004 Alte fest einprogrammierte GAME_VERSION-Strings in Testdateien bereinigen
 
