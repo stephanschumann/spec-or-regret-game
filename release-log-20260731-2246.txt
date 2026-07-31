@@ -1,0 +1,22 @@
+-> Backlog.md/Backlog-Archive.md geaendert - regeneriere Kanban-HTML automatisch ...
+
+32 Tickets · 0 Fehler · 0 Warnungen
+Tickets gesamt: 32
+  inprogress     1  FEATURE-020
+  done          31  FEATURE-019, TASK-004, FEATURE-017, FEATURE-018, BUG-007, BUG-008, BUG-009, TASK-003, FEATURE-016, BUG-006, BUG-005, FEATURE-015, FEATURE-014, BUG-004, BUG-003, BUG-002, FEATURE-013, FEATURE-012, FEATURE-006, FEATURE-011, FEATURE-010, FEATURE-008, FEATURE-007, TASK-002, BUG-001, FEATURE-005, FEATURE-004, FEATURE-003, FEATURE-002, TASK-001, FEATURE-001
+HTML geschrieben: /Users/stephan/Claude/Projects/Spec or Regret/spec-or-regret-game/tools/_kanban_out/spec-or-regret-kanban.html
+→ Lint Backlog.md …
+✓ Lint sauber. → Generiere …
+
+✓ Fertig: /Users/stephan/Claude/Projects/Spec or Regret/spec-or-regret-game/tools/_kanban_out/spec-or-regret-kanban.html
+→ Jetzt: SendUserFile + mcp__remote-devices__update_artifact (id: spec-or-regret-kanban).
+-> HTML aktualisiert und in diesen Commit mit aufgenommen. NOCH NICHT live: naechste Claude-Sitzung muss SendUserFile + update_artifact (id: spec-or-regret-kanban) ausfuehren.
+hint: The '.git/hooks/post-commit' hook was ignored because it's not set as executable.
+hint: You can disable this warning with `git config set advice.ignoredHook false`.
+[main ccca654] FEATURE-020: Format-Streuung bei Regel-Karten gegen reines Symbol-Raten im Mapping-Board (v1.28.6)
+ 6 files changed, 429 insertions(+), 102 deletions(-)
+ create mode 100644 release-log-20260731-2246.txt
+ create mode 100644 tests/FEATURE-020.test.js
+ create mode 100644 tools/_kanban_out/.sync_state
+To https://github.com/stephanschumann/spec-or-regret-game.git
+   a5c095a..ccca654  main -> main

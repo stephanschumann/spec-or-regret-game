@@ -6,13 +6,18 @@
 
 ## 🔄 In Progress
 
+## 📋 ToDo
+
+## ✅ Done
+
 ### FEATURE-020 Format-Streuung bei Regel-Karten gegen reines Symbol-Raten im Mapping-Board
 
 | Feld | Wert |
 |------|------|
 | **Typ** | Feature |
 | **Priorität** | Mittel *(vorgeschlagen — größerer, riskanterer Schritt als FEATURE-019; von Stephan noch zu bestätigen)* |
-| **Status** | In Progress |
+| **Status** | Done |
+| **Done seit** | 2026-07-31 |
 | **In Progress seit** | 2026-07-31 |
 | **Erstellt** | 2026-07-30 |
 
@@ -86,10 +91,6 @@
 **Scope-Änderungen:** *(leer bei Erstellung)*
 
 **Implementierungsnotizen:** *(leer bei Erstellung)*
-
-## 📋 ToDo
-
-## ✅ Done
 
 ### FEATURE-019 Beispiel-Karten im Mapping-Board eindeutig als Einzelfall formulieren
 
